@@ -144,3 +144,20 @@ export const useMonthlyAttendanceStats = (year, mode) => {
     // ...options,
   });
 };
+
+export const useAttendanceReport = (params = {}, options = {}) => {
+  return useQuery({
+    queryKey: QUERY_KEYS.ATTENDANCE.REPORT(params),
+    queryFn: async () => {
+      const { data } = await AttendanceService.getAttendanceReport(params);
+      return data;
+    },
+    cacheTime: 5 * 60 * 1000,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: false,
+    keepPreviousData: true,
+    ...options,
+  });
+};

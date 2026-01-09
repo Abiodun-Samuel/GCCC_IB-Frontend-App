@@ -6,7 +6,7 @@ import Animated from '@/components/common/Animated';
 import Message from '@/components/common/Message';
 import Button from '@/components/ui/Button';
 import { useAdminMarkAttendance } from '@/queries/attendance.query';
-import { useMembers } from '@/queries/member.query';
+import { useMembersByRole } from '@/queries/member.query';
 import MultiSelectForm from '@/components/form/useForm/MultiSelectForm';
 import { getMatchingServiceId } from '@/utils/helper';
 import { markPresentMemberSchema } from '@/schema';
@@ -18,7 +18,7 @@ const INITIAL_VALUES = {
 };
 
 const AttendanceMarkPresent = ({ services = [], onClose, activeFilters }) => {
-    const { data: members, isLoading: isLoadingMembers } = useMembers();
+    const { data: members, isLoading: isLoadingMembers } = useMembersByRole({ role: 'all' });;
 
     const {
         mutateAsync: markPresent,

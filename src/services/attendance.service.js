@@ -64,6 +64,21 @@ export const AttendanceService = {
     const { data } = await $api.get(endpoint);
     return data;
   },
+
+  async getAttendanceReport(params = {}) {
+    const queryParams = new URLSearchParams();
+
+    ['service_id', 'attendance_date'].forEach((key) => {
+      if (params[key]) queryParams.append(key, params[key]);
+    });
+
+    const query = queryParams.toString();
+    const endpoint = `/admin/attendance/report${query ? `?${query}` : ''}`;
+
+    const { data } = await $api.get(endpoint);
+    return data;
+  },
+
   async getAdminAttendanceMonthlyStats(year, mode) {
     const { data } = await $api.get(
       `/admin/attendance/monthly-stats?year=${year}&mode=${mode}`

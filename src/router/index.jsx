@@ -10,6 +10,7 @@ import PageLoader from '@/components/ui/PageLoader';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
 import EventCard from '@/components/dashboard/events/EventCard';
 import EventDetailsPage from '@/pages/Home/EventsPage';
+import AdminAttendanceReportPage from '@/pages/Admin/AdminAttendanceReportPage';
 
 const LoginPage = lazy(() => import('../pages/Home/Auth/LoginPage'));
 const RegisterPage = lazy(() => import('../pages/Home/Auth/RegisterPage'));
@@ -135,6 +136,10 @@ const AppRoutes = [
               {
                 path: 'attendance',
                 element: withSuspense(AdminAttendancePage),
+              },
+              {
+                path: 'attendance/report',
+                element: withSuspense(AdminAttendanceReportPage),
               },
               {
                 path: 'events',

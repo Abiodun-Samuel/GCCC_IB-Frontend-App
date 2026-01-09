@@ -39,6 +39,7 @@ export const QUERY_KEYS = {
     CORE_DATA: ['core data'],
     DETAIL: (id) => ['services', 'detail', id],
   },
+
   FIRST_TIMERS: {
     ALL: (params) => ['all-first-timers', params],
     FIRSTTIMER_FOLLOWUPS: ['first-timers', 'FIRSTTIMER_FOLLOWUPS'],
@@ -79,6 +80,7 @@ export const QUERY_KEYS = {
   ATTENDANCE: {
     ALL: ['attendance'],
     HISTORY: ['attendance', 'history'],
+    REPORT: (params) => ['attendance', 'report', params],
     ALL_RECORDS: (params) => ['attendance', 'all-records', params],
     ALL_RECORDS_USER: (params) => ['attendance', 'all-records_user', params],
     BY_MONTH_YEAR: (month, year) => ['attendance', 'filtered', month, year],
