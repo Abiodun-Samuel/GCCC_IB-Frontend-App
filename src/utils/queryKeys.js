@@ -42,6 +42,7 @@ export const QUERY_KEYS = {
 
   FIRST_TIMERS: {
     ALL: (params) => ['all-first-timers', params],
+    REPORT: (params) => ['first-timers', 'report', params],
     FIRSTTIMER_FOLLOWUPS: ['first-timers', 'FIRSTTIMER_FOLLOWUPS'],
     DETAIL: (id) => ['first-timers', id],
     FOLLOWUPS: (id) => ['FOLLOWUPS', id],

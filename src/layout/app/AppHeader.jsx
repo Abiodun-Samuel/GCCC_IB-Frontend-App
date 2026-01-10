@@ -6,12 +6,14 @@ import { useSidebar } from "@/context/SidebarContext";
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
 import UserDropdown from "@/components/header/UserDropdown";
 import Animated from "@/components/common/Animated";
+import { HomeIcon } from "lucide-react";
 
 const BREAKPOINT_LG = 1024;
 const LOGO_DIMENSIONS = { width: 150, height: 40 };
 
 const Logo = () => (
-  <Link to="/" className="lg:hidden" aria-label="Go to homepage">
+  <Link to="/" className="lg:hidden flex items-center gap-3" aria-label="Go to homepage">
+    <HomeIcon />
     <img
       className="dark:hidden"
       src="/images/logo/logo-black.png"

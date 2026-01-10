@@ -11,6 +11,7 @@ import ErrorBoundary from '@/components/error/ErrorBoundary';
 import EventCard from '@/components/dashboard/events/EventCard';
 import EventDetailsPage from '@/pages/Home/EventsPage';
 import AdminAttendanceReportPage from '@/pages/Admin/AdminAttendanceReportPage';
+import AdminFirstTimerReportPage from '@/pages/Admin/AdminFirstTimerReportPage';
 
 const LoginPage = lazy(() => import('../pages/Home/Auth/LoginPage'));
 const RegisterPage = lazy(() => import('../pages/Home/Auth/RegisterPage'));
@@ -127,7 +128,7 @@ const AppRoutes = [
             path: 'members/:memberId',
             element: withSuspense(MemberDetailsPage),
           },
-
+          // admin route 
           {
             path: 'admin',
             element: <AdminProtectedRoute />,
@@ -152,6 +153,10 @@ const AppRoutes = [
               {
                 path: 'first-timers',
                 element: withSuspense(AdminFirstTimerPage),
+              },
+              {
+                path: 'first-timers/report',
+                element: withSuspense(AdminFirstTimerReportPage),
               },
               { path: 'members', element: withSuspense(AdminMembersPage) },
               { path: 'forms', element: withSuspense(AdminFormsPage) },

@@ -8,7 +8,7 @@ const TimelineHeader = () => {
 
     return (
         <>
-            <div className="mb-10">
+            <div className="mb-10 mx-auto">
                 <h1 className="text-lg sm:text-xl lg:text-2xl font-bold bg-linear-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-200 dark:to-white bg-clip-text text-transparent mb-1">
                     Activity Timeline
                 </h1>

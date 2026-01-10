@@ -12,10 +12,9 @@ const TimelineItem = ({ item }) => {
     const [isExpanded, setIsExpanded] = useState(false)
 
     return (
-        <div className="relative pl-12 sm:pl-16">
-            <div className="absolute left-2.5 sm:left-6 top-1 w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-white dark:bg-gray-900 ring-4 ring-blue-500 dark:ring-blue-400 shadow-lg animate-pulse" />
+        <div className="relative">
 
-            <div className="group bg-white dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-md dark:shadow-gray-900/50 border border-gray-200/80 dark:border-gray-700/80 overflow-hidden transition-all duration-300">
+            <div className="group bg-white dark:bg-gray-800/80 backdrop-blur-sm rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200/80 dark:border-gray-700/80 overflow-hidden transition-all duration-300">
                 {/* Header */}
                 <div className="p-3 sm:p-4">
                     <div className="flex items-start justify-between gap-4">

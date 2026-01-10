@@ -434,6 +434,15 @@ export const profileSchema = yup.object().shape({
       'Please enter a valid phone number'
     ),
 
+  whatsapp_number: yup
+    .string()
+    .notRequired()
+    .transform((value) => (value === '' ? undefined : value))
+    .matches(
+      /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/,
+      'Please enter a valid whatsapp phone number'
+    ),
+
   gender: yup
     .string()
     .notRequired()

@@ -41,6 +41,7 @@ const EditProfileModal = ({ isOpen, onClose }) => {
       first_name: user?.first_name || '',
       last_name: user?.last_name || '',
       phone_number: user?.phone_number || '',
+      whatsapp_phone: user?.whatsapp_phone || '',
       gender: user?.gender || '',
       date_of_birth: user?.date_of_birth ? dayjs(user?.date_of_birth).format("DD/MM") : '',
       country: user?.country || '',
@@ -142,12 +143,21 @@ const ProfileForm = ({ user, onSubmit, register, errors, isPending, onClose, wat
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <InputForm
-            label="Phone Number"
+            label="Phone Number (Call & Text)"
             name="phone_number"
             type="tel"
             placeholder="+1 (555) 000-0000"
             register={register}
             error={errors.phone_number?.message}
+          />
+
+          <InputForm
+            label="Phone Number (Whatsapp)"
+            name="whatsapp_number"
+            type="tel"
+            placeholder="+1 (555) 000-0000"
+            register={register}
+            error={errors.whatsapp_number?.message}
           />
 
           <InputForm

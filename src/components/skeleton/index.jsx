@@ -430,7 +430,7 @@ export function TableSkeletonLoader() {
 
 export const TimelineSkeletonLoader = () => {
   return (
-    <div className="w-full mx-auto">
+    <div className="w-full mx-auto max-w-4xl">
       <div className="py-8 transition-colors duration-300">
         {/* Header Skeleton */}
         <div className="mb-10 space-y-3">

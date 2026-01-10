@@ -72,4 +72,18 @@ export const FirstTimerService = {
     const { data } = await $api.get(`${ADMIN}/analytics?year=${params?.year}`);
     return data;
   },
+
+  async getFirstTimerReport(params = {}) {
+    const queryParams = new URLSearchParams();
+
+    ['year'].forEach((key) => {
+      if (params[key]) queryParams.append(key, params[key]);
+    });
+
+    const query = queryParams.toString();
+    const endpoint = `/admin/first-timers/report${query ? `?${query}` : ''}`;
+
+    const { data } = await $api.get(endpoint);
+    return data;
+  },
 };

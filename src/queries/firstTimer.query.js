@@ -131,3 +131,16 @@ export const useFirstTimersAnalytics = (params = {}, options = {}) => {
     ...options,
   });
 };
+
+export const useFirstTimerReport = (params = {}, options = {}) => {
+  return useQuery({
+    queryKey: QUERY_KEYS.FIRST_TIMERS.REPORT(params),
+    queryFn: async () => {
+      const { data } = await FirstTimerService.getFirstTimerReport(params);
+      return data;
+    },
+    cacheTime: 5 * 60 * 1000,
+    staleTime: 0,
+    ...options,
+  });
+};

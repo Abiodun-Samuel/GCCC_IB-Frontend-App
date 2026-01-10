@@ -1,6 +1,6 @@
 import { InfoField } from "@/components/dashboard/members/InfoField";
 import { SectionCard } from "@/components/dashboard/members/SectionCard";
-import { CalendarIcon2, CityIcon, MailIcon, MapPinIcon, PhoneIcon, UserIcon } from "@/icons";
+import { CalendarIcon2, CityIcon, MailIcon, MapPinIcon, PhoneIcon, UserIcon, WhatsAppIcon } from "@/icons";
 
 export const PersonalInformation = ({ user }) => {
     return (
@@ -11,8 +11,9 @@ export const PersonalInformation = ({ user }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <InfoField icon={UserIcon} label="First Name" value={user.first_name} />
                 <InfoField icon={UserIcon} label="Last Name" value={user.last_name} />
-                <InfoField icon={MailIcon} label="Email Address" value={user.email} />
-                <InfoField icon={PhoneIcon} label="Phone" value={user.phone_number} />
+                <InfoField type={'email'} icon={MailIcon} label="Email Address" value={user.email} />
+                <InfoField type={'phone'} icon={PhoneIcon} label="Phone" value={user.phone_number} />
+                <InfoField type={'whatsapp'} icon={WhatsAppIcon} label="Phone (Whatsapp)" value={user.whatsapp_number} />
                 <InfoField icon={UserIcon} label="Gender" value={user.gender} />
                 <InfoField icon={CalendarIcon2} label="Date of Birth" value={user.date_of_birth} />
             </div>

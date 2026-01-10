@@ -6,7 +6,7 @@ import { years } from "../../../utils/constant";
 import { useFirstTimersAnalytics } from "../../../queries/firstTimer.query";
 import { CalendarIcon, ChevronDownIcon } from "@/icons";
 import { Dropdown } from "@/components/ui/dropdown/Dropdown";
-import AnnualFirstTimersOverview from "@/components/admin/firsttimer/AnnualFirstTimersOverview";
+import { Link } from "react-router-dom";
 
 const FirstTimersCharts = () => {
 
@@ -131,7 +131,6 @@ const FirstTimersCharts = () => {
 
     const StatusReportSection = () => {
         const [isOpen, setIsOpen] = useState(false);
-        const [isVisible, setIsvisible] = useState(false);
         const closeDropdown = () => setIsOpen(false);
         const openDropdown = () => setIsOpen(true);
 
@@ -166,8 +165,7 @@ const FirstTimersCharts = () => {
 
                 </div>
                 <div className="relative inline-block mb-4">
-                    <button
-                        role="button" onClick={() => setIsvisible(!isVisible)}
+                    <Link to='/dashboard/admin/first-timers/report'
                         className="
                                 flex items-center gap-2 
                                 px-4 py-2 rounded-lg 
@@ -180,11 +178,9 @@ const FirstTimersCharts = () => {
                             "
                     >
                         <CalendarIcon />
-                        {isVisible ? 'Hide' : 'Show'}  FirstTimers' Annual Report
-                    </button>
+                        FirstTimers' Report
+                    </Link>
                 </div>
-
-                <AnnualFirstTimersOverview isVisible={isVisible} selectedYear={selectedYear} statusesPerMonth={statusesPerMonth} />
 
                 <div className="grid grid-cols-1 lg:grid-cols-2">
                     <ChartContainer>

@@ -8,6 +8,7 @@ import {
   CalendarIcon,
   LocationIcon,
   MapIcon,
+  WhatsAppIcon,
 } from '../../icons';
 import { useAuthStore } from '../../store/auth.store';
 import Button from '../ui/Button';
@@ -40,6 +41,11 @@ export default function UserInfoCard() {
       label: 'Phone',
       value: user?.phone_number,
       icon: PhoneIcon,
+    },
+    {
+      label: 'Phone (Whatsapp)',
+      value: user?.whatsapp_number,
+      icon: WhatsAppIcon,
     },
     {
       label: 'Gender',

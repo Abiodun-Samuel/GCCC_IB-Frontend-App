@@ -10,14 +10,14 @@ export const InfoField = ({ icon: Icon, label, value, fullWidth = false, isEmail
         </div>
         {isEmail ? (
             <Link to={`mailto:${value}`} className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 ml-6 hover:underline">
-                <span className="truncate">{value || 'N/A'}</span>
+                <span className="">{value || 'N/A'}</span>
             </Link>
         ) : isPhone ? (
-            <Link to={`tel:${value}`} className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 ml-6 hover:underline truncate">
+            <Link to={`tel:${value}`} className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 ml-6 hover:underline">
                 {value || 'N/A'}
             </Link>
         ) : (
-            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 ml-6 truncate">
+            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 ml-6">
                 {value || 'N/A'}
             </p>
         )}

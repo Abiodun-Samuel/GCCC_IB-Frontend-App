@@ -155,7 +155,7 @@ const SingleSelectForm = memo(({
                             aria-labelledby={label ? `${name}-label` : undefined}
                         >
                             <span
-                                className={`text-sm font-normal flex-1 truncate ${selectedText
+                                className={`text-sm w-2 font-normal flex-1 truncate ${selectedText
                                     ? "text-gray-900 dark:text-gray-100"
                                     : "text-gray-400 dark:text-gray-500"
                                     }`}

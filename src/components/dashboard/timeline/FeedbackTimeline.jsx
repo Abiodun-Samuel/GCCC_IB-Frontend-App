@@ -48,7 +48,7 @@ const FeedbackTimeline = () => {
     const hasTimelineData = timelineData.length > 0;
 
     return (
-        <div className="mx-auto w-full py-5 transition-colors duration-300">
+        <div className="max-w-4xl mx-auto w-full py-5 transition-colors duration-300">
             <TimelineHeader />
 
             {hasTimelineData ? (

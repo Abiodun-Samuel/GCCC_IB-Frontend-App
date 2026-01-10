@@ -4,7 +4,6 @@ import { SectionCard } from '@/components/dashboard/firsttimer/SectionCard'
 import Modal from '@/components/ui/modal/Modal'
 import { useModal } from '@/hooks/useModal'
 import { BookOpenIcon, BriefcaseIcon, CalendarIcon, MailIcon, PhoneIcon, UserIcon } from '@/icons'
-import { formatDate } from '@/utils/helper'
 import dayjs from 'dayjs'
 
 const PersonalInformation = ({ firstTimerData }) => {
