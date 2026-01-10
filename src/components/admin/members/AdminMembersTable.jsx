@@ -51,13 +51,63 @@ const STATUS_CONFIG = {
 };
 
 // ============================================================================
-// CELL RENDERERS
+// UTILITY FUNCTIONS
 // ============================================================================
 
 /**
- * Name with Avatar Cell Renderer
- * Displays avatar and clickable name together
+ * Format date to show only day and month (e.g., "Jan 15", "Dec 25")
  */
+const formatBirthDate = (dateString) => {
+  if (!dateString) return '';
+
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric'
+  });
+};
+
+/**
+ * Format units for CSV export
+ */
+const formatUnitsForExport = (units) => {
+  if (!units || !Array.isArray(units) || units.length === 0) {
+    return 'No units';
+  }
+  return units.map(unit => unit.name).join(', ');
+};
+
+/**
+ * Get unique unit names from all members
+ */
+const getUniqueUnits = (members) => {
+  if (!members || !Array.isArray(members)) return [];
+
+  const unitSet = new Set();
+  members.forEach(member => {
+    if (member.units && Array.isArray(member.units)) {
+      member.units.forEach(unit => {
+        if (unit.name) unitSet.add(unit.name);
+      });
+    }
+  });
+
+  return Array.from(unitSet).sort();
+};
+
+/**
+ * Normalize boolean values
+ */
+const normalizeBoolean = (value) => {
+  return value === true || value === 1 || value === 'true' || value === '1';
+};
+
+// ============================================================================
+// CELL RENDERERS
+// ============================================================================
+
 const NameWithAvatarRenderer = ({ data }) => {
   if (!data) return null;
 
@@ -84,10 +134,6 @@ const NameWithAvatarRenderer = ({ data }) => {
   );
 };
 
-/**
- * Phone Number Cell Renderer
- * Creates clickable tel: links
- */
 const PhoneRenderer = ({ value }) => {
   if (!value) return null;
 
@@ -101,10 +147,6 @@ const PhoneRenderer = ({ value }) => {
   );
 };
 
-/**
- * Email Cell Renderer
- * Creates clickable mailto: links
- */
 const EmailRenderer = ({ value }) => {
   if (!value) return null;
 
@@ -118,12 +160,8 @@ const EmailRenderer = ({ value }) => {
   );
 };
 
-/**
- * Boolean Cell Renderer
- * Displays Yes/No badges for boolean values
- */
 const BooleanRenderer = ({ value }) => {
-  const isTrue = value === true || value === 1 || value === 'true' || value === '1';
+  const isTrue = normalizeBoolean(value);
 
   return (
     <Badge size='sm' color={isTrue ? 'success' : 'error'}>
@@ -132,10 +170,6 @@ const BooleanRenderer = ({ value }) => {
   );
 };
 
-/**
- * Status Cell Renderer
- * Displays colored status badges
- */
 const StatusRenderer = ({ value }) => {
   const status = value?.toLowerCase() || 'inactive';
   const config = STATUS_CONFIG[status] || STATUS_CONFIG.inactive;
@@ -147,45 +181,49 @@ const StatusRenderer = ({ value }) => {
   );
 };
 
-/**
- * Profile Completion Cell Renderer
- * Shows completion status with percentage
- */
 const ProfileCompletionRenderer = ({ data }) => {
   if (!data) return null;
 
-  const isComplete = data.profile_completed === true || data.profile_completed === 1;
+  const isComplete = normalizeBoolean(data.profile_completed);
   const percentage = data.completion_percent || 0;
 
-  return (
-    <div>
-      {isComplete ? (
-        <Badge size='sm' color='success'>
-          <span className="flex items-center gap-1">
-            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            Complete
-          </span>
-        </Badge>
-      ) : (
-        <Badge size='sm' color='warning'>
-          <span className="flex items-center gap-1">
-            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            {percentage}%
-          </span>
-        </Badge>
-      )}
-    </div>
+  const CheckIcon = () => (
+    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+      <path
+        fillRule="evenodd"
+        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+
+  const WarningIcon = () => (
+    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+      <path
+        fillRule="evenodd"
+        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+
+  return isComplete ? (
+    <Badge size='sm' color='success'>
+      <span className="flex items-center gap-1">
+        <CheckIcon />
+        Complete
+      </span>
+    </Badge>
+  ) : (
+    <Badge size='sm' color='warning'>
+      <span className="flex items-center gap-1">
+        <WarningIcon />
+        {percentage}%
+      </span>
+    </Badge>
   );
 };
 
-/**
- * Units Cell Renderer
- * Displays member's units as badges
- */
 const UnitsRenderer = ({ data }) => {
   if (!data || !data.units || data.units.length === 0) {
     return (
@@ -196,7 +234,7 @@ const UnitsRenderer = ({ data }) => {
   }
 
   return (
-    <div className="">
+    <div className="flex flex-wrap gap-1">
       {data.units.map((unit, index) => (
         <Badge
           key={unit.id || index}
@@ -212,140 +250,14 @@ const UnitsRenderer = ({ data }) => {
 };
 
 // ============================================================================
-// UTILITY FUNCTIONS
+// COLUMN CONFIGURATION
 // ============================================================================
 
-/**
- * Format date for display
- */
-const formatDate = (dateString) => {
-  if (!dateString) return '';
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return dateString;
-
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
-};
-
-/**
- * Format units for CSV export
- * Converts array of unit objects to comma-separated string
- */
-const formatUnitsForExport = (units) => {
-  if (!units || !Array.isArray(units) || units.length === 0) {
-    return 'No units';
-  }
-  return units.map(unit => unit.name).join(', ');
-};
-
-/**
- * Get unique unit names from all members for filter
- */
-const getUniqueUnits = (members) => {
-  if (!members || !Array.isArray(members)) return [];
-
-  const unitSet = new Set();
-  members.forEach(member => {
-    if (member.units && Array.isArray(member.units)) {
-      member.units.forEach(unit => {
-        if (unit.name) unitSet.add(unit.name);
-      });
-    }
-  });
-
-  return Array.from(unitSet).sort();
-};
-
-// ============================================================================
-// MAIN COMPONENT
-// ============================================================================
-
-const AdminMembersTable = () => {
-  // ========================================
-  // STATE & REFS
-  // ========================================
-  const gridRef = useRef(null);
-  const [isGridReady, setIsGridReady] = useState(false);
-  const [showFilter, setShowFilter] = useState(false);
-  const [selectedRole, setSelectedRole] = useState('member');
-  const [activeFilters, setActiveFilters] = useState(DEFAULT_FILTERS);
-
-  // ========================================
-  // QUERIES
-  // ========================================
-  const queryParams = useMemo(() => ({
-    ...activeFilters,
-    role: selectedRole
-  }), [activeFilters, selectedRole]);
-
-  const {
-    data: members,
-    isLoading,
-    refetch,
-    isError,
-    error,
-    isFetching
-  } = useMembersByRole(queryParams);
-
-  const { mutateAsync: updateGloryTeam, isPending: isUpdatingGloryTeam } = useUpdateGloryTeamMembers();
-
-  // ========================================
-  // DERIVED DATA
-  // ========================================
-  const memberData = useMemo(() => {
-    if (!members) return [];
-    return Array.isArray(members) ? members : [];
-  }, [members]);
-
-  const tableHeight = useMemo(() => {
-    if (memberData.length === 0) return MIN_TABLE_HEIGHT;
-    const contentHeight = (memberData.length * ROW_HEIGHT) + HEADER_HEIGHT + PAGINATION_HEIGHT;
-    return Math.min(Math.max(contentHeight, MIN_TABLE_HEIGHT), MAX_TABLE_HEIGHT);
-  }, [memberData.length]);
-
-  const uniqueUnits = useMemo(() => getUniqueUnits(memberData), [memberData]);
-
-  const hasActiveFilters = useMemo(() =>
-    activeFilters.birth_month ||
-    activeFilters.date_of_birth?.length > 0 ||
-    activeFilters.community
-    , [activeFilters]);
-
-  // ========================================
-  // FORMATTERS
-  // ========================================
-  const dateValueFormatter = useCallback((params) => {
-    return formatDate(params.value);
-  }, []);
-
-  const unitsValueGetter = useCallback((params) => {
-    return formatUnitsForExport(params.data?.units);
-  }, []);
-
-  const booleanValueGetter = useCallback((params) => {
-    const value = params.data?.is_glory_team_member;
-    return value == true || value == 1 || value == 'true' || value == '1';
-  }, []);
-
-  // ========================================
-  // GRID CONFIGURATION
-  // ========================================
-  const defaultColDef = useMemo(() => ({
-    filter: true,
-    sortable: true,
-    resizable: true,
-    suppressPaste: false,
-    floatingFilter: true,
-    editable: false,
-    minWidth: 100,
-    autoHeaderHeight: true,
-    wrapHeaderText: true,
-  }), []);
-
-  const columnDefs = useMemo(() => [
+const createColumnDefs = ({
+  birthDateFormatter,
+  unitsValueGetter,
+  booleanValueGetter
+}) => [
     {
       field: "id",
       headerName: "ID",
@@ -434,38 +346,11 @@ const AdminMembersTable = () => {
     },
     {
       field: "date_of_birth",
-      headerName: "Date of Birth",
-      valueFormatter: dateValueFormatter,
-      width: 150,
-      filter: 'agDateColumnFilter',
-      filterParams: {
-        buttons: ['reset'],
-        debounceMs: 200,
-        comparator: (filterLocalDateAtMidnight, cellValue) => {
-          if (!cellValue) return -1;
-
-          const dateParts = cellValue.split(/[-\/]/);
-          let cellDate;
-
-          if (dateParts.length === 3) {
-            if (dateParts[0].length === 4) {
-              cellDate = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
-            } else {
-              cellDate = new Date(parseInt(dateParts[2]), parseInt(dateParts[0]) - 1, parseInt(dateParts[1]));
-            }
-          } else {
-            cellDate = new Date(cellValue);
-          }
-
-          if (isNaN(cellDate.getTime())) return -1;
-
-          cellDate.setHours(0, 0, 0, 0);
-
-          if (cellDate < filterLocalDateAtMidnight) return -1;
-          if (cellDate > filterLocalDateAtMidnight) return 1;
-          return 0;
-        },
-      },
+      headerName: "Birthday",
+      valueFormatter: birthDateFormatter,
+      width: 130,
+      filter: false,
+      floatingFilter: false,
     },
     {
       field: "units",
@@ -525,28 +410,86 @@ const AdminMembersTable = () => {
         suppressAndOrCondition: true,
       },
     },
-  ], [dateValueFormatter, unitsValueGetter, booleanValueGetter]);
+  ];
 
-  const gridOptions = useMemo(() => ({
-    pagination: true,
-    paginationPageSize: DEFAULT_PAGE_SIZE,
-    paginationPageSizeSelector: PAGINATION_PAGE_SIZES,
-    suppressDragLeaveHidesColumns: true,
-    animateRows: true,
-    suppressCellFocus: false,
-    suppressColumnVirtualisation: false,
-    suppressRowVirtualisation: false,
-    suppressHorizontalScroll: false,
-    alwaysShowHorizontalScroll: false,
-    enableFillHandle: true,
-    enableCellTextSelection: true,
-    ensureDomOrder: true,
-  }), []);
+// ============================================================================
+// GRID CONFIGURATION
+// ============================================================================
 
-  // ========================================
-  // EVENT HANDLERS
-  // ========================================
-  const autoSizeColumns = useCallback(() => {
+const defaultColDef = {
+  filter: true,
+  sortable: true,
+  resizable: true,
+  suppressPaste: false,
+  floatingFilter: true,
+  editable: false,
+  minWidth: 100,
+  autoHeaderHeight: true,
+  wrapHeaderText: true,
+};
+
+const gridOptions = {
+  pagination: true,
+  paginationPageSize: DEFAULT_PAGE_SIZE,
+  paginationPageSizeSelector: PAGINATION_PAGE_SIZES,
+  suppressDragLeaveHidesColumns: true,
+  animateRows: true,
+  suppressCellFocus: false,
+  suppressColumnVirtualisation: false,
+  suppressRowVirtualisation: false,
+  suppressHorizontalScroll: false,
+  alwaysShowHorizontalScroll: false,
+  enableFillHandle: true,
+  enableCellTextSelection: true,
+  ensureDomOrder: true,
+};
+
+// ============================================================================
+// OVERLAY TEMPLATES
+// ============================================================================
+
+const loadingOverlay = `
+  <div class="flex items-center justify-center h-full">
+    <div class="text-center">
+      <div class="relative inline-block">
+        <div class="w-12 h-12 border-4 border-gray-200 rounded-full"></div>
+        <div class="absolute top-0 left-0 w-12 h-12 border-4 border-transparent border-t-blue-600 rounded-full animate-spin"></div>
+      </div>
+      <p class="text-gray-700 mt-4 font-medium">Loading members...</p>
+    </div>
+  </div>
+`;
+
+const noRowsOverlay = `
+  <div class="flex items-center justify-center h-full bg-white">
+    <div class="text-center py-8">
+      <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+      </svg>
+      <p class="text-gray-500 text-lg font-medium mb-2">
+        No members found
+      </p>
+      <p class="text-gray-400 text-sm">
+        Members will appear here once available
+      </p>
+    </div>
+  </div>
+`;
+
+// ============================================================================
+// CUSTOM HOOKS
+// ============================================================================
+
+const useTableHeight = (dataLength) => {
+  return useMemo(() => {
+    if (dataLength === 0) return MIN_TABLE_HEIGHT;
+    const contentHeight = (dataLength * ROW_HEIGHT) + HEADER_HEIGHT + PAGINATION_HEIGHT;
+    return Math.min(Math.max(contentHeight, MIN_TABLE_HEIGHT), MAX_TABLE_HEIGHT);
+  }, [dataLength]);
+};
+
+const useGridAutoSize = (gridRef) => {
+  return useCallback(() => {
     if (!gridRef.current) return;
 
     const allColumns = gridRef.current.getColumns?.() || gridRef.current.getAllDisplayedColumns?.();
@@ -554,15 +497,210 @@ const AdminMembersTable = () => {
 
     const allColumnIds = allColumns.map(col => col.getColId());
     gridRef.current.autoSizeColumns(allColumnIds, false);
+  }, [gridRef]);
+};
+
+// ============================================================================
+// SUB-COMPONENTS
+// ============================================================================
+
+const ActionButtons = ({
+  showFilter,
+  onToggleFilter,
+  isUpdatingGloryTeam,
+  onUpdateGloryTeam
+}) => (
+  <div className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+    <ButtonSwitch
+      onChange={onToggleFilter}
+      checked={showFilter}
+      color="pink"
+      type="button"
+      icon={<FilterIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
+      description="Filter church members data"
+    >
+      Filter
+    </ButtonSwitch>
+    <CreateMembers />
+    <AssignMembers />
+    <ButtonCard
+      color="orange"
+      loading={isUpdatingGloryTeam}
+      onClick={onUpdateGloryTeam}
+      description="Update glory team member list"
+      icon={<Briefcase />}
+    >
+      Update GloryTeam
+    </ButtonCard>
+  </div>
+);
+
+const FilterPanel = ({
+  showFilter,
+  activeFilters,
+  onApply,
+  onReset,
+  isFetching
+}) => {
+  if (!showFilter) return null;
+
+  return (
+    <div className="max-w-xl p-4 dark:bg-gray-800 bg-white shadow rounded-lg">
+      <EditMembersPanel
+        initialFilters={activeFilters}
+        onApply={onApply}
+        onReset={onReset}
+        loading={isFetching}
+      />
+    </div>
+  );
+};
+
+const StatsBar = ({ count, hasActiveFilters }) => (
+  <div className="flex items-center gap-5 flex-wrap">
+    <p className="text-sm text-green-600 dark:text-green-400">
+      <span className="font-semibold text-green-500 dark:text-green-500">
+        {count}
+      </span>
+      {' '}Record{count !== 1 ? 's' : ''} found
+    </p>
+
+    {hasActiveFilters && (
+      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800">
+        Filtered
+      </span>
+    )}
+  </div>
+);
+
+const ControlButtons = ({
+  onExportCSV,
+  onRefresh,
+  onAutoSize,
+  hasData,
+  isLoading,
+  isFetching
+}) => (
+  <div className="flex flex-wrap gap-3 justify-between w-full">
+    <div className="flex flex-wrap gap-3">
+      <Button
+        variant="primary"
+        onClick={onExportCSV}
+        disabled={!hasData || isLoading}
+      >
+        Export CSV
+      </Button>
+      <Button
+        variant="ghost"
+        onClick={onRefresh}
+        loading={isFetching}
+        disabled={isLoading}
+      >
+        Refresh
+      </Button>
+    </div>
+    <div>
+      <Button
+        variant="light"
+        onClick={onAutoSize}
+        disabled={!hasData || isLoading}
+      >
+        <ExpandFullScreenIcon className="h-4 w-4 md:h-5 md:w-5" />
+      </Button>
+    </div>
+  </div>
+);
+
+const TableFooter = ({ hasData }) => {
+  if (!hasData) return null;
+
+  return (
+    <div className="mt-4 text-sm text-gray-500 dark:text-gray-400 flex justify-between items-center">
+      <span>Last updated: {new Date().toLocaleString()}</span>
+      <div className="flex items-center gap-2">
+        <span className="flex items-center gap-2">
+          <span className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full animate-pulse"></span>
+          <span className="text-green-600 dark:text-green-400 font-medium">Live data</span>
+        </span>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
+const AdminMembersTable = () => {
+  // State
+  const gridRef = useRef(null);
+  const [isGridReady, setIsGridReady] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
+  const [selectedRole, setSelectedRole] = useState('member');
+  const [activeFilters, setActiveFilters] = useState(DEFAULT_FILTERS);
+
+  // Queries
+  const queryParams = useMemo(() => ({
+    ...activeFilters,
+    role: selectedRole
+  }), [activeFilters, selectedRole]);
+
+  const {
+    data: members,
+    isLoading,
+    refetch,
+    isError,
+    error,
+    isFetching
+  } = useMembersByRole(queryParams);
+
+  const { mutateAsync: updateGloryTeam, isPending: isUpdatingGloryTeam } = useUpdateGloryTeamMembers();
+
+  // Derived Data
+  const memberData = useMemo(() => {
+    if (!members) return [];
+    return Array.isArray(members) ? members : [];
+  }, [members]);
+
+  const tableHeight = useTableHeight(memberData.length);
+
+  const hasActiveFilters = useMemo(() =>
+    activeFilters.birth_month ||
+    activeFilters.date_of_birth?.length > 0 ||
+    activeFilters.community
+    , [activeFilters]);
+
+  // Value Formatters & Getters
+  const birthDateFormatter = useCallback((params) => {
+    return formatBirthDate(params.value);
   }, []);
 
+  const unitsValueGetter = useCallback((params) => {
+    return formatUnitsForExport(params.data?.units);
+  }, []);
+
+  const booleanValueGetter = useCallback((params) => {
+    return normalizeBoolean(params.data?.is_glory_team_member);
+  }, []);
+
+  // Column Definitions
+  const columnDefs = useMemo(() =>
+    createColumnDefs({
+      birthDateFormatter,
+      unitsValueGetter,
+      booleanValueGetter
+    }),
+    [birthDateFormatter, unitsValueGetter, booleanValueGetter]
+  );
+
+  // Custom Hooks
+  const autoSizeColumns = useGridAutoSize(gridRef);
+
+  // Event Handlers
   const onGridReady = useCallback((params) => {
     gridRef.current = params.api;
     setIsGridReady(true);
-
-    setTimeout(() => {
-      autoSizeColumns();
-    }, 100);
+    setTimeout(() => autoSizeColumns(), 100);
   }, [autoSizeColumns]);
 
   const handleExportCSV = useCallback(() => {
@@ -593,35 +731,23 @@ const AdminMembersTable = () => {
   }, [refetch]);
 
   const handleApplyFilters = useCallback((filters) => {
-    setActiveFilters(prev => ({
-      ...prev,
-      ...filters
-    }));
+    setActiveFilters(prev => ({ ...prev, ...filters }));
   }, []);
 
   const handleResetFilters = useCallback(() => {
-    setActiveFilters(prev => ({
-      ...DEFAULT_FILTERS,
-      role: prev.role
-    }));
+    setActiveFilters(prev => ({ ...DEFAULT_FILTERS, role: prev.role }));
   }, []);
 
   const handleToggleFilter = useCallback(() => {
     if (showFilter) {
-      setActiveFilters(prev => ({
-        ...DEFAULT_FILTERS,
-        role: prev.role
-      }));
+      setActiveFilters(prev => ({ ...DEFAULT_FILTERS, role: prev.role }));
     }
     setShowFilter(!showFilter);
   }, [showFilter]);
 
   const handleRoleChange = useCallback((role) => {
     setSelectedRole(role);
-    setActiveFilters({
-      ...DEFAULT_FILTERS,
-      role: role
-    });
+    setActiveFilters({ ...DEFAULT_FILTERS, role });
   }, []);
 
   const handleUpdateGloryTeam = useCallback(async () => {
@@ -629,20 +755,14 @@ const AdminMembersTable = () => {
     await refetch();
   }, [updateGloryTeam, refetch]);
 
-  // ========================================
-  // EFFECTS
-  // ========================================
+  // Effects
   useEffect(() => {
     if (isGridReady && memberData.length > 0) {
-      setTimeout(() => {
-        autoSizeColumns();
-      }, 150);
+      setTimeout(() => autoSizeColumns(), 150);
     }
   }, [memberData, isGridReady, autoSizeColumns]);
 
-  // ========================================
-  // ERROR STATE
-  // ========================================
+  // Error State
   if (isError) {
     return (
       <Message
@@ -663,104 +783,42 @@ const AdminMembersTable = () => {
     );
   }
 
-  // ========================================
-  // RENDER
-  // ========================================
+  // Render
   return (
     <div className="w-full space-y-6">
-      {/* Action Buttons */}
-      <div className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-        <ButtonSwitch
-          onChange={handleToggleFilter}
-          checked={showFilter}
-          color="pink"
-          type="button"
-          icon={<FilterIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
-          description="Filter church members data"
-        >
-          Filter
-        </ButtonSwitch>
-        <CreateMembers />
-        <AssignMembers />
-        <ButtonCard
-          color="orange"
-          loading={isUpdatingGloryTeam}
-          onClick={handleUpdateGloryTeam}
-          description="Update glory team member list"
-          icon={<Briefcase />}
-        >
-          Update GloryTeam
-        </ButtonCard>
-      </div>
+      <ActionButtons
+        showFilter={showFilter}
+        onToggleFilter={handleToggleFilter}
+        isUpdatingGloryTeam={isUpdatingGloryTeam}
+        onUpdateGloryTeam={handleUpdateGloryTeam}
+      />
 
-      {/* Filter Panel */}
-      {showFilter && (
-        <div className="max-w-xl p-4 dark:bg-gray-800 bg-white shadow rounded-lg">
-          <EditMembersPanel
-            initialFilters={activeFilters}
-            onApply={handleApplyFilters}
-            onReset={handleResetFilters}
-            loading={isFetching}
-          />
-        </div>
-      )}
+      <FilterPanel
+        showFilter={showFilter}
+        activeFilters={activeFilters}
+        onApply={handleApplyFilters}
+        onReset={handleResetFilters}
+        isFetching={isFetching}
+      />
 
-      {/* Role Selection */}
       <RoleSelection
         selectedRole={selectedRole}
         onRoleChange={handleRoleChange}
         disabled={isFetching}
       />
 
-      {/* Table Section */}
       <div className="space-y-3">
-        {/* Stats Bar */}
-        <div className="flex items-center gap-5 flex-wrap">
-          <p className="text-sm text-green-600 dark:text-green-400">
-            <span className="font-semibold text-green-500 dark:text-green-500">
-              {memberData.length}
-            </span>
-            {' '}Record{memberData.length !== 1 ? 's' : ''} found
-          </p>
+        <StatsBar count={memberData.length} hasActiveFilters={hasActiveFilters} />
 
-          {hasActiveFilters && (
-            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800">
-              Filtered
-            </span>
-          )}
-        </div>
+        <ControlButtons
+          onExportCSV={handleExportCSV}
+          onRefresh={handleRefresh}
+          onAutoSize={autoSizeColumns}
+          hasData={memberData.length > 0}
+          isLoading={isLoading}
+          isFetching={isFetching}
+        />
 
-        {/* Control Buttons */}
-        <div className="flex flex-wrap gap-3 justify-between w-full">
-          <div className="flex flex-wrap gap-3">
-            <Button
-              variant="primary"
-              onClick={handleExportCSV}
-              disabled={!memberData.length || isLoading}
-            >
-              Export CSV
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={handleRefresh}
-              loading={isFetching}
-              disabled={isLoading}
-            >
-              Refresh
-            </Button>
-          </div>
-          <div>
-            <Button
-              variant="light"
-              onClick={autoSizeColumns}
-              disabled={!memberData.length || isLoading}
-            >
-              <ExpandFullScreenIcon className="h-4 w-4 md:h-5 md:w-5" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Table or Loading State */}
         {isLoading && !memberData.length ? (
           <TableSkeletonLoader />
         ) : (
@@ -778,47 +836,12 @@ const AdminMembersTable = () => {
                 onGridReady={onGridReady}
                 suppressLoadingOverlay={false}
                 suppressNoRowsOverlay={false}
-                overlayLoadingTemplate={`
-                  <div class="flex items-center justify-center h-full">
-                    <div class="text-center">
-                      <div class="relative inline-block">
-                        <div class="w-12 h-12 border-4 border-gray-200 rounded-full"></div>
-                        <div class="absolute top-0 left-0 w-12 h-12 border-4 border-transparent border-t-blue-600 rounded-full animate-spin"></div>
-                      </div>
-                      <p class="text-gray-700 mt-4 font-medium">Loading members...</p>
-                    </div>
-                  </div>
-                `}
-                overlayNoRowsTemplate={`
-                  <div class="flex items-center justify-center h-full bg-white">
-                    <div class="text-center py-8">
-                      <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                      <p class="text-gray-500 text-lg font-medium mb-2">
-                        No members found
-                      </p>
-                      <p class="text-gray-400 text-sm">
-                        Members will appear here once available
-                      </p>
-                    </div>
-                  </div>
-                `}
+                overlayLoadingTemplate={loadingOverlay}
+                overlayNoRowsTemplate={noRowsOverlay}
               />
             </div>
 
-            {/* Footer Info */}
-            {memberData.length > 0 && (
-              <div className="mt-4 text-sm text-gray-500 dark:text-gray-400 flex justify-between items-center">
-                <span>Last updated: {new Date().toLocaleString()}</span>
-                <div className="flex items-center gap-2">
-                  <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full animate-pulse"></span>
-                    <span className="text-green-600 dark:text-green-400 font-medium">Live data</span>
-                  </span>
-                </div>
-              </div>
-            )}
+            <TableFooter hasData={memberData.length > 0} />
           </>
         )}
       </div>
