@@ -46,11 +46,6 @@ export const adminNavItems = [
       { name: 'Events', path: '/dashboard/admin/events', pro: true },
 
       {
-        name: 'Attendance Records',
-        path: '/dashboard/admin/attendance-records',
-        pro: true,
-      },
-      {
         name: 'First Timers',
         path: '/dashboard/admin/first-timers',
         pro: true,
@@ -82,7 +77,7 @@ export const leaderNavItems = [
       },
       {
         name: 'Attendance Records',
-        path: '/dashboard/leaders/attendance-records',
+        path: '/dashboard/attendance-records',
         pro: true,
       },
       {

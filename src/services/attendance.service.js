@@ -73,7 +73,7 @@ export const AttendanceService = {
     });
 
     const query = queryParams.toString();
-    const endpoint = `/admin/attendance/report${query ? `?${query}` : ''}`;
+    const endpoint = `/attendance/report${query ? `?${query}` : ''}`;
 
     const { data } = await $api.get(endpoint);
     return data;

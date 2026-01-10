@@ -11,7 +11,7 @@ const AdminAttendancePage = () => {
             <PageMeta title="Admin: Attendance | GCCC Ibadan" />
             <PageBreadcrumb icon={AttendanceIcon} pageTitle="Admin: Attendance" description={'Review, filter and manage attendance records for all members.'} />
             <ComponentCard>
-                <Button href={'/dashboard/admin/attendance/report'} >Attendance Report</Button>
+                <Button href={'/dashboard/attendance/report'} >Attendance Report</Button>
                 <AdminAttendanceTable />
             </ComponentCard>
         </>

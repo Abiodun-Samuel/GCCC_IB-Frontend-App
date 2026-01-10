@@ -55,14 +55,14 @@ const STATUS_CONFIG = {
 // ============================================================================
 
 /**
- * Avatar Cell Renderer
- * Displays user avatar with profile completion status
+ * Name with Avatar Cell Renderer
+ * Displays avatar and clickable name together
  */
-const AvatarRenderer = ({ data }) => {
+const NameWithAvatarRenderer = ({ data }) => {
   if (!data) return null;
 
   return (
-    <div className="flex items-center justify-center h-full py-1">
+    <div className="flex items-center gap-3 h-full">
       <Avatar
         src={data.avatar}
         alt={data.full_name || 'Member'}
@@ -72,26 +72,49 @@ const AvatarRenderer = ({ data }) => {
         showProfileStatus={true}
         isProfileCompleted={data.profile_completed}
       />
+      <Link
+        target="_blank"
+        to={`/dashboard/members/${data.id}`}
+        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline transition-colors font-medium"
+        rel="noopener noreferrer"
+      >
+        {data.full_name || 'N/A'}
+      </Link>
     </div>
   );
 };
 
 /**
- * Link Cell Renderer
- * Creates clickable links to member detail pages
+ * Phone Number Cell Renderer
+ * Creates clickable tel: links
  */
-const LinkRenderer = ({ value }) => {
+const PhoneRenderer = ({ value }) => {
   if (!value) return null;
 
   return (
-    <Link
-      target="_blank"
-      to={`/dashboard/members/${value}`}
-      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline transition-colors"
-      rel="noopener noreferrer"
+    <a
+      href={`tel:${value}`}
+      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline transition-colors"
     >
       {value}
-    </Link>
+    </a>
+  );
+};
+
+/**
+ * Email Cell Renderer
+ * Creates clickable mailto: links
+ */
+const EmailRenderer = ({ value }) => {
+  if (!value) return null;
+
+  return (
+    <a
+      href={`mailto:${value}`}
+      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline transition-colors"
+    >
+      {value}
+    </a>
   );
 };
 
@@ -122,7 +145,7 @@ const StatusRenderer = ({ value }) => {
       {value?.toLowerCase()}
     </Badge>
   );
-}
+};
 
 /**
  * Profile Completion Cell Renderer
@@ -201,6 +224,7 @@ const formatDate = (dateString) => {
   if (isNaN(date.getTime())) return dateString;
 
   return date.toLocaleDateString('en-US', {
+    year: 'numeric',
     month: 'short',
     day: 'numeric'
   });
@@ -301,6 +325,11 @@ const AdminMembersTable = () => {
     return formatUnitsForExport(params.data?.units);
   }, []);
 
+  const booleanValueGetter = useCallback((params) => {
+    const value = params.data?.is_glory_team_member;
+    return value == true || value == 1 || value == 'true' || value == '1';
+  }, []);
+
   // ========================================
   // GRID CONFIGURATION
   // ========================================
@@ -318,55 +347,63 @@ const AdminMembersTable = () => {
 
   const columnDefs = useMemo(() => [
     {
-      field: "avatar",
-      headerName: "",
-      cellRenderer: AvatarRenderer,
-      pinned: 'left',
-      width: 70,
-      filter: false,
-      sortable: false,
-      resizable: false,
-      suppressAutoSize: true,
-      cellClass: 'ag-cell-centered',
-    },
-    {
       field: "id",
       headerName: "ID",
-      cellRenderer: LinkRenderer,
       pinned: 'left',
-      cellClass: 'font-medium',
-      editable: false,
-      suppressAutoSize: false,
+      cellClass: 'font-medium text-gray-700 dark:text-gray-300',
       width: 80,
+      filter: false,
+      floatingFilter: false,
+      suppressAutoSize: false,
     },
     {
       field: "full_name",
       headerName: "Name",
+      cellRenderer: NameWithAvatarRenderer,
       pinned: 'left',
-      cellClass: 'font-medium',
-      width: 200,
+      width: 250,
+      filter: 'agTextColumnFilter',
+      filterParams: {
+        buttons: ['reset'],
+        debounceMs: 200,
+        filterOptions: ['contains', 'notContains', 'equals', 'notEqual', 'startsWith', 'endsWith'],
+        defaultOption: 'contains',
+        suppressAndOrCondition: true,
+      },
     },
     {
       field: "phone_number",
       headerName: "Phone Number",
+      cellRenderer: PhoneRenderer,
       width: 150,
+      filter: 'agTextColumnFilter',
+      filterParams: {
+        buttons: ['reset'],
+        debounceMs: 200,
+        filterOptions: ['contains', 'equals', 'startsWith'],
+        defaultOption: 'contains',
+        suppressAndOrCondition: true,
+      },
     },
     {
       field: "email",
       headerName: "Email",
-      cellClass: 'text-blue-600 dark:text-blue-400',
+      cellRenderer: EmailRenderer,
       width: 220,
+      filter: 'agTextColumnFilter',
+      filterParams: {
+        buttons: ['reset'],
+        debounceMs: 200,
+        filterOptions: ['contains', 'notContains', 'equals', 'startsWith', 'endsWith'],
+        defaultOption: 'contains',
+        suppressAndOrCondition: true,
+      },
     },
     {
       field: "gender",
       headerName: "Gender",
       width: 120,
-      filter: 'agSetColumnFilter',
-      filterParams: {
-        values: ['Male', 'Female'],
-        debounceMs: 200,
-        buttons: ['reset', 'apply'],
-      },
+      filter: false,
     },
     {
       field: "is_glory_team_member",
@@ -374,13 +411,8 @@ const AdminMembersTable = () => {
       cellRenderer: BooleanRenderer,
       width: 130,
       cellClass: 'ag-cell-centered',
-      filter: 'agSetColumnFilter',
-      filterParams: {
-        values: [true, false],
-        valueFormatter: (params) => params.value ? 'Yes' : 'No',
-        debounceMs: 200,
-        buttons: ['reset', 'apply'],
-      },
+      valueGetter: booleanValueGetter,
+      filter: false,
     },
     {
       field: "status",
@@ -388,12 +420,8 @@ const AdminMembersTable = () => {
       cellRenderer: StatusRenderer,
       width: 120,
       cellClass: 'ag-cell-centered',
-      filter: 'agSetColumnFilter',
-      filterParams: {
-        values: ['active', 'inactive', 'suspended', 'pending'],
-        debounceMs: 200,
-        buttons: ['reset', 'apply'],
-      },
+      filter: false,
+      floatingFilter: false,
     },
     {
       field: "profile_completed",
@@ -401,37 +429,73 @@ const AdminMembersTable = () => {
       cellRenderer: ProfileCompletionRenderer,
       width: 140,
       cellClass: 'ag-cell-centered',
-      filter: 'agSetColumnFilter',
-      filterParams: {
-        values: [true, false],
-        valueFormatter: (params) => params.value ? 'Complete' : 'Incomplete',
-        debounceMs: 200,
-        buttons: ['reset', 'apply'],
-      },
+      filter: false,
+      floatingFilter: false,
     },
     {
       field: "date_of_birth",
       headerName: "Date of Birth",
       valueFormatter: dateValueFormatter,
       width: 150,
+      filter: 'agDateColumnFilter',
+      filterParams: {
+        buttons: ['reset'],
+        debounceMs: 200,
+        comparator: (filterLocalDateAtMidnight, cellValue) => {
+          if (!cellValue) return -1;
+
+          const dateParts = cellValue.split(/[-\/]/);
+          let cellDate;
+
+          if (dateParts.length === 3) {
+            if (dateParts[0].length === 4) {
+              cellDate = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+            } else {
+              cellDate = new Date(parseInt(dateParts[2]), parseInt(dateParts[0]) - 1, parseInt(dateParts[1]));
+            }
+          } else {
+            cellDate = new Date(cellValue);
+          }
+
+          if (isNaN(cellDate.getTime())) return -1;
+
+          cellDate.setHours(0, 0, 0, 0);
+
+          if (cellDate < filterLocalDateAtMidnight) return -1;
+          if (cellDate > filterLocalDateAtMidnight) return 1;
+          return 0;
+        },
+      },
     },
     {
       field: "units",
       headerName: "Units",
       cellRenderer: UnitsRenderer,
-      valueGetter: unitsValueGetter, // For CSV export
+      valueGetter: unitsValueGetter,
       width: 250,
       cellClass: 'ag-cell-wrap-text',
       autoHeight: true,
-      filter: 'agSetColumnFilter',
+      filter: 'agTextColumnFilter',
       filterParams: {
-        values: uniqueUnits,
+        buttons: ['reset'],
         debounceMs: 200,
-        buttons: ['reset', 'apply'],
-        valueGetter: (params) => {
-          const units = params.data?.units;
-          if (!units || !Array.isArray(units)) return [];
-          return units.map(unit => unit.name);
+        filterOptions: ['contains', 'notContains', 'equals'],
+        defaultOption: 'contains',
+        suppressAndOrCondition: true,
+        textMatcher: ({ filterOption, value, filterText }) => {
+          if (!filterText) return true;
+
+          const lowerFilterText = filterText.toLowerCase();
+          const lowerValue = (value || '').toLowerCase();
+
+          if (filterOption === 'contains') {
+            return lowerValue.includes(lowerFilterText);
+          } else if (filterOption === 'notContains') {
+            return !lowerValue.includes(lowerFilterText);
+          } else if (filterOption === 'equals') {
+            return lowerValue === lowerFilterText;
+          }
+          return true;
         },
       },
     },
@@ -439,13 +503,29 @@ const AdminMembersTable = () => {
       field: "community",
       headerName: "Community",
       width: 160,
+      filter: 'agTextColumnFilter',
+      filterParams: {
+        buttons: ['reset'],
+        debounceMs: 200,
+        filterOptions: ['contains', 'equals', 'startsWith'],
+        defaultOption: 'contains',
+        suppressAndOrCondition: true,
+      },
     },
     {
       field: "address",
       headerName: "Address",
       width: 250,
+      filter: 'agTextColumnFilter',
+      filterParams: {
+        buttons: ['reset'],
+        debounceMs: 200,
+        filterOptions: ['contains', 'notContains', 'startsWith'],
+        defaultOption: 'contains',
+        suppressAndOrCondition: true,
+      },
     },
-  ], [dateValueFormatter, unitsValueGetter, uniqueUnits]);
+  ], [dateValueFormatter, unitsValueGetter, booleanValueGetter]);
 
   const gridOptions = useMemo(() => ({
     pagination: true,
@@ -501,7 +581,7 @@ const AdminMembersTable = () => {
         'status',
         'profile_completed',
         'date_of_birth',
-        'units', // Will use valueGetter
+        'units',
         'community',
         'address'
       ]
@@ -546,8 +626,8 @@ const AdminMembersTable = () => {
 
   const handleUpdateGloryTeam = useCallback(async () => {
     await updateGloryTeam();
-    await refetch()
-  }, [updateGloryTeam]);
+    await refetch();
+  }, [updateGloryTeam, refetch]);
 
   // ========================================
   // EFFECTS

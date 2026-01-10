@@ -128,7 +128,15 @@ const AppRoutes = [
             path: 'members/:memberId',
             element: withSuspense(MemberDetailsPage),
           },
-          // admin route 
+          {
+            path: 'attendance/report',
+            element: withSuspense(AdminAttendanceReportPage),
+          },
+          {
+            path: 'attendance-records',
+            element: withSuspense(LeadersAttendanceRecordsPage),
+          },
+          // admin route
           {
             path: 'admin',
             element: <AdminProtectedRoute />,
@@ -139,16 +147,8 @@ const AppRoutes = [
                 element: withSuspense(AdminAttendancePage),
               },
               {
-                path: 'attendance/report',
-                element: withSuspense(AdminAttendanceReportPage),
-              },
-              {
                 path: 'events',
                 element: withSuspense(AdminEventsPage),
-              },
-              {
-                path: 'attendance-records',
-                element: withSuspense(AdminAttendanceRecordsPage),
               },
               {
                 path: 'first-timers',
@@ -177,10 +177,6 @@ const AppRoutes = [
             children: [
               { index: true, element: withSuspense(LeadersDashboardPage) },
               { path: 'units', element: withSuspense(LeadersUnitPage) },
-              {
-                path: 'attendance-records',
-                element: withSuspense(LeadersAttendanceRecordsPage),
-              },
             ],
           },
         ],

@@ -1,6 +1,6 @@
 import $api from '../lib/axios';
 
-const ATTENDANCE_RECORDS = 'admin/usher-attendance';
+const ATTENDANCE_RECORDS = '/usher-attendance';
 
 export const AttendanceRecords = {
   async getAllAttendanceRecords() {
