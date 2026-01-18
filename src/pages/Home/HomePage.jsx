@@ -23,6 +23,18 @@ import {
   YoutubeIcon
 } from "@/icons";
 
+import {
+  Heart,
+  Briefcase,
+  Cross,
+  Church,
+  Droplets,
+  Users,
+  Target,
+  Calendar,
+  Clock
+} from 'lucide-react';
+
 // Hooks & Utils
 import { useMarkAttendance } from "@/queries/attendance.query";
 import { useCoreAppData, useTodaysService } from "@/queries/service.query";
@@ -489,6 +501,250 @@ const BirthdayCard = memo(({ birthdayList }) => {
 });
 BirthdayCard.displayName = 'BirthdayCard';
 
+// Anniversary type labels
+const ANNIVERSARY_LABELS = {
+  wedding: 'Wedding Anniversary',
+  work: 'Work Anniversary',
+  salvation: 'Salvation Date',
+  ordination: 'Ordination Date',
+  baptism: 'Baptism Date',
+  membership: 'Membership Date',
+  custom: 'Custom',
+};
+
+// Helper: Calculate years since
+const calculateYearsSince = (date) => {
+  if (!date) return 0;
+  const anniversaryDate = new Date(date);
+  const today = new Date();
+  let years = today.getFullYear() - anniversaryDate.getFullYear();
+  const monthDiff = today.getMonth() - anniversaryDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < anniversaryDate.getDate())) {
+    years--;
+  }
+  return years;
+};
+
+// Helper: Calculate days until next occurrence
+const calculateDaysUntil = (date) => {
+  if (!date) return null;
+  const anniversaryDate = new Date(date);
+  const today = new Date();
+
+  let nextOccurrence = new Date(
+    today.getFullYear(),
+    anniversaryDate.getMonth(),
+    anniversaryDate.getDate()
+  );
+
+  if (nextOccurrence < today) {
+    nextOccurrence.setFullYear(today.getFullYear() + 1);
+  }
+
+  const diffTime = nextOccurrence - today;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  return diffDays;
+};
+
+// Helper: Format date
+const formatDate = (date) => {
+  if (!date) return '';
+  return new Date(date).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+  });
+};
+
+// Anniversary type icons mapping (Lucide React)
+const ANNIVERSARY_ICONS = {
+  wedding: Heart,
+  work: Briefcase,
+  salvation: Cross,
+  ordination: Church,
+  baptism: Droplets,
+  membership: Users,
+  custom: Target,
+};
+
+// Anniversary type colors
+const ANNIVERSARY_COLORS = {
+  wedding: 'text-pink-500 bg-pink-500/10',
+  work: 'text-blue-500 bg-blue-500/10',
+  salvation: 'text-purple-500 bg-purple-500/10',
+  ordination: 'text-indigo-500 bg-indigo-500/10',
+  baptism: 'text-cyan-500 bg-cyan-500/10',
+  membership: 'text-green-500 bg-green-500/10',
+  custom: 'text-orange-500 bg-orange-500/10',
+};
+
+
+// Helper: Get ordinal suffix
+const getOrdinalSuffix = (num) => {
+  const j = num % 10;
+  const k = num % 100;
+  if (j === 1 && k !== 11) return num + 'st';
+  if (j === 2 && k !== 12) return num + 'nd';
+  if (j === 3 && k !== 13) return num + 'rd';
+  return num + 'th';
+};
+
+// Single Anniversary Item Component
+const AnniversaryItem = memo(({ anniversary, person, index }) => {
+  const yearsSince = calculateYearsSince(anniversary.date);
+  const daysUntil = calculateDaysUntil(anniversary.date);
+  const isToday = daysUntil === 0;
+  const isUpcoming = daysUntil > 0 && daysUntil <= 7;
+
+  const Icon = ANNIVERSARY_ICONS[anniversary.type] || Target;
+  const iconColors = ANNIVERSARY_COLORS[anniversary.type] || ANNIVERSARY_COLORS.custom;
+  const typeLabel = ANNIVERSARY_LABELS[anniversary.type] || anniversary.type;
+
+  return (
+    <Animated
+      animation="fade-up"
+      duration={0.4}
+      delay={0.1 * index}
+      className="group"
+    >
+      <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300">
+        {/* Avatar Section */}
+        <div className="relative flex-shrink-0">
+          <Avatar
+            src={person.avatar}
+            name={generateInitials(`${person.first_name} ${person.last_name}`)}
+            size="md"
+          />
+
+
+          {/* Anniversary Type Badge */}
+          <div className={`absolute -bottom-0.5 -right-0.5 sm:-bottom-1 sm:-right-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center shadow-lg border border-white/20 ${iconColors}`}>
+            <Icon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+          </div>
+        </div>
+
+        {/* Info Section */}
+        <div className="flex-1 min-w-0">
+          {/* Header Row */}
+          <div className="flex items-start justify-between gap-2 mb-1.5 sm:mb-2">
+            <div className="flex-1 min-w-0">
+              <h4 className="text-sm font-semibold text-white truncate">
+                {person.first_name} {person.last_name}
+              </h4>
+              <p className="text-xs text-white/60 truncate mt-0.5">
+                {anniversary.title || typeLabel}
+              </p>
+            </div>
+
+            {/* Badge - Responsive */}
+            <div className="flex-shrink-0">
+              {isToday ? (
+                <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-medium text-white bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full shadow-lg animate-pulse whitespace-nowrap">
+                  Today! 🎉
+                </span>
+              ) : isUpcoming ? (
+                <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-medium text-blue-300 bg-blue-500/20 rounded-full border border-blue-400/30 whitespace-nowrap">
+                  {daysUntil}d
+                </span>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Details Row - Responsive Layout */}
+          <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-3 gap-y-1 text-[10px] sm:text-xs text-white/50">
+            {/* Date */}
+            <span className="flex items-center gap-1 whitespace-nowrap">
+              <Calendar className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate">{formatDate(anniversary.date)}</span>
+            </span>
+
+            {/* Years Since */}
+            {yearsSince > 0 && (
+              <span className="flex items-center gap-1 whitespace-nowrap">
+                <Clock className="w-3 h-3 flex-shrink-0" />
+                <span>{getOrdinalSuffix(yearsSince)}</span>
+              </span>
+            )}
+
+            {/* Type Label */}
+            <span className="flex items-center gap-1">
+              <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-blue-400 flex-shrink-0"></span>
+              <span className="truncate hidden sm:inline">{typeLabel}</span>
+              <span className="truncate sm:hidden">
+                {typeLabel.split(' ')[0]}
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </Animated>
+  );
+});
+AnniversaryItem.displayName = 'AnniversaryItem';
+
+// Person Anniversary Card - Shows all anniversaries for one person
+const PersonAnniversaryCard = memo(({ person, index }) => {
+  if (!person.anniversaries || person.anniversaries.length === 0) return null;
+
+  return (
+    <div className="space-y-2">
+      {person.anniversaries.map((anniversary, annIndex) => (
+        <AnniversaryItem
+          key={`${person.id}-${annIndex}`}
+          anniversary={anniversary}
+          person={person}
+          index={index + annIndex}
+        />
+      ))}
+    </div>
+  );
+});
+PersonAnniversaryCard.displayName = 'PersonAnniversaryCard';
+
+// Main Anniversary Card Component
+const AnniversaryCard = memo(({ anniversaryList }) => {
+  if (!anniversaryList || anniversaryList.length === 0) return null;
+
+  // Calculate total anniversaries count
+  const totalAnniversaries = anniversaryList.reduce(
+    (sum, person) => sum + (person.anniversaries?.length || 0),
+    0
+  );
+
+  return (
+    <Animated
+      animation="fade-up"
+      duration={0.6}
+      delay={0.6}
+      className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+    >
+      <Card>
+        <div className="flex items-start gap-3 sm:gap-4 mb-4">
+          <IconWrapper icon={CakeIcon} animated />
+          <div className="flex-1 min-w-0">
+            <h3
+              className={`text-sm font-semibold text-${THEME.colors.primary} uppercase tracking-wider mb-1`}
+            >
+              🎊 Special Anniversaries
+            </h3>
+            <p className="text-xs text-white/70">
+              Celebrating {totalAnniversaries} special{' '}
+              {totalAnniversaries === 1 ? 'milestone' : 'milestones'} with our beloved family!
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-2 sm:space-y-3">
+          {anniversaryList.map((person, index) => (
+            <PersonAnniversaryCard key={person.id} person={person} index={index} />
+          ))}
+        </div>
+      </Card>
+    </Animated>
+  );
+});
+AnniversaryCard.displayName = 'AnniversaryCard';
+
 // ============= SERVICE ENDED STATE =============
 const ServiceEndedState = memo(({ serviceName, attendance }) => (
   <div className="space-y-6 w-full">
@@ -690,7 +946,7 @@ const HomePage = () => {
   const { data: coreData, isLoading: isCoreLoading, isFetching: isCoreFetching } = useCoreAppData();
 
   const { service, service_status, seconds_until_start, can_mark, attendance } = serviceData || {};
-  const { birthday_list } = coreData || {};
+  const { birthday_list, anniversary_list } = coreData || {};
 
 
   const { mutate, isPending, isSuccess } = useMarkAttendance();
@@ -776,10 +1032,11 @@ const HomePage = () => {
 
   return (
     <HomepageComponentCard>
-      {birthday_list && birthday_list.length > 0 && <ConfettiShower duration={10} />}
+      {(birthday_list || anniversary_list) && (birthday_list.length > 0 || anniversary_list?.length > 0) && <ConfettiShower duration={10} />}
       <GreetingContainer userName={user?.first_name} />
       {renderContent()}
       <BirthdayCard birthdayList={birthday_list} />
+      <AnniversaryCard anniversaryList={anniversary_list} />
       <BibleVerseCard />
     </HomepageComponentCard>
   );

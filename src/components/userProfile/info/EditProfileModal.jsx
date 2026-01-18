@@ -41,7 +41,7 @@ const EditProfileModal = ({ isOpen, onClose }) => {
       first_name: user?.first_name || '',
       last_name: user?.last_name || '',
       phone_number: user?.phone_number || '',
-      whatsapp_phone: user?.whatsapp_phone || '',
+      whatsapp_number: user?.whatsapp_number || '',
       gender: user?.gender || '',
       date_of_birth: user?.date_of_birth ? dayjs(user?.date_of_birth).format("DD/MM") : '',
       country: user?.country || '',

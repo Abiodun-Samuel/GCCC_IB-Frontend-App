@@ -152,43 +152,55 @@ const MembersFeedbackModal = ({ isOpen, onClose, serviceFeedbacks = [], allFeedb
                                 {feedbacksToDisplay.map((feedback) => (
                                     <div
                                         key={feedback.id}
-                                        className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-5 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200"
+                                        className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 sm:p-5 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200"
                                     >
-                                        <div className="flex items-start justify-between mb-3">
-                                            <div className="flex items-center gap-3">
+                                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+                                            {/* User info section */}
+                                            <div className="flex items-start gap-3">
                                                 <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
                                                     <span className="text-white font-semibold text-sm">
                                                         {feedback.created_by.name.charAt(0).toUpperCase()}
                                                     </span>
                                                 </div>
-                                                <div>
-                                                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                                                <div className="min-w-0 flex-1">
+                                                    <Link
+                                                        to={`/dashboard/members/${feedback.created_by.id}`}
+                                                        className="text-sm font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                                    >
                                                         {feedback.created_by.name}
-                                                    </p>
-                                                    <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                                        <Calendar className="w-3.5 h-3.5" />
-                                                        <span>{dayjs(feedback.created_at).format('MMM DD, YYYY')}</span>
-                                                        <span className="text-gray-400 dark:text-gray-600">•</span>
-                                                        <Clock className="w-3.5 h-3.5" />
-                                                        <span>{dayjs(feedback.created_at).format('hh:mm A')}</span>
+                                                    </Link>
+                                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                        <div className="flex items-center gap-1">
+                                                            <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
+                                                            <span className="whitespace-nowrap">{dayjs(feedback.created_at).format('MMM DD, YYYY')}</span>
+                                                        </div>
+                                                        <span className="hidden xs:inline text-gray-400 dark:text-gray-600">•</span>
+                                                        <div className="flex items-center gap-1">
+                                                            <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                                                            <span className="whitespace-nowrap">{dayjs(feedback.created_at).format('hh:mm A')}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="flex flex-col items-end gap-1.5">
-                                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+
+                                            {/* Badges section */}
+                                            <div className="flex flex-row sm:flex-col items-start sm:items-end gap-2 sm:gap-1.5 flex-shrink-0">
+                                                <span className="inline-flex items-center px-2.5 sm:px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-800 whitespace-nowrap">
                                                     {feedback.type}
                                                 </span>
                                                 {feedback.service_date && (
-                                                    <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                                                        <Calendar className="w-3 h-3" />
-                                                        Service: {dayjs(feedback.service_date).format('MMM DD')}
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 whitespace-nowrap">
+                                                        <Calendar className="w-3 h-3 flex-shrink-0" />
+                                                        <span className="hidden xs:inline">Service: </span>
+                                                        {dayjs(feedback.service_date).format('MMM DD')}
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
 
-                                        <div className="mt-3 bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                                        {/* Feedback content */}
+                                        <div className="mt-3 bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700">
+                                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap break-words">
                                                 {feedback.note}
                                             </p>
                                         </div>
@@ -1188,8 +1200,9 @@ const ShareButton = ({ selectedDate, selectedServiceName }) => {
     };
 
     return (
-        <Button
+        <button
             onClick={handleShare}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
             {copied ? (
                 <>
@@ -1202,7 +1215,7 @@ const ShareButton = ({ selectedDate, selectedServiceName }) => {
                     Share Report
                 </>
             )}
-        </Button>
+        </button>
     );
 };
 
@@ -1312,7 +1325,7 @@ const AdminAttendanceReportPage = () => {
                                     selectedServiceName={selectedServiceName}
                                 />
                             )}
-                            <Button variant="outline-primary" href={'/dashboard/admin/attendance'}>Attendance</Button>
+                            <Button variant="outline" href={'/dashboard/admin/attendance'}>Attendance</Button>
                         </div>
                     </Animated>
 

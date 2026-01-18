@@ -13,7 +13,7 @@ const LOGO_DIMENSIONS = { width: 150, height: 40 };
 
 const Logo = () => (
   <Link to="/" className="lg:hidden flex items-center gap-3" aria-label="Go to homepage">
-    <HomeIcon />
+    <HomeIcon className="text-gray-800 dark:text-gray-300" />
     <img
       className="dark:hidden"
       src="/images/logo/logo-black.png"

@@ -621,12 +621,10 @@ const UserInfo = ({ user }) => (
 
 const DashboardLinks = ({ isAdmin, isLeader, closeDropdown }) => {
   const links = [
-    { show: isAdmin, to: '/dashboard/admin', icon: AdminIcon, label: 'Dashboard (Admin)' },
-    { show: isLeader, to: '/dashboard/leaders', icon: LeaderIcon, label: 'Dashboard (Leader)' },
+    { show: isAdmin, to: '/dashboard/admin', icon: AdminIcon, label: 'Admin' },
+    { show: isLeader, to: '/dashboard/leaders', icon: LeaderIcon, label: 'Leader' },
     { show: true, to: '/dashboard', icon: DashboardIcon, label: 'Dashboard' },
-    { show: true, to: '/dashboard/attendance', icon: AttendanceIcon2, label: 'Attendance' },
     { show: true, to: '/dashboard/profile', icon: UserIcon, label: 'Profile' },
-    { show: true, to: '/dashboard/events', icon: EventIcon, label: 'Events' }
   ];
 
   return (
@@ -711,12 +709,10 @@ const MobileMenu = ({ menuOpen, navItems, closeMenu, isAuthenticated, user, isAd
 
 const MobileAuthenticatedSection = ({ user, isAdmin, isLeader, closeMenu, handleLogout, isLoggingOut }) => {
   const links = [
-    { show: isAdmin, to: '/dashboard/admin', icon: AdminIcon, label: 'Dashboard (Admin)' },
-    { show: isLeader, to: '/dashboard/leaders', icon: LeaderIcon, label: 'Dashboard (Leader)' },
+    { show: isAdmin, to: '/dashboard/admin', icon: AdminIcon, label: 'Admin' },
+    { show: isLeader, to: '/dashboard/leaders', icon: LeaderIcon, label: 'Leader' },
     { show: true, to: '/dashboard', icon: DashboardIcon, label: 'Dashboard' },
-    { show: true, to: '/dashboard/attendance', icon: AttendanceIcon2, label: 'Attendance' },
     { show: true, to: '/dashboard/profile', icon: UserIcon, label: 'Profile' },
-    { show: true, to: '/dashboard/events', icon: EventIcon, label: 'Events' }
   ];
 
   return (

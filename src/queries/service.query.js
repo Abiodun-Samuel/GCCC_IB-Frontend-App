@@ -21,6 +21,7 @@ export const useCoreAppData = (options = {}) => {
       const { data } = await ServiceService.fetchCoreAppData();
       return {
         birthday_list: data?.birthday_list,
+        anniversary_list: data?.anniversary_list,
       }
     },
     staleTime: 2 * 60 * 1000,

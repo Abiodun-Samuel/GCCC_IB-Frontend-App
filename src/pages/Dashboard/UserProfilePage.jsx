@@ -5,8 +5,8 @@ import UserInfoCard from '@/components/userProfile/UserInfoCard'
 import UserMetaCard from '@/components/userProfile/UserMetaCard'
 import UserProfessionalCard from '@/components/userProfile/UserProfessionalCard'
 import UserChurchCard from '@/components/userProfile/UserChurchCard'
-import UserAchievement from '@/components/userProfile/UserAchievement'
 import { UserIcon } from '@/icons'
+import UserAnniversary from '@/components/userProfile/UserAnniversary'
 const UserProfilePage = () => {
     return (
         <>
@@ -17,7 +17,7 @@ const UserProfilePage = () => {
                 <UserInfoCard />
                 <UserProfessionalCard />
                 <UserChurchCard />
-                <UserAchievement />
+                <UserAnniversary />
             </ComponentCard>
         </>
     )
