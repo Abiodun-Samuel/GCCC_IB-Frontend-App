@@ -183,7 +183,7 @@ Connect with us on:
 Instagram: https://instagram.com/gcccibadan
 Facebook: https://m.facebook.com/GCCCIBADAN
 Mixlr: https://gcccibadan.mixlr.com/
-YouTube: https://www.youtube.com/@Gccc_Ibadan
+YouTube: https://www.youtube.com/@GcccIbadan
 Telegram: https://t.me/Pastoropeyemipeter to access life transforming messages.
 
 We will keep sharing content that we hope will bless and encourage you. Hope to see you again soon!

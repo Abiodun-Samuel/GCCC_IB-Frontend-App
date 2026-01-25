@@ -12,7 +12,7 @@ export const AuthService = {
   },
 
   async getMe() {
-    const { data } = await $api.get('/me');
+    const { data } = await $api.get('/auth/me');
     return data;
   },
 

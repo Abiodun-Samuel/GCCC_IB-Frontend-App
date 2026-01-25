@@ -4,6 +4,7 @@ import { QUERY_KEYS } from '../utils/queryKeys';
 import { useNavigate } from 'react-router-dom';
 import { Toast } from '../lib/toastify';
 import { handleApiError } from '../utils/helper';
+import { useAuthStore } from '@/store/auth.store';
 
 export const useAllAttendance = (params = {}, options = {}) => {
   return useQuery({
@@ -42,11 +43,15 @@ export const useUserAttendance = (params = {}, options = {}) => {
 // Mark attendance mutation
 export const useMarkAttendance = (options = {}) => {
   const navigate = useNavigate();
+  const { setAuthenticatedUser } = useAuthStore();
+
 
   return useMutation({
     mutationFn: AttendanceService.markAttendance,
-    onSuccess: (data, variables) => {
-      Toast.success(data?.message || 'Attendance submitted successfully');
+    onSuccess: ({ data, message }, variables) => {
+      const { user } = data
+      setAuthenticatedUser({ user })
+      Toast.success(message || 'Attendance submitted successfully');
       setTimeout(() => {
         navigate(`/dashboard`);
       }, 3000);

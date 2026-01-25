@@ -9,6 +9,7 @@ import {
   HorizontaLDotsIcon,
   UserIcon,
   LeaderIcon,
+  MessageIcon,
 } from '@/icons';
 import { adminNavItems, leaderNavItems, navItems } from '@/utils/data';
 import { useAuthStore } from '@/store/auth.store';
@@ -74,6 +75,7 @@ const AppSidebar = () => {
     EventIcon,
     UserIcon,
     LeaderIcon,
+    MessageIcon,
   };
 
   const adminBadgeMap = {

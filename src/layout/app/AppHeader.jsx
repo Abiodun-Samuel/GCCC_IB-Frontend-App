@@ -7,6 +7,7 @@ import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
 import UserDropdown from "@/components/header/UserDropdown";
 import Animated from "@/components/common/Animated";
 import { HomeIcon } from "lucide-react";
+import { NotificationButton } from "@/components/header/NotificationDropdown";
 
 const BREAKPOINT_LG = 1024;
 const LOGO_DIMENSIONS = { width: 150, height: 40 };
@@ -33,7 +34,7 @@ const Logo = () => (
 
 const HeaderActions = () => (
   <div className="flex items-center gap-2 sm:gap-3">
-    {/* <NotificationDropdown /> */}
+    <NotificationButton />
     <ThemeToggleButton />
   </div>
 );

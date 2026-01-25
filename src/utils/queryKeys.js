@@ -1,4 +1,15 @@
 export const QUERY_KEYS = {
+  MESSAGES: {
+    ALL: ['messages'],
+    INBOX: (params = {}) => ['messages', 'inbox', params],
+    SENT: (params = {}) => ['messages', 'sent', params],
+    ARCHIVED: (params = {}) => ['messages', 'archived', params],
+    UNREAD_COUNT: ['messages', 'unread-count'],
+    CONVERSATIONS: (params = {}) => ['messages', 'conversations', params],
+    CONVERSATION: (userId) => ['messages', 'conversation', userId],
+    SEARCH: (query, params = {}) => ['messages', 'search', query, params],
+  },
+
   FORM_MESSAGES: {
     ALL: (type) => ['formMessages', type],
     DETAIL: (id) => ['formMessages', id],

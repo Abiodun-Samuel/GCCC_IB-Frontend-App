@@ -24,15 +24,23 @@ import {
 } from "@/icons";
 
 import {
-  Heart,
-  Briefcase,
   Cross,
   Church,
   Droplets,
   Users,
-  Target,
   Calendar,
-  Clock
+  Clock,
+  Gift,
+  Heart,
+  Briefcase,
+  Award,
+  Target,
+  Mail,
+  Send,
+  Cake,
+  PartyPopper,
+  Sparkles,
+
 } from 'lucide-react';
 
 // Hooks & Utils
@@ -42,6 +50,114 @@ import { useAuthStore } from "@/store/auth.store";
 import { generateInitials } from "@/utils/helper";
 import { bibleVerses } from "@/utils/data";
 import animationData from '../../utils/animation.json';
+import { useModal } from "@/hooks/useModal";
+import { useSendMessage } from "@/queries/message.query";
+import Modal from "@/components/ui/modal/Modal";
+import { Toast } from "@/lib/toastify";
+
+const SendMessageModal = memo(({ isOpen, onClose, recipient }) => {
+  const sendMutation = useSendMessage();
+  const [formData, setFormData] = useState({
+    subject: '',
+    body: '',
+  });
+
+  const handleChange = useCallback((e) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  }, []);
+
+  const handleSubmit = useCallback((e) => {
+    e.preventDefault();
+
+    if (!formData.body.trim()) {
+      Toast.error('Please enter a message');
+      return;
+    }
+
+    sendMutation.mutate(
+      {
+        recipient_id: recipient.id,
+        subject: formData.subject || `Birthday/Anniversary Wishes from ${recipient.first_name}`,
+        body: formData.body,
+      },
+      {
+        onSuccess: () => {
+          Toast.success(`Message sent to ${recipient.first_name} ${recipient.last_name}!`);
+          setFormData({ subject: '', body: '' });
+          onClose();
+        },
+      }
+    );
+  }, [formData, recipient, sendMutation, onClose]);
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Send Message to ${recipient?.first_name} ${recipient?.last_name}`}
+      description="Share your wishes and blessings"
+      maxWidth="max-w-lg"
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label
+            htmlFor="subject"
+            className="mb-2 block text-sm font-semibold text-gray-900 dark:text-gray-100"
+          >
+            Subject (Optional)
+          </label>
+          <input
+            type="text"
+            id="subject"
+            name="subject"
+            value={formData.subject}
+            onChange={handleChange}
+            placeholder="Enter subject..."
+            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-400"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="body"
+            className="mb-2 block text-sm font-semibold text-gray-900 dark:text-gray-100"
+          >
+            Your Message <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            id="body"
+            name="body"
+            value={formData.body}
+            onChange={handleChange}
+            required
+            rows={6}
+            placeholder="Type your birthday/anniversary wishes..."
+            className="w-full resize-y rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm leading-relaxed text-gray-900 placeholder:text-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-400"
+          />
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4">
+          <Button variant="outline-light" onClick={onClose} type="button">
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            loading={sendMutation.isPending}
+            disabled={!formData.body.trim()}
+            startIcon={<Send className="h-4 w-4" />}
+            className="shadow-lg shadow-primary-500/20"
+          >
+            Send Message
+          </Button>
+        </div>
+      </form>
+    </Modal>
+  );
+});
+SendMessageModal.displayName = 'SendMessageModal';
 
 // ============= CONSTANTS =============
 const ATTENDANCE_SOURCES = {
@@ -429,42 +545,90 @@ const CakeIcon = memo(({ className }) => (
 CakeIcon.displayName = 'CakeIcon';
 
 // ============= BIRTHDAY CARD COMPONENT =============
-const BirthdayPersonCard = memo(({ person, index }) => (
-  <motion.div
-    initial={{ opacity: 0, x: -20 }}
-    animate={{ opacity: 1, x: 0 }}
-    transition={{ delay: 0.1 * index, duration: 0.4 }}
-    className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300"
-  >
-    <Avatar
-      src={person.avatar}
-      name={generateInitials(`${person.first_name} ${person.last_name}`)}
-      size="md"
-    />
-    <div className="flex-1 min-w-0">
-      <p className="text-sm font-semibold text-white truncate">
-        {person.first_name} {person.last_name}
-      </p>
-      <p className="text-xs text-white/50">
-        Wishing you a blessed day! 🎂
-      </p>
-      <p className="text-xs text-white/50">
-        <b>Date: </b> {dayjs(person?.date_of_birth).format('DD MMM')}
-      </p>
-    </div>
-    <motion.div
-      animate={{ scale: [1, 1.2, 1] }}
-      transition={{
-        duration: 1.5,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }}
-      className="shrink-0"
-    >
-      <span className="text-2xl">🎈</span>
-    </motion.div>
-  </motion.div>
-));
+// ============================================================================
+// BIRTHDAY COMPONENTS
+// ============================================================================
+
+const BirthdayPersonCard = memo(({ person, index }) => {
+  const { isOpen: isMessageModalOpen, openModal, closeModal } = useModal();
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.1 * index, duration: 0.4 }}
+        className="group flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
+      >
+        {/* Avatar with Birthday Badge */}
+        <div className="relative flex-shrink-0">
+          <Avatar
+            src={person.avatar}
+            name={generateInitials(`${person.first_name} ${person.last_name}`)}
+            size="md"
+          />
+          <div className="absolute -bottom-0.5 -right-0.5 sm:-bottom-1 sm:-right-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center bg-gradient-to-br from-pink-500 to-rose-600 shadow-lg border border-white/20">
+            <Cake className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
+          </div>
+        </div>
+
+        {/* Info Section */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <div className="flex-1 min-w-0">
+              <h4 className="text-sm font-semibold text-white truncate">
+                {person.first_name} {person.last_name}
+              </h4>
+              <p className="text-xs text-white/60 truncate mt-0.5">
+                Wishing you a blessed day!
+              </p>
+            </div>
+
+            {/* Today Badge */}
+            {/* <motion.div
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className="flex-shrink-0"
+            >
+              <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full shadow-lg">
+                <PartyPopper className="w-3 h-3 mr-1" />
+                Today
+              </span>
+            </motion.div> */}
+          </div>
+
+          {/* Details Row */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs text-white/50">
+              <Calendar className="w-3 h-3 flex-shrink-0" />
+              <span>{dayjs(person?.date_of_birth).format('DD MMM')}</span>
+            </div>
+
+            {/* Message Button */}
+            <button
+              onClick={openModal}
+              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-gray-400 bg-primary-500/10 hover:bg-primary-500/20 border border-primary-500/30 rounded-lg transition-all duration-200 hover:scale-105"
+            >
+              <Mail className="w-3 h-3" />
+              <span className="hidden sm:inline">Send Wishes</span>
+              <span className="sm:hidden">Message</span>
+            </button>
+          </div>
+        </div>
+      </motion.div>
+
+      <SendMessageModal
+        isOpen={isMessageModalOpen}
+        onClose={closeModal}
+        recipient={person}
+      />
+    </>
+  );
+});
 BirthdayPersonCard.displayName = 'BirthdayPersonCard';
 
 const BirthdayCard = memo(({ birthdayList }) => {
@@ -478,19 +642,21 @@ const BirthdayCard = memo(({ birthdayList }) => {
       className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
     >
       <Card>
-        <div className="flex items-start gap-4 mb-4">
-          <IconWrapper icon={CakeIcon} animated />
-          <div className="flex-1">
+        <div className="flex items-start gap-3 sm:gap-4 mb-4">
+          <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 shadow-lg">
+            <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
             <h3 className={`text-sm font-semibold text-${THEME.colors.primary} uppercase tracking-wider mb-1`}>
-              🎉 Birthday Celebrations
+              Birthday Celebrations
             </h3>
             <p className="text-xs text-white/70">
-              Let's celebrate our beloved brothers and sisters on their special day!
+              Celebrating {birthdayList.length} special {birthdayList.length === 1 ? 'birthday' : 'birthdays'} with our beloved family!
             </p>
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           {birthdayList.map((person, index) => (
             <BirthdayPersonCard key={person.id} person={person} index={index} />
           ))}
@@ -501,15 +667,34 @@ const BirthdayCard = memo(({ birthdayList }) => {
 });
 BirthdayCard.displayName = 'BirthdayCard';
 
-// Anniversary type labels
+const ANNIVERSARY_ICONS = {
+  wedding: Heart,
+  work: Briefcase,
+  salvation: Church,
+  baptism: Church,
+  membership: Users,
+  ordination: Award,
+  custom: Target,
+};
+
+const ANNIVERSARY_COLORS = {
+  wedding: 'bg-gradient-to-br from-pink-500 to-rose-600',
+  work: 'bg-gradient-to-br from-blue-500 to-indigo-600',
+  salvation: 'bg-gradient-to-br from-purple-500 to-violet-600',
+  baptism: 'bg-gradient-to-br from-cyan-500 to-blue-600',
+  membership: 'bg-gradient-to-br from-green-500 to-emerald-600',
+  ordination: 'bg-gradient-to-br from-amber-500 to-orange-600',
+  custom: 'bg-gradient-to-br from-gray-500 to-slate-600',
+};
+
 const ANNIVERSARY_LABELS = {
   wedding: 'Wedding Anniversary',
   work: 'Work Anniversary',
   salvation: 'Salvation Date',
-  ordination: 'Ordination Date',
   baptism: 'Baptism Date',
   membership: 'Membership Date',
-  custom: 'Custom',
+  // ordination: 'Ordination Anniversary',
+  custom: 'Special Date',
 };
 
 // Helper: Calculate years since
@@ -556,29 +741,6 @@ const formatDate = (date) => {
   });
 };
 
-// Anniversary type icons mapping (Lucide React)
-const ANNIVERSARY_ICONS = {
-  wedding: Heart,
-  work: Briefcase,
-  salvation: Cross,
-  ordination: Church,
-  baptism: Droplets,
-  membership: Users,
-  custom: Target,
-};
-
-// Anniversary type colors
-const ANNIVERSARY_COLORS = {
-  wedding: 'text-pink-500 bg-pink-500/10',
-  work: 'text-blue-500 bg-blue-500/10',
-  salvation: 'text-purple-500 bg-purple-500/10',
-  ordination: 'text-indigo-500 bg-indigo-500/10',
-  baptism: 'text-cyan-500 bg-cyan-500/10',
-  membership: 'text-green-500 bg-green-500/10',
-  custom: 'text-orange-500 bg-orange-500/10',
-};
-
-
 // Helper: Get ordinal suffix
 const getOrdinalSuffix = (num) => {
   const j = num % 10;
@@ -589,8 +751,8 @@ const getOrdinalSuffix = (num) => {
   return num + 'th';
 };
 
-// Single Anniversary Item Component
 const AnniversaryItem = memo(({ anniversary, person, index }) => {
+  const { isOpen: isMessageModalOpen, openModal, closeModal } = useModal();
   const yearsSince = calculateYearsSince(anniversary.date);
   const daysUntil = calculateDaysUntil(anniversary.date);
   const isToday = daysUntil === 0;
@@ -601,88 +763,107 @@ const AnniversaryItem = memo(({ anniversary, person, index }) => {
   const typeLabel = ANNIVERSARY_LABELS[anniversary.type] || anniversary.type;
 
   return (
-    <Animated
-      animation="fade-up"
-      duration={0.4}
-      delay={0.1 * index}
-      className="group"
-    >
-      <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300">
-        {/* Avatar Section */}
-        <div className="relative flex-shrink-0">
-          <Avatar
-            src={person.avatar}
-            name={generateInitials(`${person.first_name} ${person.last_name}`)}
-            size="md"
-          />
+    <>
+      <Animated
+        animation="fade-up"
+        duration={0.4}
+        delay={0.1 * index}
+        className="group"
+      >
+        <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300">
+          {/* Avatar Section */}
+          <div className="relative flex-shrink-0">
+            <Avatar
+              src={person.avatar}
+              name={generateInitials(`${person.first_name} ${person.last_name}`)}
+              size="md"
+            />
 
-
-          {/* Anniversary Type Badge */}
-          <div className={`absolute -bottom-0.5 -right-0.5 sm:-bottom-1 sm:-right-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center shadow-lg border border-white/20 ${iconColors}`}>
-            <Icon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-          </div>
-        </div>
-
-        {/* Info Section */}
-        <div className="flex-1 min-w-0">
-          {/* Header Row */}
-          <div className="flex items-start justify-between gap-2 mb-1.5 sm:mb-2">
-            <div className="flex-1 min-w-0">
-              <h4 className="text-sm font-semibold text-white truncate">
-                {person.first_name} {person.last_name}
-              </h4>
-              <p className="text-xs text-white/60 truncate mt-0.5">
-                {anniversary.title || typeLabel}
-              </p>
-            </div>
-
-            {/* Badge - Responsive */}
-            <div className="flex-shrink-0">
-              {isToday ? (
-                <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-medium text-white bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full shadow-lg animate-pulse whitespace-nowrap">
-                  Today! 🎉
-                </span>
-              ) : isUpcoming ? (
-                <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-medium text-blue-300 bg-blue-500/20 rounded-full border border-blue-400/30 whitespace-nowrap">
-                  {daysUntil}d
-                </span>
-              ) : null}
+            {/* Anniversary Type Badge */}
+            <div className={`absolute -bottom-0.5 -right-0.5 sm:-bottom-1 sm:-right-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center shadow-lg border border-white/20 ${iconColors}`}>
+              <Icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
             </div>
           </div>
 
-          {/* Details Row - Responsive Layout */}
-          <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-3 gap-y-1 text-[10px] sm:text-xs text-white/50">
-            {/* Date */}
-            <span className="flex items-center gap-1 whitespace-nowrap">
-              <Calendar className="w-3 h-3 flex-shrink-0" />
-              <span className="truncate">{formatDate(anniversary.date)}</span>
-            </span>
+          {/* Info Section */}
+          <div className="flex-1 min-w-0">
+            {/* Header Row */}
+            <div className="flex items-start justify-between gap-2 mb-1.5 sm:mb-2">
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-semibold text-white truncate">
+                  {person.first_name} {person.last_name}
+                </h4>
+                <p className="text-xs text-white/60 truncate mt-0.5">
+                  {anniversary.title || typeLabel}
+                </p>
+              </div>
 
-            {/* Years Since */}
-            {yearsSince > 0 && (
-              <span className="flex items-center gap-1 whitespace-nowrap">
-                <Clock className="w-3 h-3 flex-shrink-0" />
-                <span>{getOrdinalSuffix(yearsSince)}</span>
-              </span>
-            )}
+              {/* Badge - Responsive */}
+              <div className="flex-shrink-0">
+                {isToday ? (
+                  <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-medium text-white bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full shadow-lg">
+                    <PartyPopper className="w-3 h-3 mr-1" />
+                    Today
+                  </span>
+                ) : isUpcoming ? (
+                  <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-medium text-blue-300 bg-blue-500/20 rounded-full border border-blue-400/30 whitespace-nowrap">
+                    {daysUntil}d
+                  </span>
+                ) : null}
+              </div>
+            </div>
 
-            {/* Type Label */}
-            <span className="flex items-center gap-1">
-              <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-blue-400 flex-shrink-0"></span>
-              <span className="truncate hidden sm:inline">{typeLabel}</span>
-              <span className="truncate sm:hidden">
-                {typeLabel.split(' ')[0]}
-              </span>
-            </span>
+            {/* Details Row */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-3 gap-y-1 text-[10px] sm:text-xs text-white/50">
+                {/* Date */}
+                <span className="flex items-center gap-1 whitespace-nowrap">
+                  <Calendar className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{formatDate(anniversary.date)}</span>
+                </span>
+
+                {/* Years Since */}
+                {yearsSince > 0 && (
+                  <span className="flex items-center gap-1 whitespace-nowrap">
+                    <Clock className="w-3 h-3 flex-shrink-0" />
+                    <span>{getOrdinalSuffix(yearsSince)}</span>
+                  </span>
+                )}
+
+                {/* Type Label */}
+                <span className="flex items-center gap-1">
+                  <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-blue-400 flex-shrink-0"></span>
+                  <span className="truncate hidden sm:inline">{typeLabel}</span>
+                  <span className="truncate sm:hidden">
+                    {typeLabel.split(' ')[0]}
+                  </span>
+                </span>
+              </div>
+
+              {/* Message Button */}
+              <button
+                onClick={openModal}
+                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-gray-400 bg-primary-500/10 hover:bg-primary-500/20 border border-primary-500/30 rounded-lg transition-all duration-200 hover:scale-105 flex-shrink-0"
+              >
+                <Mail className="w-3 h-3" />
+                <span className="hidden sm:inline">Send Wishes</span>
+                <span className="sm:hidden">Message</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </Animated>
+      </Animated>
+
+      <SendMessageModal
+        isOpen={isMessageModalOpen}
+        onClose={closeModal}
+        recipient={person}
+      />
+    </>
   );
 });
 AnniversaryItem.displayName = 'AnniversaryItem';
 
-// Person Anniversary Card - Shows all anniversaries for one person
 const PersonAnniversaryCard = memo(({ person, index }) => {
   if (!person.anniversaries || person.anniversaries.length === 0) return null;
 
@@ -701,11 +882,9 @@ const PersonAnniversaryCard = memo(({ person, index }) => {
 });
 PersonAnniversaryCard.displayName = 'PersonAnniversaryCard';
 
-// Main Anniversary Card Component
 const AnniversaryCard = memo(({ anniversaryList }) => {
   if (!anniversaryList || anniversaryList.length === 0) return null;
 
-  // Calculate total anniversaries count
   const totalAnniversaries = anniversaryList.reduce(
     (sum, person) => sum + (person.anniversaries?.length || 0),
     0
@@ -720,16 +899,15 @@ const AnniversaryCard = memo(({ anniversaryList }) => {
     >
       <Card>
         <div className="flex items-start gap-3 sm:gap-4 mb-4">
-          <IconWrapper icon={CakeIcon} animated />
+          <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 shadow-lg">
+            <Gift className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+          </div>
           <div className="flex-1 min-w-0">
-            <h3
-              className={`text-sm font-semibold text-${THEME.colors.primary} uppercase tracking-wider mb-1`}
-            >
-              🎊 Special Anniversaries
+            <h3 className={`text-sm font-semibold text-${THEME.colors.primary} uppercase tracking-wider mb-1`}>
+              Special Anniversaries
             </h3>
             <p className="text-xs text-white/70">
-              Celebrating {totalAnniversaries} special{' '}
-              {totalAnniversaries === 1 ? 'milestone' : 'milestones'} with our beloved family!
+              Celebrating {totalAnniversaries} special {totalAnniversaries === 1 ? 'milestone' : 'milestones'} with our beloved family!
             </p>
           </div>
         </div>
@@ -787,7 +965,7 @@ const ActionButtons = memo(() => (
   <div className="flex flex-col sm:flex-row justify-center gap-3 pt-2">
     <Button
       variant="danger"
-      href="https://youtube.com/@gccc_ibadan"
+      href="https://www.youtube.com/@GcccIbadan"
       target="_blank"
       rel="noopener noreferrer"
       startIcon={<YoutubeIcon className="w-4 h-4" />}
@@ -811,7 +989,7 @@ const RecapButtons = memo(() => (
   <div className="flex flex-col sm:flex-row justify-center gap-3 pt-2">
     <Button
       variant="danger"
-      href="https://youtube.com/@gccc_ibadan"
+      href="https://www.youtube.com/@GcccIbadan"
       target="_blank"
       rel="noopener noreferrer"
       startIcon={<YoutubeIcon className="w-4 h-4" />}

@@ -12,6 +12,7 @@ import EventCard from '@/components/dashboard/events/EventCard';
 import EventDetailsPage from '@/pages/Home/EventsPage';
 import AdminAttendanceReportPage from '@/pages/Admin/AdminAttendanceReportPage';
 import AdminFirstTimerReportPage from '@/pages/Admin/AdminFirstTimerReportPage';
+import MessagesPage from '@/pages/Dashboard/MessagesPage';
 
 const LoginPage = lazy(() => import('../pages/Home/Auth/LoginPage'));
 const RegisterPage = lazy(() => import('../pages/Home/Auth/RegisterPage'));
@@ -120,6 +121,7 @@ const AppRoutes = [
           { path: 'attendance', element: withSuspense(AttendancePage) },
           { path: 'profile', element: withSuspense(UserProfilePage) },
           { path: 'events', element: withSuspense(EventsPage) },
+          { path: 'messages', element: withSuspense(MessagesPage) },
           {
             path: 'first-timers/:firstTimerId',
             element: withSuspense(FirstTimerDetailsPage),

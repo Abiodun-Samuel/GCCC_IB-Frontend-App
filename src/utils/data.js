@@ -31,6 +31,11 @@ export const navItems = [
     name: 'Profile',
     path: '/dashboard/profile',
   },
+  {
+    icon: 'MessageIcon',
+    name: 'Messages',
+    path: '/dashboard/messages',
+  },
 ];
 export const adminNavItems = [
   {
