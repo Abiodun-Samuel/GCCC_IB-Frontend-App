@@ -394,7 +394,7 @@ const Navbar = () => {
   const closeDropdown = useCallback(() => setDropdownOpen(false), []);
 
   const navItems = useMemo(() => [
-    { icon: HomeIcon, label: 'precise', path: '/', show: true, end: true },
+    { icon: HomeIcon, label: 'Home', path: '/', show: true, end: true },
     { icon: FormIcon, label: 'Forms', path: '/forms', show: true, end: false },
     { icon: LogoutIcon, label: 'Sign In', path: '/login', show: !isAuthenticated, end: false }
   ], [isAuthenticated]);

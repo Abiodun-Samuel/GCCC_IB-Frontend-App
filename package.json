@@ -20,6 +20,7 @@
     "ag-charts-react": "^12.2.0",
     "ag-grid-community": "^34.2.0",
     "ag-grid-react": "^34.2.0",
+    "aos": "^2.3.4",
     "axios": "^1.12.2",
     "clsx": "^2.1.1",
     "country-state-city": "^3.2.1",
