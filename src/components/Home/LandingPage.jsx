@@ -1,108 +1,120 @@
-import { useEffect, useState } from 'react';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+import { useEffect, useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowUp } from 'lucide-react';
 
-// Import all sections
+// Import components
 import Navbar from './Navbar';
 import HeroSection from './HeroSection';
-import AboutSection from './AboutSection';
-import ServicesSection from '@/components/Home/ServicesSection';
-import MinistriesSection from '@/components/Home/MinistriesSection';
-import EventsSection from '@/components/Home/EventsSection';
-import LocationSection from '@/components/Home/LocationSection';
-import CTASection from '@/components/Home/CTASection';
-import { TestimonySection } from '@/components/Home/TestimonySection';
-import Footer from '@/components/Home/Footer';
 
 const LandingPage = () => {
-    const [scrolled, setScrolled] = useState(false);
+    const [showBackToTop, setShowBackToTop] = useState(false);
+
+    // Optimized scroll handler with useCallback
+    const handleScroll = useCallback(() => {
+        setShowBackToTop(window.pageYOffset > 500);
+    }, []);
 
     useEffect(() => {
-        // Initialize AOS
-        AOS.init({
-            duration: 1000,
-            once: true,
-            easing: 'ease-out-cubic',
-            offset: 100,
-            delay: 50,
-        });
-
-        AOS.refresh();
-
-        // Handle scroll for navbar
-        const handleScroll = () => {
-            setScrolled(window.scrollY > 50);
-        };
-
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
         document.documentElement.style.scrollBehavior = 'smooth';
 
         return () => {
             window.removeEventListener('scroll', handleScroll);
         };
+    }, [handleScroll]);
+
+    const scrollToTop = useCallback(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }, []);
 
     return (
         <div className="relative w-full overflow-hidden bg-white dark:bg-gray-900">
-            {/* Navbar */}
-            <Navbar scrolled={scrolled} />
+            {/* Navbar - Always visible, no scroll effects */}
+            <Navbar />
 
             {/* Main Content */}
             <main className="w-full">
+                {/* Hero Section */}
                 <HeroSection />
-                <AboutSection />
-                <ServicesSection />
-                <MinistriesSection />
-                <TestimonySection />
-                <EventsSection />
-                <LocationSection />
-                <CTASection />
+
+                {/* About Section Placeholder */}
+                <section id="about" className="relative min-h-screen w-full bg-white dark:bg-gray-900 py-20">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            className="text-center"
+                        >
+                            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+                                About <span className="text-[#0998d5]">GCCC</span>
+                            </h2>
+                            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                                Learn more about our church, mission, and values.
+                            </p>
+                        </motion.div>
+                    </div>
+                </section>
+
+                {/* Events Section Placeholder */}
+                <section id="events" className="relative min-h-screen w-full bg-gray-50 dark:bg-gray-800 py-20">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            className="text-center"
+                        >
+                            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+                                Upcoming <span className="text-[#0998d5]">Events</span>
+                            </h2>
+                            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                                Join us for worship, fellowship, and community events.
+                            </p>
+                        </motion.div>
+                    </div>
+                </section>
+
+                {/* Contact Section Placeholder */}
+                <section id="contact" className="relative min-h-screen w-full bg-white dark:bg-gray-900 py-20">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            className="text-center"
+                        >
+                            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+                                Get in <span className="text-[#0998d5]">Touch</span>
+                            </h2>
+                            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                                We'd love to hear from you. Reach out to us today.
+                            </p>
+                        </motion.div>
+                    </div>
+                </section>
             </main>
 
-            {/* Footer */}
-            <Footer />
-
             {/* Back to Top Button */}
-            <BackToTopButton />
+            <AnimatePresence>
+                {showBackToTop && (
+                    <motion.button
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        transition={{ duration: 0.2 }}
+                        onClick={scrollToTop}
+                        className="fixed bottom-8 right-8 z-50 p-4 bg-[#0998d5] hover:bg-[#0886bd] text-white shadow transition-colors duration-200 group"
+                        aria-label="Back to top"
+                    >
+                        <ArrowUp className="w-6 h-6 transition-transform duration-200 group-hover:-translate-y-1" />
+                    </motion.button>
+                )}
+            </AnimatePresence>
         </div>
-    );
-};
-
-// Back to Top Button Component
-const BackToTopButton = () => {
-    const [isVisible, setIsVisible] = useState(false);
-
-    useEffect(() => {
-        const toggleVisibility = () => {
-            if (window.pageYOffset > 500) {
-                setIsVisible(true);
-            } else {
-                setIsVisible(false);
-            }
-        };
-
-        window.addEventListener('scroll', toggleVisibility);
-        return () => window.removeEventListener('scroll', toggleVisibility);
-    }, []);
-
-    const scrollToTop = () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    return (
-        <>
-            {isVisible && (
-                <button
-                    onClick={scrollToTop}
-                    className="fixed bottom-8 right-8 z-50 p-4 bg-coral-600 hover:bg-coral-700 text-white transition-all duration-300 hover:scale-110"
-                    aria-label="Back to top"
-                >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                    </svg>
-                </button>
-            )}
-        </>
     );
 };
 
