@@ -2,25 +2,22 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, ChevronDown } from 'lucide-react';
 
+// Centralized spacing configuration for consistency
+const SPACING = {
+    navbarHeight: 'h-20',
+    topPadding: 'h-16 sm:h-20 lg:h-20',        // After navbar
+    sectionGap: 'h-8 sm:h-10 lg:h-12',         // Between major sections
+    elementGap: 'h-6 sm:h-8 lg:h-10',          // Between elements
+    compactGap: 'h-5 sm:h-6 lg:h-7',           // Between closely related items
+    tinyGap: 'h-4 sm:h-5 lg:h-6',              // For subtle spacing
+    imagesPadding: 'h-14 sm:h-16 lg:h-18',     // Before images
+    bottomPadding: 'pb-16 sm:pb-10 lg:pb-5',  // Images container bottom
+};
+
 const GcccHeroSection = () => {
     const [isSpread, setIsSpread] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
-
-    // Scroll to about section
-    const scrollToAbout = useCallback(() => {
-        const element = document.getElementById('about');
-        if (element) {
-            const offset = 80;
-            const elementPosition = element.getBoundingClientRect().top;
-            const offsetPosition = elementPosition + window.pageYOffset - offset;
-
-            window.scrollTo({
-                top: offsetPosition,
-                behavior: 'smooth'
-            });
-        }
-    }, []);
 
     // Memoized images array
     const images = useMemo(() => [
@@ -88,7 +85,7 @@ const GcccHeroSection = () => {
 
         const centerIndex = Math.floor(total / 2);
         const offset = index - centerIndex;
-        const xOffset = offset * 180;
+        const xOffset = offset * 190;
         const distanceFromCenter = Math.abs(offset);
         const yOffset = -distanceFromCenter * distanceFromCenter * 8;
         const rotation = offset * 3;
@@ -110,7 +107,7 @@ const GcccHeroSection = () => {
 
         const centerIndex = Math.floor(total / 2);
         const offset = index - centerIndex;
-        const xOffset = offset * 100;
+        const xOffset = offset * 105;
         const rotation = offset * 2.5;
 
         return {
@@ -125,7 +122,7 @@ const GcccHeroSection = () => {
     return (
         <section id="hero" className="relative min-h-screen w-full overflow-hidden bg-white dark:bg-gray-900">
 
-            {/* Beautiful Background - Full Width with Perfect White Fade */}
+            {/* Beautiful Background - Full Width with Blurred Image and Perfect White Fade */}
             <div className="absolute inset-0 pointer-events-none">
 
                 {/* Base gradient */}
@@ -178,13 +175,13 @@ const GcccHeroSection = () => {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="relative z-10 flex flex-col min-h-screen lg:h-screen lg:min-h-0">
 
-                    {/* Top Padding - Navbar height */}
-                    <div className="h-20" />
+                    {/* Navbar Height Spacer */}
+                    <div className={SPACING.navbarHeight} />
 
-                    {/* Increased spacing */}
-                    <div className="h-6 lg:h-8" />
+                    {/* Top Padding - Increased breathing room */}
+                    <div className={SPACING.topPadding} />
 
-                    {/* Church Name Badge - NO BORDER RADIUS */}
+                    {/* Church Name Badge */}
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -203,10 +200,10 @@ const GcccHeroSection = () => {
                         </div>
                     </motion.div>
 
-                    {/* Increased spacing */}
-                    <div className="h-6 sm:h-8 lg:h-6" />
+                    {/* Spacing after badge */}
+                    <div className={SPACING.elementGap} />
 
-                    {/* Main Heading - Compact on large */}
+                    {/* Main Heading */}
                     <motion.h1
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -214,31 +211,31 @@ const GcccHeroSection = () => {
                         className="text-center text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-bold leading-[1.1] tracking-tight"
                     >
                         <span className="block text-gray-900 dark:text-white">
-                            Where God Meets
+                            Where God Meets With
                         </span>
                         <span className="block mt-1 text-[#0998d5] dark:text-[#0998d5]">
-                            With His People
+                            His People
                         </span>
                     </motion.h1>
 
-                    {/* Increased spacing */}
-                    <div className="h-5 sm:h-6 lg:h-5" />
+                    {/* Spacing after heading */}
+                    <div className={SPACING.compactGap} />
 
-                    {/* Description Text - Compact on large */}
+                    {/* Description Text */}
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.6 }}
-                        className="text-center text-sm sm:text-base md:text-lg lg:text-base text-gray-700 dark:text-gray-300 leading-relaxed max-w-2xl mx-auto px-4"
+                        className="text-center text-base sm:text-base md:text-lg lg:text-lg text-gray-700 dark:text-gray-300 leading-relaxed max-w-2xl mx-auto px-4"
                     >
                         Join our vibrant community of believers rooted and growing in the{' '}
                         <span className="font-semibold text-[#0998d5] dark:text-[#0998d5]">Grace and Knowledge of God</span>.
                     </motion.p>
 
-                    {/* Increased spacing */}
-                    <div className="h-6 sm:h-8 lg:h-6" />
+                    {/* Spacing after description */}
+                    <div className={SPACING.elementGap} />
 
-                    {/* CTA Button - NO BORDER RADIUS */}
+                    {/* CTA Button */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -251,13 +248,13 @@ const GcccHeroSection = () => {
                         </button>
                     </motion.div>
 
-                    {/* Increased spacing before images */}
-                    <div className="h-10 sm:h-12 lg:h-8" />
+                    {/* Spacing before images - Generous gap */}
+                    <div className={SPACING.imagesPadding} />
 
-                    {/* Images Section - Compact on large */}
-                    <div className="flex-1 flex items-center justify-center pb-12 sm:pb-16 lg:pb-8">
+                    {/* Images Section */}
+                    <div className={`flex-1 flex items-center justify-center ${SPACING.bottomPadding}`}>
 
-                        {/* DESKTOP: Card Spreading - Wider images with beautiful design */}
+                        {/* DESKTOP: Card Spreading */}
                         {!isMobile && !isTablet && (
                             <div className="relative w-full">
                                 <div className="relative h-[320px] lg:h-[300px] flex items-end justify-center">
@@ -298,8 +295,8 @@ const GcccHeroSection = () => {
                                                 <div
                                                     className={`relative overflow-hidden shadow ${isCenterCard ? 'ring-2 ring-[#0998d5]/50' : 'ring-1 ring-white/80'} border-4 border-white dark:border-gray-800`}
                                                     style={{
-                                                        width: '240px',
-                                                        height: '300px',
+                                                        width: '260px',
+                                                        height: '310px',
                                                     }}
                                                 >
                                                     <img
@@ -322,7 +319,7 @@ const GcccHeroSection = () => {
                             </div>
                         )}
 
-                        {/* TABLET: Overlapping Row - Wider with beautiful design */}
+                        {/* TABLET: Overlapping Row */}
                         {isTablet && (
                             <div className="relative w-full">
                                 <div className="relative h-[280px] flex items-center justify-center">
@@ -361,8 +358,8 @@ const GcccHeroSection = () => {
                                                 <div
                                                     className={`relative overflow-hidden shadow ${isCenterCard ? 'ring-2 ring-[#0998d5]/50' : 'ring-1 ring-white/80'} border-3 border-white dark:border-gray-800`}
                                                     style={{
-                                                        width: '180px',
-                                                        height: '250px',
+                                                        width: '190px',
+                                                        height: '260px',
                                                     }}
                                                 >
                                                     <img
@@ -447,35 +444,6 @@ const GcccHeroSection = () => {
                         )}
                     </div>
 
-                    {/* Animated Scroll Down Button */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 2 }}
-                        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20"
-                    >
-                        <button
-                            onClick={scrollToAbout}
-                            className="group flex flex-col items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-[#0998d5] dark:hover:text-[#0998d5] transition-colors duration-300"
-                            aria-label="Scroll to about section"
-                        >
-                            <span className="text-xs font-medium uppercase tracking-wider">Scroll Down</span>
-                            <motion.div
-                                animate={{ y: [0, 8, 0] }}
-                                transition={{
-                                    duration: 1.5,
-                                    repeat: Infinity,
-                                    ease: "easeInOut"
-                                }}
-                                className="relative"
-                            >
-                                <div className="absolute inset-0 bg-[#0998d5]/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                <div className="relative w-10 h-10 flex items-center justify-center border-2 border-current">
-                                    <ChevronDown className="w-5 h-5" />
-                                </div>
-                            </motion.div>
-                        </button>
-                    </motion.div>
                 </div>
             </div>
         </section>
