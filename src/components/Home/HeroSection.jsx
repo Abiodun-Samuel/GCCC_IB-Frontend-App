@@ -1,11 +1,26 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, ChevronDown } from 'lucide-react';
 
 const GcccHeroSection = () => {
     const [isSpread, setIsSpread] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
+
+    // Scroll to about section
+    const scrollToAbout = useCallback(() => {
+        const element = document.getElementById('about');
+        if (element) {
+            const offset = 80;
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+        }
+    }, []);
 
     // Memoized images array
     const images = useMemo(() => [
@@ -166,8 +181,8 @@ const GcccHeroSection = () => {
                     {/* Top Padding - Navbar height */}
                     <div className="h-20" />
 
-                    {/* Compact spacing on large screens */}
-                    <div className="h-4 lg:h-6" />
+                    {/* Increased spacing */}
+                    <div className="h-6 lg:h-8" />
 
                     {/* Church Name Badge - NO BORDER RADIUS */}
                     <motion.div
@@ -188,8 +203,8 @@ const GcccHeroSection = () => {
                         </div>
                     </motion.div>
 
-                    {/* Spacing - compact on large */}
-                    <div className="h-4 sm:h-6 lg:h-4" />
+                    {/* Increased spacing */}
+                    <div className="h-6 sm:h-8 lg:h-6" />
 
                     {/* Main Heading - Compact on large */}
                     <motion.h1
@@ -199,29 +214,29 @@ const GcccHeroSection = () => {
                         className="text-center text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-bold leading-[1.1] tracking-tight"
                     >
                         <span className="block text-gray-900 dark:text-white">
-                            Where God Meets With
+                            Where God Meets
                         </span>
                         <span className="block mt-1 text-[#0998d5] dark:text-[#0998d5]">
-                            His People
+                            With His People
                         </span>
                     </motion.h1>
 
-                    {/* Spacing - compact on large */}
-                    <div className="h-4 sm:h-5 lg:h-3" />
+                    {/* Increased spacing */}
+                    <div className="h-5 sm:h-6 lg:h-5" />
 
                     {/* Description Text - Compact on large */}
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.6 }}
-                        className="text-center text-sm sm:text-base md:text-lg lg:text-lg text-gray-700 dark:text-gray-300 leading-relaxed max-w-2xl mx-auto px-4"
+                        className="text-center text-sm sm:text-base md:text-lg lg:text-base text-gray-700 dark:text-gray-300 leading-relaxed max-w-2xl mx-auto px-4"
                     >
                         Join our vibrant community of believers rooted and growing in the{' '}
                         <span className="font-semibold text-[#0998d5] dark:text-[#0998d5]">Grace and Knowledge of God</span>.
                     </motion.p>
 
-                    {/* Spacing - compact on large */}
-                    <div className="h-5 sm:h-6 lg:h-4" />
+                    {/* Increased spacing */}
+                    <div className="h-6 sm:h-8 lg:h-6" />
 
                     {/* CTA Button - NO BORDER RADIUS */}
                     <motion.div
@@ -236,16 +251,16 @@ const GcccHeroSection = () => {
                         </button>
                     </motion.div>
 
-                    {/* Spacing before images - compact on large */}
-                    <div className="h-8 sm:h-10 lg:h-6" />
+                    {/* Increased spacing before images */}
+                    <div className="h-10 sm:h-12 lg:h-8" />
 
                     {/* Images Section - Compact on large */}
                     <div className="flex-1 flex items-center justify-center pb-12 sm:pb-16 lg:pb-8">
 
-                        {/* DESKTOP: Card Spreading - Compact for screen fit */}
+                        {/* DESKTOP: Card Spreading - Wider images with beautiful design */}
                         {!isMobile && !isTablet && (
                             <div className="relative w-full">
-                                <div className="relative h-[320px] lg:h-[280px] flex items-end justify-center">
+                                <div className="relative h-[320px] lg:h-[300px] flex items-end justify-center">
                                     {images.map((image, index) => {
                                         const position = getDesktopCardPosition(index, images.length);
                                         const centerIndex = Math.floor(images.length / 2);
@@ -277,10 +292,13 @@ const GcccHeroSection = () => {
                                                 style={{ zIndex: position.zIndex }}
                                                 className="absolute cursor-pointer group"
                                             >
+                                                {/* Decorative outer glow */}
+                                                <div className="absolute -inset-1 bg-gradient-to-b from-[#0998d5]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
                                                 <div
-                                                    className={`relative overflow-hidden shadow ${isCenterCard ? 'ring-2 ring-[#0998d5]/50' : 'ring-1 ring-white/80'}`}
+                                                    className={`relative overflow-hidden shadow ${isCenterCard ? 'ring-2 ring-[#0998d5]/50' : 'ring-1 ring-white/80'} border-4 border-white dark:border-gray-800`}
                                                     style={{
-                                                        width: '350px',
+                                                        width: '240px',
                                                         height: '300px',
                                                     }}
                                                 >
@@ -290,7 +308,12 @@ const GcccHeroSection = () => {
                                                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                                         loading="lazy"
                                                     />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-white/10 group-hover:from-black/20 transition-colors duration-200" />
+                                                    {/* Gradient overlay */}
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-white/10 group-hover:from-black/30 transition-colors duration-200" />
+
+                                                    {/* Decorative corner accent */}
+                                                    <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-bl from-[#0998d5]/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                                    <div className="absolute bottom-0 left-0 w-12 h-12 bg-gradient-to-tr from-[#0998d5]/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                                 </div>
                                             </motion.div>
                                         );
@@ -299,10 +322,10 @@ const GcccHeroSection = () => {
                             </div>
                         )}
 
-                        {/* TABLET: Overlapping Row */}
+                        {/* TABLET: Overlapping Row - Wider with beautiful design */}
                         {isTablet && (
                             <div className="relative w-full">
-                                <div className="relative h-[260px] flex items-center justify-center">
+                                <div className="relative h-[280px] flex items-center justify-center">
                                     {images.map((image, index) => {
                                         const position = getTabletCardPosition(index, images.length);
                                         const centerIndex = Math.floor(images.length / 2);
@@ -333,11 +356,13 @@ const GcccHeroSection = () => {
                                                 style={{ zIndex: position.zIndex }}
                                                 className="absolute cursor-pointer group"
                                             >
+                                                <div className="absolute -inset-1 bg-gradient-to-b from-[#0998d5]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
                                                 <div
-                                                    className={`relative overflow-hidden shadow ${isCenterCard ? 'ring-2 ring-[#0998d5]/50' : 'ring-1 ring-white/80'}`}
+                                                    className={`relative overflow-hidden shadow ${isCenterCard ? 'ring-2 ring-[#0998d5]/50' : 'ring-1 ring-white/80'} border-3 border-white dark:border-gray-800`}
                                                     style={{
-                                                        width: '160px',
-                                                        height: '230px',
+                                                        width: '180px',
+                                                        height: '250px',
                                                     }}
                                                 >
                                                     <img
@@ -346,7 +371,9 @@ const GcccHeroSection = () => {
                                                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                                         loading="lazy"
                                                     />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/10" />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-white/10 group-hover:from-black/30 transition-colors duration-200" />
+
+                                                    <div className="absolute top-0 right-0 w-10 h-10 bg-gradient-to-bl from-[#0998d5]/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                                 </div>
                                             </motion.div>
                                         );
@@ -419,6 +446,36 @@ const GcccHeroSection = () => {
                             </div>
                         )}
                     </div>
+
+                    {/* Animated Scroll Down Button */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.8, delay: 2 }}
+                        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20"
+                    >
+                        <button
+                            onClick={scrollToAbout}
+                            className="group flex flex-col items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-[#0998d5] dark:hover:text-[#0998d5] transition-colors duration-300"
+                            aria-label="Scroll to about section"
+                        >
+                            <span className="text-xs font-medium uppercase tracking-wider">Scroll Down</span>
+                            <motion.div
+                                animate={{ y: [0, 8, 0] }}
+                                transition={{
+                                    duration: 1.5,
+                                    repeat: Infinity,
+                                    ease: "easeInOut"
+                                }}
+                                className="relative"
+                            >
+                                <div className="absolute inset-0 bg-[#0998d5]/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                <div className="relative w-10 h-10 flex items-center justify-center border-2 border-current">
+                                    <ChevronDown className="w-5 h-5" />
+                                </div>
+                            </motion.div>
+                        </button>
+                    </motion.div>
                 </div>
             </div>
         </section>

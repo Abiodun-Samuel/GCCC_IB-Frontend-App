@@ -120,7 +120,10 @@ const Navbar = ({ scrolled }) => {
                 )}
             </AnimatePresence>
 
-            <nav className="fixed top-0 left-0 right-0 z-50 bg-transparent">
+            <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
+                    ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow border-b border-gray-200/50 dark:border-white/10'
+                    : 'bg-transparent'
+                }`}>
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-20">
 
@@ -144,13 +147,17 @@ const Navbar = ({ scrolled }) => {
                                             <Link
                                                 key={item.label}
                                                 to={item.to}
-                                                className="group relative px-4 py-2 font-medium text-sm text-white/90 hover:text-white transition-colors duration-200"
+                                                className={`group relative px-4 py-2 font-medium text-sm transition-colors duration-200 ${scrolled
+                                                        ? 'text-gray-700 dark:text-gray-300 hover:text-[#0998d5] dark:hover:text-[#0998d5]'
+                                                        : 'text-white/90 hover:text-white'
+                                                    }`}
                                             >
                                                 <span className="relative z-10 flex items-center gap-2">
                                                     <item.icon className="w-4 h-4" />
                                                     {item.label}
                                                 </span>
-                                                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                                                <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${scrolled ? 'bg-[#0998d5]/10' : 'bg-white/10'
+                                                    }`} />
                                             </Link>
                                         );
                                     }
@@ -158,22 +165,30 @@ const Navbar = ({ scrolled }) => {
                                         <button
                                             key={item.label}
                                             onClick={item.action}
-                                            className="group relative px-4 py-2 font-medium text-sm text-white/90 hover:text-white transition-colors duration-200"
+                                            className={`group relative px-4 py-2 font-medium text-sm transition-colors duration-200 ${scrolled
+                                                    ? 'text-gray-700 dark:text-gray-300 hover:text-[#0998d5] dark:hover:text-[#0998d5]'
+                                                    : 'text-white/90 hover:text-white'
+                                                }`}
                                         >
                                             <span className="relative z-10 flex items-center gap-2">
                                                 <item.icon className="w-4 h-4" />
                                                 {item.label}
                                             </span>
-                                            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                                            <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${scrolled ? 'bg-[#0998d5]/10' : 'bg-white/10'
+                                                }`} />
                                         </button>
                                     );
                                 })}
                             </div>
 
                             {/* Time Display */}
-                            <div className="flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 backdrop-blur-sm">
-                                <Clock className="w-4 h-4 text-white/80" />
-                                <span className="text-sm font-mono font-medium text-white/90 tabular-nums">
+                            <div className={`flex items-center gap-2 px-4 py-2 border backdrop-blur-sm ${scrolled
+                                    ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                                    : 'bg-white/10 border-white/20'
+                                }`}>
+                                <Clock className={`w-4 h-4 ${scrolled ? 'text-[#0998d5]' : 'text-white/80'}`} />
+                                <span className={`text-sm font-mono font-medium tabular-nums ${scrolled ? 'text-gray-700 dark:text-gray-200' : 'text-white/90'
+                                    }`}>
                                     {formatTime(currentTime)}
                                 </span>
                             </div>
@@ -183,7 +198,10 @@ const Navbar = ({ scrolled }) => {
                                 <div className="relative" ref={dropdownRef}>
                                     <button
                                         onClick={toggleDropdown}
-                                        className="flex items-center gap-3 px-4 py-2 bg-white/10 border border-white/20 backdrop-blur-sm text-white/90 hover:text-white hover:bg-white/15 transition-all duration-200"
+                                        className={`flex items-center gap-3 px-4 py-2 border backdrop-blur-sm transition-all duration-200 ${scrolled
+                                                ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:border-[#0998d5] hover:text-[#0998d5]'
+                                                : 'bg-white/10 border-white/20 text-white/90 hover:text-white hover:bg-white/15'
+                                            }`}
                                     >
                                         <Avatar size="xs" name={user?.initials} src={user?.avatar} />
                                         <span className="text-sm font-medium">{user?.first_name}</span>
@@ -262,7 +280,10 @@ const Navbar = ({ scrolled }) => {
                         {/* Mobile Menu Button */}
                         <button
                             onClick={toggleMobileMenu}
-                            className="lg:hidden p-2 bg-white/10 border border-white/20 backdrop-blur-sm text-white transition-colors duration-200"
+                            className={`lg:hidden p-2 border backdrop-blur-sm transition-colors duration-200 ${scrolled
+                                    ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200'
+                                    : 'bg-white/10 border-white/20 text-white'
+                                }`}
                         >
                             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                         </button>

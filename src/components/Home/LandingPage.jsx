@@ -8,10 +8,13 @@ import HeroSection from './HeroSection';
 
 const LandingPage = () => {
     const [showBackToTop, setShowBackToTop] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
 
     // Optimized scroll handler with useCallback
     const handleScroll = useCallback(() => {
-        setShowBackToTop(window.pageYOffset > 500);
+        const scrollPosition = window.pageYOffset;
+        setScrolled(scrollPosition > 50);
+        setShowBackToTop(scrollPosition > 500);
     }, []);
 
     useEffect(() => {
@@ -29,8 +32,8 @@ const LandingPage = () => {
 
     return (
         <div className="relative w-full overflow-hidden bg-white dark:bg-gray-900">
-            {/* Navbar - Always visible, no scroll effects */}
-            <Navbar />
+            {/* Navbar - With scroll state */}
+            <Navbar scrolled={scrolled} />
 
             {/* Main Content */}
             <main className="w-full">
