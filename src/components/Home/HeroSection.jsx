@@ -19,44 +19,27 @@ const GcccHeroSection = () => {
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
 
-    // Memoized images array
-    const images = useMemo(() => [
-        {
-            id: 1,
-            url: 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&h=600&fit=crop',
-            alt: 'Church community',
-        },
-        {
-            id: 2,
-            url: 'https://images.unsplash.com/photo-1519491050282-cf00c82424b4?w=500&h=600&fit=crop',
-            alt: 'Worship gathering',
-        },
-        {
-            id: 3,
-            url: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=500&h=600&fit=crop',
-            alt: 'Fellowship',
-        },
-        {
-            id: 4,
-            url: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=500&h=600&fit=crop',
-            alt: 'Prayer meeting',
-        },
-        {
-            id: 5,
-            url: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=500&h=600&fit=crop',
-            alt: 'Community service',
-        },
-        {
-            id: 6,
-            url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&h=600&fit=crop',
-            alt: 'Youth group',
-        },
-        {
-            id: 7,
-            url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500&h=600&fit=crop',
-            alt: 'Celebration',
-        },
-    ], []);
+    // Memoized images array - dynamically generated from 1 to 29
+    const images = useMemo(() => {
+        const totalImages = 29;
+        const imageArray = [];
+
+        for (let i = 1; i <= totalImages; i++) {
+            imageArray.push({
+                id: i,
+                url: `/images/home/image (${i}).jpg`,
+                alt: `Church image ${i}`,
+            });
+        }
+
+        return imageArray;
+    }, []);
+
+    // Randomly select 7 images for display
+    const selectedImages = useMemo(() => {
+        const shuffled = [...images].sort(() => Math.random() - 0.5);
+        return shuffled.slice(0, 7);
+    }, [images]);
 
     useEffect(() => {
         const checkScreenSize = () => {
@@ -258,9 +241,9 @@ const GcccHeroSection = () => {
                         {!isMobile && !isTablet && (
                             <div className="relative w-full">
                                 <div className="relative h-[320px] lg:h-[300px] flex items-end justify-center">
-                                    {images.map((image, index) => {
-                                        const position = getDesktopCardPosition(index, images.length);
-                                        const centerIndex = Math.floor(images.length / 2);
+                                    {selectedImages.map((image, index) => {
+                                        const position = getDesktopCardPosition(index, selectedImages.length);
+                                        const centerIndex = Math.floor(selectedImages.length / 2);
                                         const isCenterCard = index === centerIndex;
 
                                         return (
@@ -323,9 +306,9 @@ const GcccHeroSection = () => {
                         {isTablet && (
                             <div className="relative w-full">
                                 <div className="relative h-[280px] flex items-center justify-center">
-                                    {images.map((image, index) => {
-                                        const position = getTabletCardPosition(index, images.length);
-                                        const centerIndex = Math.floor(images.length / 2);
+                                    {selectedImages.map((image, index) => {
+                                        const position = getTabletCardPosition(index, selectedImages.length);
+                                        const centerIndex = Math.floor(selectedImages.length / 2);
                                         const isCenterCard = index === centerIndex;
 
                                         return (
@@ -391,14 +374,14 @@ const GcccHeroSection = () => {
                                         whileTap={{ scale: 0.95 }}
                                         className="col-span-2 row-span-2 relative overflow-hidden shadow ring-1 ring-white/80"
                                     >
-                                        <img src={images[0].url} alt={images[0].alt} className="w-full h-full object-cover" style={{ height: '280px' }} loading="lazy" />
+                                        <img src={selectedImages[0].url} alt={selectedImages[0].alt} className="w-full h-full object-cover" style={{ height: '280px' }} loading="lazy" />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/5" />
                                     </motion.div>
 
                                     {/* Side images */}
                                     {[1, 2].map((idx, i) => (
                                         <motion.div
-                                            key={idx}
+                                            key={selectedImages[idx].id}
                                             initial={{ opacity: 0, scale: 0.8 }}
                                             animate={{ opacity: 1, scale: 1 }}
                                             transition={{ duration: 0.4, delay: 1 + (i + 1) * 0.08 }}
@@ -406,7 +389,7 @@ const GcccHeroSection = () => {
                                             className="col-span-1 relative overflow-hidden shadow ring-1 ring-white/80"
                                             style={{ height: '136px' }}
                                         >
-                                            <img src={images[idx].url} alt={images[idx].alt} className="w-full h-full object-cover" loading="lazy" />
+                                            <img src={selectedImages[idx].url} alt={selectedImages[idx].alt} className="w-full h-full object-cover" loading="lazy" />
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/5" />
                                         </motion.div>
                                     ))}
@@ -414,7 +397,7 @@ const GcccHeroSection = () => {
                                     {/* Bottom row */}
                                     {[3, 4, 5].map((idx, i) => (
                                         <motion.div
-                                            key={idx}
+                                            key={selectedImages[idx].id}
                                             initial={{ opacity: 0, scale: 0.8 }}
                                             animate={{ opacity: 1, scale: 1 }}
                                             transition={{ duration: 0.4, delay: 1 + (i + 3) * 0.08 }}
@@ -422,7 +405,7 @@ const GcccHeroSection = () => {
                                             className="col-span-1 relative overflow-hidden shadow ring-1 ring-white/80"
                                             style={{ height: '136px' }}
                                         >
-                                            <img src={images[idx].url} alt={images[idx].alt} className="w-full h-full object-cover" loading="lazy" />
+                                            <img src={selectedImages[idx].url} alt={selectedImages[idx].alt} className="w-full h-full object-cover" loading="lazy" />
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/5" />
                                         </motion.div>
                                     ))}
@@ -436,7 +419,7 @@ const GcccHeroSection = () => {
                                         className="col-span-3 relative overflow-hidden shadow ring-1 ring-white/80"
                                         style={{ height: '120px' }}
                                     >
-                                        <img src={images[6].url} alt={images[6].alt} className="w-full h-full object-cover" loading="lazy" />
+                                        <img src={selectedImages[6].url} alt={selectedImages[6].alt} className="w-full h-full object-cover" loading="lazy" />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/5" />
                                     </motion.div>
                                 </div>

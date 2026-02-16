@@ -1,137 +1,268 @@
-import { memo } from 'react';
-import { motion } from 'framer-motion';
-import { Heart, Users, BookOpen, Sparkles } from 'lucide-react';
+import React, { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import { Heart, Users, Crown } from 'lucide-react';
 
-const values = [
-    { icon: Heart, title: 'Love', description: "We demonstrate God's unconditional love to all people" },
-    { icon: Users, title: 'Community', description: 'Building strong relationships through fellowship and unity' },
-    { icon: BookOpen, title: 'Truth', description: "Grounded in biblical teaching and the Word of God" },
-    { icon: Sparkles, title: 'Excellence', description: 'Pursuing excellence in worship and service' },
-];
+const AboutSection = () => {
+    const sectionRef = useRef(null);
+    const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
 
-const stats = [
-    { number: '1000+', label: 'Active Members' },
-    { number: '15+', label: 'Ministries' },
-    { number: '20+', label: 'Years of Impact' },
-];
+    // Animation variants
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.15
+            }
+        }
+    };
 
-const AboutSection = memo(() => (
-    <section id="about" className="relative py-20 md:py-32 bg-white dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-20">
-                {/* Left Content */}
-                <motion.div data-aos="fade-right" className="space-y-6">
-                    <span className="inline-block px-5 py-2 bg-coral-50 dark:bg-coral-900/20 text-coral-700 dark:text-coral-400 text-sm font-semibold">
-                        About Us
-                    </span>
+    const fadeUpVariants = {
+        hidden: { opacity: 0, y: 40 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: {
+                duration: 0.8,
+                ease: [0.22, 1, 0.36, 1]
+            }
+        }
+    };
 
-                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight">
-                        A Church That
-                        <span className="block mt-2 text-coral-600 dark:text-coral-400">
-                            Feels Like Home
-                        </span>
-                    </h2>
+    const scaleInVariants = {
+        hidden: { opacity: 0, scale: 0.9 },
+        visible: {
+            opacity: 1,
+            scale: 1,
+            transition: {
+                duration: 0.7,
+                ease: [0.22, 1, 0.36, 1]
+            }
+        }
+    };
 
-                    <p className="text-lg md:text-xl text-gray-600 dark:text-gray-400 leading-relaxed">
-                        Glory Centre Community Church is a vibrant, Spirit-filled church where the Glory and Power of God find expression through community.
-                    </p>
+    const slideInFromLeft = {
+        hidden: { opacity: 0, x: -60 },
+        visible: {
+            opacity: 1,
+            x: 0,
+            transition: {
+                duration: 0.8,
+                ease: [0.22, 1, 0.36, 1]
+            }
+        }
+    };
 
-                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                        In Community is where the Glory and Power of God find expression. Join this vibrant community of believers that are rooted and growing in the Grace and Knowledge of God.
-                    </p>
+    return (
+        <section
+            ref={sectionRef}
+            id="about"
+            className="relative w-full bg-white dark:bg-gray-900 py-20 lg:py-24 my-10 md:my-16 lg:my-20 overflow-hidden"
+        >
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
 
-                    {/* Stats */}
-                    <div className="flex flex-wrap gap-8 pt-6">
-                        {stats.map((stat, index) => (
-                            <motion.div
-                                key={stat.label}
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: 0.2 + index * 0.1 }}
-                            >
-                                <div className="text-4xl md:text-5xl font-bold text-coral-600 dark:text-coral-400 mb-1">
-                                    {stat.number}
-                                </div>
-                                <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                                    {stat.label}
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </motion.div>
+                {/* Layer 1: Big Image and Text - Mobile: Text First, Desktop: Image First */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
 
-                {/* Right Image Grid */}
-                <motion.div data-aos="fade-left" className="relative">
-                    <div className="grid grid-cols-2 gap-4">
-                        {[
-                            { url: 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=800&q=80', offset: '' },
-                            { url: 'https://images.unsplash.com/photo-1517096851-6a40c02c0835?w=800&q=80', offset: 'mt-8' },
-                            { url: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=800&q=80', offset: '-mt-8' },
-                            { url: 'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800&q=80', offset: '' },
-                        ].map((image, index) => (
-                            <motion.div
-                                key={index}
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: 0.2 + index * 0.1 }}
-                                whileHover={{ scale: 1.05 }}
-                                className={`relative h-64 md:h-80 overflow-hidden group ${image.offset}`}
-                            >
-                                <img
-                                    src={image.url}
-                                    alt={`Church life ${index + 1}`}
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                            </motion.div>
-                        ))}
-                    </div>
-                </motion.div>
-            </div>
-
-            {/* Core Values */}
-            <motion.div data-aos="fade-up">
-                <div className="text-center mb-12">
-                    <span className="inline-block px-5 py-2 bg-ocean-50 dark:bg-ocean-900/20 text-ocean-700 dark:text-ocean-400 text-sm font-semibold mb-4">
-                        Our Foundation
-                    </span>
-                    <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white">
-                        Core Values
-                    </h3>
-                </div>
-
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {values.map((value, index) => (
-                        <motion.div
-                            key={value.title}
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.1 * index }}
-                            whileHover={{ y: -8 }}
-                            className="p-8 bg-white dark:bg-gray-800 hover:shadow-lg transition-all duration-300"
+                    {/* Right Side - Text Content (Mobile First) */}
+                    <motion.div
+                        initial="hidden"
+                        animate={isInView ? "visible" : "hidden"}
+                        variants={containerVariants}
+                        className="flex flex-col justify-center h-full space-y-6 lg:order-2 order-1"
+                    >
+                        <motion.p
+                            variants={fadeUpVariants}
+                            className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 dark:text-white leading-relaxed"
                         >
-                            <div className="inline-flex p-4 bg-coral-50 dark:bg-coral-900/20 mb-6">
-                                <value.icon className="text-coral-600 dark:text-coral-400" size={28} />
-                            </div>
+                            If you are thinking about{' '}
+                            <span className="text-[#0998d5] inline-block hover:scale-110 transition-transform duration-300">
+                                Love, Family
+                            </span>{' '}
+                            and{' '}
+                            <span className="text-[#0998d5] inline-block hover:scale-110 transition-transform duration-300">
+                                Kingdom
+                            </span>{' '}
+                            then it is Glory Centre Community Church you are thinking about.
+                        </motion.p>
 
-                            <h4 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-3">
-                                {value.title}
-                            </h4>
+                        <motion.div
+                            variants={containerVariants}
+                            className="space-y-5"
+                        >
+                            <motion.p
+                                variants={fadeUpVariants}
+                                className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed"
+                            >
+                                GCCC Ibadan is a growing community of close-knit believers in Bodija, extending the frontiers of the Kingdom on all sides.
+                            </motion.p>
 
-                            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                                {value.description}
+                            <motion.p
+                                variants={fadeUpVariants}
+                                className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed"
+                            >
+                                With a deep desire to regularly experience and manifest the Glory of God, we do the Word, we yield to the Spirit and practice the Culture of God's kingdom.
+                            </motion.p>
+                        </motion.div>
+
+                        <motion.div
+                            variants={scaleInVariants}
+                            whileHover={{ scale: 1.02, x: 5 }}
+                            className="inline-flex items-center gap-3 px-6 py-4 bg-gradient-to-r from-[#0998d5]/10 to-[#0998d5]/5 dark:from-[#0998d5]/20 dark:to-[#0998d5]/10 border-l-4 border-[#0998d5] cursor-default"
+                        >
+                            <p className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                                The plan is to take our generation for Jesus!
                             </p>
                         </motion.div>
-                    ))}
-                </div>
-            </motion.div>
-        </div>
-    </section>
-));
+                    </motion.div>
 
-AboutSection.displayName = 'AboutSection';
+                    {/* Left Side - Image */}
+                    <motion.div
+                        initial="hidden"
+                        animate={isInView ? "visible" : "hidden"}
+                        variants={slideInFromLeft}
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ duration: 0.4 }}
+                        className="relative overflow-hidden shadow group lg:order-1 order-2"
+                    >
+                        <div className="aspect-[4/3] relative">
+                            <motion.img
+                                src="/images/home/image (5).jpg"
+                                alt="Church Community"
+                                className="w-full h-full object-cover"
+                                whileHover={{ scale: 1.1 }}
+                                transition={{ duration: 0.7, ease: "easeOut" }}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent group-hover:from-black/30 transition-all duration-500" />
+
+                            {/* Decorative corner accent */}
+                            <motion.div
+                                initial={{ scale: 0, rotate: -45 }}
+                                animate={isInView ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -45 }}
+                                transition={{ delay: 0.5, duration: 0.6 }}
+                                className="absolute top-0 right-0 w-20 h-20 bg-[#0998d5]/20 backdrop-blur-sm"
+                                style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 0)' }}
+                            />
+                        </div>
+                    </motion.div>
+
+                </div>
+
+                {/* Layer 2: Three Core Value Boxes */}
+                <motion.div
+                    initial="hidden"
+                    animate={isInView ? "visible" : "hidden"}
+                    variants={containerVariants}
+                    className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8"
+                >
+                    {[
+                        {
+                            icon: Heart,
+                            title: "Love",
+                            desc: "Rooted and growing in the Grace and Knowledge of God, we extend Christ's love to every person.",
+                            color: "#0998d5"
+                        },
+                        {
+                            icon: Users,
+                            title: "Family",
+                            desc: "A vibrant community where believers connect, grow, and support one another through life's journey.",
+                            color: "#0998d5"
+                        },
+                        {
+                            icon: Crown,
+                            title: "Kingdom",
+                            desc: "Living out Kingdom culture in every space, transforming lives through the power of God's presence.",
+                            color: "#0998d5"
+                        }
+                    ].map((value, index) => {
+                        const Icon = value.icon;
+                        return (
+                            <motion.div
+                                key={index}
+                                variants={fadeUpVariants}
+                                whileHover={{
+                                    y: -5,
+                                    boxShadow: "0 5px 5px rgba(9, 152, 213, 0.15)",
+                                    transition: { duration: 0.3 }
+                                }}
+                                className="group bg-white dark:bg-gray-800 p-6 shadow hover:shadow-sm transition-all duration-300 relative overflow-hidden"
+                            >
+                                {/* Animated background gradient */}
+                                <motion.div
+                                    initial={{ x: '-100%' }}
+                                    whileHover={{ x: '100%' }}
+                                    transition={{ duration: 0.6 }}
+                                    className="absolute inset-0 bg-gradient-to-r from-transparent via-[#0998d5]/5 to-transparent"
+                                />
+
+                                <div className="relative z-10">
+                                    <div className="flex items-start gap-4 mb-4">
+                                        <motion.div
+                                            whileHover={{ rotate: 360, scale: 1.1 }}
+                                            transition={{ duration: 0.6 }}
+                                            className="p-3 bg-[#0998d5]/10 dark:bg-[#0998d5]/20 rounded-lg"
+                                        >
+                                            <Icon className="w-6 h-6 text-[#0998d5]" />
+                                        </motion.div>
+                                        <h4 className="text-lg font-bold text-gray-900 dark:text-white pt-2">
+                                            {value.title}
+                                        </h4>
+                                    </div>
+                                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                                        {value.desc}
+                                    </p>
+                                </div>
+                            </motion.div>
+                        );
+                    })}
+                </motion.div>
+
+                {/* Layer 3: Four Images */}
+                <motion.div
+                    initial="hidden"
+                    animate={isInView ? "visible" : "hidden"}
+                    variants={containerVariants}
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
+                >
+                    {[
+                        { src: "/images/home/image (10).jpg", alt: "Worship" },
+                        { src: "/images/home/image (15).jpg", alt: "Prayer" },
+                        { src: "/images/home/image (20).jpg", alt: "Fellowship" },
+                        { src: "/images/home/image (25).jpg", alt: "Community" }
+                    ].map((image, index) => (
+                        <motion.div
+                            key={index}
+                            variants={scaleInVariants}
+                            whileHover={{
+                                y: -10,
+                                transition: { duration: 0.3 }
+                            }}
+                            className="relative overflow-hidden shadow group aspect-[4/3] rounded-lg"
+                        >
+                            <motion.img
+                                src={image.src}
+                                alt={image.alt}
+                                className="w-full h-full object-cover"
+                                whileHover={{ scale: 1.15, rotate: 2 }}
+                                transition={{ duration: 0.7, ease: "easeOut" }}
+                            />
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                whileHover={{ opacity: 1 }}
+                                className="absolute inset-0 bg-gradient-to-t from-[#0998d5]/60 via-[#0998d5]/20 to-transparent flex items-end justify-center pb-6"
+                            >
+                                <span className="text-white font-semibold text-lg tracking-wide">
+                                    {image.alt}
+                                </span>
+                            </motion.div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent group-hover:from-transparent transition-all duration-500" />
+                        </motion.div>
+                    ))}
+                </motion.div>
+
+            </div>
+        </section>
+    );
+};
 
 export default AboutSection;

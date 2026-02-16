@@ -2,7 +2,6 @@ import ComponentCard from '../../components/common/ComponentCard';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 import PageMeta from '../../components/common/PageMeta';
 import { EventIcon } from '@/icons';
-import Event from '@/components/dashboard/events/Event';
 
 const EventsPage = () => {
   return (
@@ -16,7 +15,7 @@ const EventsPage = () => {
         }
       />
       <ComponentCard>
-        <Event />
+        'event user'
       </ComponentCard>
     </>
   );

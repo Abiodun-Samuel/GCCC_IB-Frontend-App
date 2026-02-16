@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { FirstTimerIcon, FormIcon, UnitIcon, UserIcon, VerticalDotsIcon } from "../../../icons"
-// import Badge from "../../ui/Badge"
 import { Dropdown } from "../../ui/dropdown/Dropdown"
 import { DropdownItem } from "../../ui/dropdown/DropdownItem"
 import { getRandomTextColor, toSlug } from "../../../utils/helper"

@@ -7,7 +7,7 @@ const baseURL = import.meta.env.PROD
 
 const $api = axios.create({
   baseURL,
-  timeout: 60000,
+  timeout: 0,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',

@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUp } from 'lucide-react';
 
 // Import components
-import Navbar from './Navbar';
 import HeroSection from './HeroSection';
+import AboutSection from '@/components/Home/AboutSection';
+import Footer from '@/components/Home/Footer';
+import Header from './Header';
 
 const LandingPage = () => {
     const [showBackToTop, setShowBackToTop] = useState(false);
@@ -32,74 +34,19 @@ const LandingPage = () => {
 
     return (
         <div className="relative w-full overflow-hidden bg-white dark:bg-gray-900">
-            {/* Navbar - With scroll state */}
-            <Navbar scrolled={scrolled} />
+            {/* Navbar */}
+            <Header scrolled={scrolled} />
 
             {/* Main Content */}
             <main className="w-full">
                 {/* Hero Section */}
                 <HeroSection />
+                {/* About Section */}
+                <AboutSection />
 
-                {/* About Section Placeholder */}
-                <section id="about" className="relative min-h-screen w-full bg-white dark:bg-gray-900 py-20">
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                        <motion.div
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6 }}
-                            viewport={{ once: true, margin: "-100px" }}
-                            className="text-center"
-                        >
-                            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-                                About <span className="text-[#0998d5]">GCCC</span>
-                            </h2>
-                            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                                Learn more about our church, mission, and values.
-                            </p>
-                        </motion.div>
-                    </div>
-                </section>
-
-                {/* Events Section Placeholder */}
-                <section id="events" className="relative min-h-screen w-full bg-gray-50 dark:bg-gray-800 py-20">
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                        <motion.div
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6 }}
-                            viewport={{ once: true, margin: "-100px" }}
-                            className="text-center"
-                        >
-                            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-                                Upcoming <span className="text-[#0998d5]">Events</span>
-                            </h2>
-                            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                                Join us for worship, fellowship, and community events.
-                            </p>
-                        </motion.div>
-                    </div>
-                </section>
-
-                {/* Contact Section Placeholder */}
-                <section id="contact" className="relative min-h-screen w-full bg-white dark:bg-gray-900 py-20">
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                        <motion.div
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6 }}
-                            viewport={{ once: true, margin: "-100px" }}
-                            className="text-center"
-                        >
-                            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-                                Get in <span className="text-[#0998d5]">Touch</span>
-                            </h2>
-                            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                                We'd love to hear from you. Reach out to us today.
-                            </p>
-                        </motion.div>
-                    </div>
-                </section>
             </main>
+
+            <Footer />
 
             {/* Back to Top Button */}
             <AnimatePresence>

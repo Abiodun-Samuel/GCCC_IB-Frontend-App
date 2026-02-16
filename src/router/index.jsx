@@ -8,12 +8,11 @@ import LeadersProtectedRoute from '../layout/route/LeadersProtectedRoute';
 import PublicRoute from '../layout/route/PublicRoute';
 import PageLoader from '@/components/ui/PageLoader';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
-import EventCard from '@/components/dashboard/events/EventCard';
-import EventDetailsPage from '@/pages/Home/EventsPage';
 import AdminAttendanceReportPage from '@/pages/Admin/AdminAttendanceReportPage';
 import AdminFirstTimerReportPage from '@/pages/Admin/AdminFirstTimerReportPage';
 import MessagesPage from '@/pages/Dashboard/MessagesPage';
 import LandingPage from '@/components/Home/LandingPage';
+import EventsPage from '@/pages/Dashboard/EventsPage';
 
 const LoginPage = lazy(() => import('../pages/Home/Auth/LoginPage'));
 const RegisterPage = lazy(() => import('../pages/Home/Auth/RegisterPage'));
@@ -33,7 +32,6 @@ const AttendancePage = lazy(() => import('../pages/Dashboard/AttendancePage'));
 const UserProfilePage = lazy(() =>
   import('../pages/Dashboard/UserProfilePage')
 );
-const EventsPage = lazy(() => import('../pages/Dashboard/EventsPage'));
 const FirstTimerDetailsPage = lazy(() =>
   import('../pages/Dashboard/FirstTimerDetailsPage')
 );
@@ -58,9 +56,7 @@ const AdminFollowupFeedbacksPage = lazy(() =>
 const AdminSettingsPage = lazy(() =>
   import('../pages/Admin/AdminSettingsPage')
 );
-const AdminAttendanceRecordsPage = lazy(() =>
-  import('@/pages/Admin/AdminAttendanceRecordsPage')
-);
+
 const AdminEventsPage = lazy(() => import('@/pages/Admin/AdminEventsPage'));
 
 const LeadersDashboardPage = lazy(() =>
@@ -87,9 +83,7 @@ const AppRoutes = [
     children: [
       {
         element: <ProtectedRoute />,
-        children: [{ index: true, element: withSuspense(HomePage) },
-        { path: 'events/picnic-2025', element: withSuspense(EventDetailsPage) },
-        ],
+        children: [{ index: true, element: withSuspense(HomePage) }],
       },
       {
         element: <PublicRoute />,
