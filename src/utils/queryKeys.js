@@ -1,4 +1,41 @@
 export const QUERY_KEYS = {
+  EVENTS: {
+    // Base key for all event-related queries
+    ALL: ['events'],
+
+    // Public event listing with filters
+    LIST: (params = {}) => ['events', 'list', params],
+
+    // Admin event listing
+    ADMIN: (params = {}) => ['events', 'admin', params],
+
+    // Featured/upcoming events
+    FEATURED: ['events', 'featured'],
+
+    // Single event detail (by ID or slug)
+    DETAIL: (identifier) => ['events', 'detail', identifier],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // EVENT REGISTRATIONS - User registrations for events
+  // ═══════════════════════════════════════════════════════════════════════
+  EVENT_REGISTRATIONS: {
+    // Base key for all registration-related queries
+    ALL: ['event-registrations'],
+
+    // Current user's own registrations
+    MY_REGISTRATIONS: (params = {}) => ['event-registrations', 'my-registrations', params],
+
+    // All registrations for a specific event
+    BY_EVENT: (eventId, params = {}) => ['event-registrations', 'by-event', eventId, params],
+
+    // Admin view of all registrations
+    ADMIN: (params = {}) => ['event-registrations', 'admin', params],
+
+    // Single registration detail
+    DETAIL: (id) => ['event-registrations', 'detail', id],
+  },
+
   MESSAGES: {
     ALL: ['messages'],
     INBOX: (params = {}) => ['messages', 'inbox', params],

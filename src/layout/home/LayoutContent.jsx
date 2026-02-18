@@ -5,8 +5,8 @@ import { Outlet } from "react-router-dom";
 const LayoutContent = () => {
     return (
         <>
-            <Outlet />
-            {/* <div className="relative min-h-screen bg-[#24244e] dark:bg-gray-950 overflow-hidden">
+            {/* <Outlet /> */}
+            <div className="relative min-h-screen bg-[#24244e] dark:bg-gray-950 overflow-hidden">
 
                 <AnimatedBackground />
 
@@ -21,7 +21,7 @@ const LayoutContent = () => {
                         <Outlet />
                     </div>
                 </div>
-            </div> */}
+            </div>
         </>
     );
 };

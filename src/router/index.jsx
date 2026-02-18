@@ -13,6 +13,7 @@ import AdminFirstTimerReportPage from '@/pages/Admin/AdminFirstTimerReportPage';
 import MessagesPage from '@/pages/Dashboard/MessagesPage';
 import LandingPage from '@/components/Home/LandingPage';
 import EventsPage from '@/pages/Dashboard/EventsPage';
+import EventRegistrationPage from '@/pages/Home/EventRegistrationPage';
 
 const LoginPage = lazy(() => import('../pages/Home/Auth/LoginPage'));
 const RegisterPage = lazy(() => import('../pages/Home/Auth/RegisterPage'));
@@ -99,6 +100,7 @@ const AppRoutes = [
       },
       { path: 'forms', element: withSuspense(FormPage) },
       { path: 'first-timer/welcome', element: withSuspense(FirstTimerPage) },
+      { path: 'events/call-to-meet-the-one-interest-form', element: withSuspense(EventRegistrationPage) },
       { path: 'landing-page', element: withSuspense(LandingPage) },
     ],
   },

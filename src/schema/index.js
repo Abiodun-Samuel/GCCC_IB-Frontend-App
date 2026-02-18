@@ -527,3 +527,29 @@ export const filterFirstTimersSchema = yup.object().shape(
   },
   [['date_of_visit', 'date_month_of_visit']]
 );
+
+
+export const EventRegistrationSchema = yup.object({
+  fullName: yup
+    .string()
+    .required("Full name is required")
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name is too long"),
+  phoneNumber: yup
+    .string()
+    .required("Phone number is required")
+    .matches(/^[+]?[\d\s\-().]{7,20}$/, "Enter a valid phone number"),
+  whatsappNumber: yup
+    .string()
+    .matches(/^[+]?[\d\s\-().]{7,20}$/, "Enter a valid WhatsApp number")
+    .nullable()
+    .transform((v) => (v === "" ? null : v)),
+  email: yup
+    .string()
+    .required("Email address is required")
+    .email("Enter a valid email address"),
+  attending: yup
+    .boolean()
+    .required("Please indicate if you will be attending")
+    .oneOf([false, true], "Please select an option"),
+});
