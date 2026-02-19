@@ -1,265 +1,196 @@
-import React, { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { useRef, memo } from 'react';
+import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { Heart, Users, Crown } from 'lucide-react';
+import { SECTION_SPACING } from '@/utils/constant';
+import GallerySection from '@/components/Home/GallerySection';
 
+// ─── Data ─────────────────────────────────────────────────────────────────────
+const VALUES = [
+    { icon: Heart, title: "Love", body: "Extending Christ's love to every person, no conditions." },
+    { icon: Users, title: "Family", body: "Close-knit believers carrying one another through every season." },
+    { icon: Crown, title: "Kingdom", body: "Kingdom culture practiced in every space we occupy." },
+];
+
+// ─── Variants ─────────────────────────────────────────────────────────────────
+const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.1 } } };
+const rise = { hidden: { opacity: 0, y: 36 }, visible: { opacity: 1, y: 0, transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] } } };
+const fromLeft = { hidden: { opacity: 0, x: -48 }, visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } } };
+const fromRight = { hidden: { opacity: 0, x: 48 }, visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } } };
+const ghostReveal = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: 0.1 },
+    },
+};
+
+// ─── Value Card ───────────────────────────────────────────────────────────────
+const ValueCard = memo(({ icon: Icon, title, body }) => (
+    <motion.div
+        variants={rise}
+        className="group flex flex-col gap-4 p-6 bg-gray-50 dark:bg-gray-900 hover:bg-[#0998d5] transition-colors duration-300 cursor-default"
+    >
+        <div className="w-10 h-10 rounded-lg bg-[#0998d5]/10 group-hover:bg-white/20 flex items-center justify-center transition-colors duration-300">
+            <Icon className="w-5 h-5 text-[#0998d5] group-hover:text-white transition-colors duration-300" strokeWidth={1.8} />
+        </div>
+        <div>
+            <h4 className="text-base font-bold text-gray-900 dark:text-white group-hover:text-white mb-1 transition-colors duration-300">
+                {title}
+            </h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400 group-hover:text-white/75 leading-relaxed transition-colors duration-300">
+                {body}
+            </p>
+        </div>
+    </motion.div>
+));
+ValueCard.displayName = "About.ValueCard";
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 const AboutSection = () => {
     const sectionRef = useRef(null);
-    const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+    const imgRef = useRef(null);
+    const inView = useInView(sectionRef, { once: true, margin: "-80px" });
 
-    // Animation variants
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.15
-            }
-        }
-    };
-
-    const fadeUpVariants = {
-        hidden: { opacity: 0, y: 40 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: {
-                duration: 0.8,
-                ease: [0.22, 1, 0.36, 1]
-            }
-        }
-    };
-
-    const scaleInVariants = {
-        hidden: { opacity: 0, scale: 0.9 },
-        visible: {
-            opacity: 1,
-            scale: 1,
-            transition: {
-                duration: 0.7,
-                ease: [0.22, 1, 0.36, 1]
-            }
-        }
-    };
-
-    const slideInFromLeft = {
-        hidden: { opacity: 0, x: -60 },
-        visible: {
-            opacity: 1,
-            x: 0,
-            transition: {
-                duration: 0.8,
-                ease: [0.22, 1, 0.36, 1]
-            }
-        }
-    };
+    const { scrollYProgress } = useScroll({ target: imgRef, offset: ["start end", "end start"] });
+    const imgY = useTransform(scrollYProgress, [0, 1], ["-6%", "6%"]);
 
     return (
         <section
             ref={sectionRef}
             id="about"
-            className="relative w-full bg-white dark:bg-gray-900 py-20 lg:py-24 my-10 md:my-16 lg:my-20 overflow-hidden"
+            className={`relative w-full bg-white dark:bg-gray-950 overflow-hidden ${SECTION_SPACING}`}
         >
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+            <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
 
-                {/* Layer 1: Big Image and Text - Mobile: Text First, Desktop: Image First */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+                {/* ── Label ──────────────────────────────────────────────────── */}
+                <motion.div
+                    initial="hidden"
+                    animate={inView ? "visible" : "hidden"}
+                    variants={rise}
+                    className="flex items-center gap-3 mb-10 sm:mb-12"
+                >
+                    <div className="h-px w-8 bg-[#0998d5]" />
+                    <span className="text-[11px] font-bold tracking-[0.25em] text-[#0998d5] uppercase">
+                        Who We Are
+                    </span>
+                </motion.div>
 
-                    {/* Right Side - Text Content (Mobile First) */}
+                {/* ── Main grid: image | text ─────────────────────────────────── */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center mb-14 sm:mb-16">
+
+                    {/* Image */}
                     <motion.div
+                        ref={imgRef}
                         initial="hidden"
-                        animate={isInView ? "visible" : "hidden"}
-                        variants={containerVariants}
-                        className="flex flex-col justify-center h-full space-y-6 lg:order-2 order-1"
+                        animate={inView ? "visible" : "hidden"}
+                        variants={fromLeft}
+                        className="relative overflow-hidden aspect-[4/3]"
                     >
-                        <motion.p
-                            variants={fadeUpVariants}
-                            className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 dark:text-white leading-relaxed"
-                        >
-                            If you are thinking about{' '}
-                            <span className="text-[#0998d5] inline-block hover:scale-110 transition-transform duration-300">
-                                Love, Family
-                            </span>{' '}
-                            and{' '}
-                            <span className="text-[#0998d5] inline-block hover:scale-110 transition-transform duration-300">
-                                Kingdom
-                            </span>{' '}
-                            then it is Glory Centre Community Church you are thinking about.
-                        </motion.p>
+                        <motion.img
+                            src="/images/home/about.gif"
+                            alt="GCCC Ibadan Community"
+                            className="absolute inset-0 w-full h-full object-cover"
+                            style={{ y: imgY, scale: 1.06 }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
 
-                        <motion.div
-                            variants={containerVariants}
-                            className="space-y-5"
-                        >
-                            <motion.p
-                                variants={fadeUpVariants}
-                                className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed"
-                            >
-                                GCCC Ibadan is a growing community of close-knit believers in Bodija, extending the frontiers of the Kingdom on all sides.
-                            </motion.p>
-
-                            <motion.p
-                                variants={fadeUpVariants}
-                                className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed"
-                            >
-                                With a deep desire to regularly experience and manifest the Glory of God, we do the Word, we yield to the Spirit and practice the Culture of God's kingdom.
-                            </motion.p>
-                        </motion.div>
-
-                        <motion.div
-                            variants={scaleInVariants}
-                            whileHover={{ scale: 1.02, x: 5 }}
-                            className="inline-flex items-center gap-3 px-6 py-4 bg-gradient-to-r from-[#0998d5]/10 to-[#0998d5]/5 dark:from-[#0998d5]/20 dark:to-[#0998d5]/10 border-l-4 border-[#0998d5] cursor-default"
-                        >
-                            <p className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-                                The plan is to take our generation for Jesus!
-                            </p>
-                        </motion.div>
-                    </motion.div>
-
-                    {/* Left Side - Image */}
-                    <motion.div
-                        initial="hidden"
-                        animate={isInView ? "visible" : "hidden"}
-                        variants={slideInFromLeft}
-                        whileHover={{ scale: 1.02 }}
-                        transition={{ duration: 0.4 }}
-                        className="relative overflow-hidden shadow group lg:order-1 order-2"
-                    >
-                        <div className="aspect-[4/3] relative">
-                            <motion.img
-                                src="/images/home/image (5).jpg"
-                                alt="Church Community"
-                                className="w-full h-full object-cover"
-                                whileHover={{ scale: 1.1 }}
-                                transition={{ duration: 0.7, ease: "easeOut" }}
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent group-hover:from-black/30 transition-all duration-500" />
-
-                            {/* Decorative corner accent */}
-                            <motion.div
-                                initial={{ scale: 0, rotate: -45 }}
-                                animate={isInView ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -45 }}
-                                transition={{ delay: 0.5, duration: 0.6 }}
-                                className="absolute top-0 right-0 w-20 h-20 bg-[#0998d5]/20 backdrop-blur-sm"
-                                style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 0)' }}
-                            />
+                        {/* Location tag */}
+                        <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-gray-950/90 backdrop-blur-sm px-3 py-1.5">
+                            <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-gray-600 dark:text-gray-300">
+                                Bodija · Ibadan
+                            </span>
                         </div>
                     </motion.div>
 
+                    {/* Text — ghost sits behind this column */}
+                    <div className="relative overflow-hidden">
+
+                        {/* ── Ghost watermark — SVG scales to exact container width ── */}
+                        <motion.div
+                            aria-hidden="true"
+                            initial="hidden"
+                            animate={inView ? "visible" : "hidden"}
+                            variants={ghostReveal}
+                            className="pointer-events-none select-none absolute bottom-16 left-0 right-0 overflow-hidden"
+                        >
+                            <svg
+                                viewBox="0 0 800 160"
+                                preserveAspectRatio="xMidYMid meet"
+                                className="w-full"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <text
+                                    x="50%"
+                                    y="88%"
+                                    textAnchor="middle"
+                                    dominantBaseline="auto"
+                                    fontFamily="'Arial Black', 'Impact', sans-serif"
+                                    fontWeight="900"
+                                    fontSize="170"
+                                    letterSpacing="-4"
+                                    fill="rgba(17,155,214,0.055)"
+                                    stroke="rgba(17,155,214,0.07)"
+                                    strokeWidth="0.4"
+                                >
+                                    GCCC IB
+                                </text>
+                            </svg>
+                        </motion.div>
+
+                        {/* ── Actual text content ───────────────────────────── */}
+                        <motion.div
+                            initial="hidden"
+                            animate={inView ? "visible" : "hidden"}
+                            variants={stagger}
+                            className="relative z-10 flex flex-col gap-6"
+                        >
+                            <motion.h2
+                                variants={fromRight}
+                                className="text-3xl sm:text-4xl lg:text-[2.75rem] font-black leading-tight tracking-tight text-gray-900 dark:text-white"
+                                style={{ fontFamily: "'Georgia', serif" }}
+                            >
+                                Where{" "}
+                                <span className="text-[#0998d5]">Love</span>,{" "}
+                                <span className="text-[#0998d5]">Family</span>{" "}
+                                &amp;{" "}
+                                <span className="text-[#0998d5]">Kingdom</span>{" "}
+                                converge.
+                            </motion.h2>
+
+                            <motion.p variants={rise} className="text-base text-gray-600 dark:text-gray-400 leading-relaxed">
+                                GCCC Ibadan is a growing community of close-knit believers in Bodija, extending the frontiers of the Kingdom on all sides.
+                            </motion.p>
+
+                            <motion.p variants={rise} className="text-base text-gray-600 dark:text-gray-400 leading-relaxed">
+                                We do the Word, yield to the Spirit and practice the Culture of God's Kingdom — with a deep desire to regularly experience and manifest the Glory of God.
+                            </motion.p>
+
+                            {/* Statement */}
+                            <motion.div
+                                variants={rise}
+                                className="border-l-2 border-[#0998d5] pl-4"
+                            >
+                                <p className="text-lg font-bold text-gray-900 dark:text-white" style={{ fontFamily: "'Georgia', serif" }}>
+                                    The plan is to take our generation for Jesus.
+                                </p>
+                            </motion.div>
+                        </motion.div>
+                    </div>
                 </div>
 
-                {/* Layer 2: Three Core Value Boxes */}
+                {/* ── Values ─────────────────────────────────────────────────── */}
                 <motion.div
                     initial="hidden"
-                    animate={isInView ? "visible" : "hidden"}
-                    variants={containerVariants}
-                    className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8"
+                    animate={inView ? "visible" : "hidden"}
+                    variants={stagger}
+                    className="grid grid-cols-1 sm:grid-cols-3 gap-4"
                 >
-                    {[
-                        {
-                            icon: Heart,
-                            title: "Love",
-                            desc: "Rooted and growing in the Grace and Knowledge of God, we extend Christ's love to every person.",
-                            color: "#0998d5"
-                        },
-                        {
-                            icon: Users,
-                            title: "Family",
-                            desc: "A vibrant community where believers connect, grow, and support one another through life's journey.",
-                            color: "#0998d5"
-                        },
-                        {
-                            icon: Crown,
-                            title: "Kingdom",
-                            desc: "Living out Kingdom culture in every space, transforming lives through the power of God's presence.",
-                            color: "#0998d5"
-                        }
-                    ].map((value, index) => {
-                        const Icon = value.icon;
-                        return (
-                            <motion.div
-                                key={index}
-                                variants={fadeUpVariants}
-                                whileHover={{
-                                    y: -5,
-                                    boxShadow: "0 5px 5px rgba(9, 152, 213, 0.15)",
-                                    transition: { duration: 0.3 }
-                                }}
-                                className="group bg-white dark:bg-gray-800 p-6 shadow hover:shadow-sm transition-all duration-300 relative overflow-hidden"
-                            >
-                                {/* Animated background gradient */}
-                                <motion.div
-                                    initial={{ x: '-100%' }}
-                                    whileHover={{ x: '100%' }}
-                                    transition={{ duration: 0.6 }}
-                                    className="absolute inset-0 bg-gradient-to-r from-transparent via-[#0998d5]/5 to-transparent"
-                                />
-
-                                <div className="relative z-10">
-                                    <div className="flex items-start gap-4 mb-4">
-                                        <motion.div
-                                            whileHover={{ rotate: 360, scale: 1.1 }}
-                                            transition={{ duration: 0.6 }}
-                                            className="p-3 bg-[#0998d5]/10 dark:bg-[#0998d5]/20 rounded-lg"
-                                        >
-                                            <Icon className="w-6 h-6 text-[#0998d5]" />
-                                        </motion.div>
-                                        <h4 className="text-lg font-bold text-gray-900 dark:text-white pt-2">
-                                            {value.title}
-                                        </h4>
-                                    </div>
-                                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                                        {value.desc}
-                                    </p>
-                                </div>
-                            </motion.div>
-                        );
-                    })}
-                </motion.div>
-
-                {/* Layer 3: Four Images */}
-                <motion.div
-                    initial="hidden"
-                    animate={isInView ? "visible" : "hidden"}
-                    variants={containerVariants}
-                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
-                >
-                    {[
-                        { src: "/images/home/image (10).jpg", alt: "Worship" },
-                        { src: "/images/home/image (15).jpg", alt: "Prayer" },
-                        { src: "/images/home/image (20).jpg", alt: "Fellowship" },
-                        { src: "/images/home/image (25).jpg", alt: "Community" }
-                    ].map((image, index) => (
-                        <motion.div
-                            key={index}
-                            variants={scaleInVariants}
-                            whileHover={{
-                                y: -10,
-                                transition: { duration: 0.3 }
-                            }}
-                            className="relative overflow-hidden shadow group aspect-[4/3] rounded-lg"
-                        >
-                            <motion.img
-                                src={image.src}
-                                alt={image.alt}
-                                className="w-full h-full object-cover"
-                                whileHover={{ scale: 1.15, rotate: 2 }}
-                                transition={{ duration: 0.7, ease: "easeOut" }}
-                            />
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                whileHover={{ opacity: 1 }}
-                                className="absolute inset-0 bg-gradient-to-t from-[#0998d5]/60 via-[#0998d5]/20 to-transparent flex items-end justify-center pb-6"
-                            >
-                                <span className="text-white font-semibold text-lg tracking-wide">
-                                    {image.alt}
-                                </span>
-                            </motion.div>
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent group-hover:from-transparent transition-all duration-500" />
-                        </motion.div>
+                    {VALUES.map((v) => (
+                        <ValueCard key={v.title} {...v} />
                     ))}
                 </motion.div>
 
+                <GallerySection />
             </div>
         </section>
     );

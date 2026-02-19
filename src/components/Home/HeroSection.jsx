@@ -1,430 +1,337 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles, ChevronDown } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 
-// Centralized spacing configuration for consistency
+// ─── Constants outside component — never re-created ───────────────────────────
 const SPACING = {
     navbarHeight: 'h-20',
-    topPadding: 'h-16 sm:h-20 lg:h-20',        // After navbar
-    sectionGap: 'h-8 sm:h-10 lg:h-12',         // Between major sections
-    elementGap: 'h-6 sm:h-8 lg:h-10',          // Between elements
-    compactGap: 'h-5 sm:h-6 lg:h-7',           // Between closely related items
-    tinyGap: 'h-4 sm:h-5 lg:h-6',              // For subtle spacing
-    imagesPadding: 'h-14 sm:h-16 lg:h-18',     // Before images
-    bottomPadding: 'pb-16 sm:pb-10 lg:pb-5',  // Images container bottom
+    topPadding: 'h-16 sm:h-20 lg:h-20',
+    sectionGap: 'h-8 sm:h-10 lg:h-12',
+    elementGap: 'h-6 sm:h-8 lg:h-10',
+    compactGap: 'h-5 sm:h-6 lg:h-7',
+    tinyGap: 'h-4 sm:h-5 lg:h-6',
+    imagesPadding: 'h-14 sm:h-16 lg:h-18',
+    bottomPadding: 'pb-16 sm:pb-10 lg:pb-5',
 };
 
-const GcccHeroSection = () => {
-    const [isSpread, setIsSpread] = useState(false);
-    const [isMobile, setIsMobile] = useState(false);
-    const [isTablet, setIsTablet] = useState(false);
+// Pre-built image list — static, no reason to memoize
+const ALL_IMAGES = Array.from({ length: 29 }, (_, i) => ({
+    id: i + 1,
+    url: `/images/home/image (${i + 1}).jpg`,
+    alt: `Church image ${i + 1}`,
+}));
 
-    // Memoized images array - dynamically generated from 1 to 29
-    const images = useMemo(() => {
-        const totalImages = 29;
-        const imageArray = [];
+// Pick 7 random images once at module load — stable across re-renders
+const SELECTED_IMAGES = [...ALL_IMAGES]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 7);
 
-        for (let i = 1; i <= totalImages; i++) {
-            imageArray.push({
-                id: i,
-                url: `/images/home/image (${i}).jpg`,
-                alt: `Church image ${i}`,
-            });
-        }
+// Framer Motion transition — defined once, shared across cards
+const CARD_TRANSITION = {
+    duration: 0.6,
+    ease: [0.22, 1, 0.36, 1],
+};
 
-        return imageArray;
-    }, []);
+const HOVER_TRANSITION = { duration: 0.2 };
 
-    // Randomly select 7 images for display
-    const selectedImages = useMemo(() => {
-        const shuffled = [...images].sort(() => Math.random() - 0.5);
-        return shuffled.slice(0, 7);
-    }, [images]);
+// Card glow overlay — identical for all cards, extracted to avoid inline JSX
+const CardOverlay = memo(() => (
+    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-white/10 group-hover:from-black/30 transition-colors duration-200" />
+));
+CardOverlay.displayName = 'CardOverlay';
+
+const CardCornerAccents = memo(() => (
+    <>
+        <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-bl from-[#0998d5]/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute bottom-0 left-0 w-12 h-12 bg-gradient-to-tr from-[#0998d5]/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+    </>
+));
+CardCornerAccents.displayName = 'CardCornerAccents';
+
+// ─── useBreakpoint: matchMedia is far cheaper than resize listeners ────────────
+const MQ_MOBILE = '(max-width: 639px)';
+const MQ_TABLET = '(min-width: 640px) and (max-width: 1023px)';
+
+function useBreakpoint() {
+    const [bp, setBp] = useState(() => ({
+        isMobile: typeof window !== 'undefined' && window.matchMedia(MQ_MOBILE).matches,
+        isTablet: typeof window !== 'undefined' && window.matchMedia(MQ_TABLET).matches,
+    }));
 
     useEffect(() => {
-        const checkScreenSize = () => {
-            setIsMobile(window.innerWidth < 640);
-            setIsTablet(window.innerWidth >= 640 && window.innerWidth < 1024);
+        const mqMobile = window.matchMedia(MQ_MOBILE);
+        const mqTablet = window.matchMedia(MQ_TABLET);
+
+        const handler = () => {
+            setBp({ isMobile: mqMobile.matches, isTablet: mqTablet.matches });
         };
 
-        checkScreenSize();
-        window.addEventListener('resize', checkScreenSize);
-
-        const timer = setTimeout(() => {
-            setIsSpread(true);
-        }, 600);
+        mqMobile.addEventListener('change', handler);
+        mqTablet.addEventListener('change', handler);
 
         return () => {
-            clearTimeout(timer);
-            window.removeEventListener('resize', checkScreenSize);
+            mqMobile.removeEventListener('change', handler);
+            mqTablet.removeEventListener('change', handler);
         };
     }, []);
 
-    // Optimized position calculator - Desktop
-    const getDesktopCardPosition = useCallback((index, total) => {
-        if (!isSpread) {
-            return { x: 0, y: 0, rotate: 0, scale: 1, zIndex: total - index };
-        }
+    return bp;
+}
 
-        const centerIndex = Math.floor(total / 2);
-        const offset = index - centerIndex;
-        const xOffset = offset * 190;
-        const distanceFromCenter = Math.abs(offset);
-        const yOffset = -distanceFromCenter * distanceFromCenter * 8;
-        const rotation = offset * 3;
+// ─── Desktop Card ─────────────────────────────────────────────────────────────
+const DesktopCard = memo(({ image, index, total, isSpread }) => {
+    const centerIndex = Math.floor(total / 2);
+    const offset = index - centerIndex;
+    const isCenterCard = offset === 0;
 
+    const spread = useMemo(() => {
+        if (!isSpread) return { x: 0, y: 0, rotate: 0, zIndex: total - index };
         return {
-            x: xOffset,
-            y: yOffset,
-            rotate: rotation,
-            scale: 1,
+            x: offset * 190,
+            y: -(Math.abs(offset) ** 2) * 8,
+            rotate: offset * 3,
             zIndex: total - Math.abs(offset),
         };
-    }, [isSpread]);
+    }, [isSpread, offset, total, index]);
 
-    // Optimized position calculator - Tablet
-    const getTabletCardPosition = useCallback((index, total) => {
-        if (!isSpread) {
-            return { x: 0, y: 0, rotate: 0, scale: 1, zIndex: total - index };
-        }
+    return (
+        <motion.div
+            initial={{ x: 0, y: 0, rotate: 0, scale: 1, opacity: 0 }}
+            animate={{ x: spread.x, y: spread.y, rotate: spread.rotate, scale: 1, opacity: 1 }}
+            whileHover={{ scale: 1.08, rotate: 0, y: spread.y - 15, zIndex: 100, transition: HOVER_TRANSITION }}
+            transition={{ ...CARD_TRANSITION, delay: 1 + index * 0.08 }}
+            style={{ zIndex: spread.zIndex }}
+            className="absolute cursor-pointer group"
+        >
+            <div className="absolute -inset-1 bg-gradient-to-b from-[#0998d5]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div
+                className={`relative overflow-hidden shadow border-4 border-white dark:border-gray-800 ${isCenterCard ? 'ring-2 ring-[#0998d5]/50' : 'ring-1 ring-white/80'}`}
+                style={{ width: 260, height: 310 }}
+            >
+                <img src={image.url} alt={image.alt} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" decoding="async" />
+                <CardOverlay />
+                <CardCornerAccents />
+            </div>
+        </motion.div>
+    );
+});
+DesktopCard.displayName = 'DesktopCard';
 
-        const centerIndex = Math.floor(total / 2);
-        const offset = index - centerIndex;
-        const xOffset = offset * 105;
-        const rotation = offset * 2.5;
+// ─── Tablet Card ──────────────────────────────────────────────────────────────
+const TabletCard = memo(({ image, index, total, isSpread }) => {
+    const centerIndex = Math.floor(total / 2);
+    const offset = index - centerIndex;
+    const isCenterCard = offset === 0;
 
+    const spread = useMemo(() => {
+        if (!isSpread) return { x: 0, y: 0, rotate: 0, zIndex: total - index };
         return {
-            x: xOffset,
+            x: offset * 105,
             y: 0,
-            rotate: rotation,
-            scale: 1,
+            rotate: offset * 2.5,
             zIndex: total - Math.abs(offset),
         };
-    }, [isSpread]);
+    }, [isSpread, offset, total, index]);
+
+    return (
+        <motion.div
+            initial={{ x: 0, y: 0, rotate: 0, scale: 0.9, opacity: 0 }}
+            animate={{ x: spread.x, y: spread.y, rotate: spread.rotate, scale: 1, opacity: 1 }}
+            whileHover={{ scale: 1.1, rotate: 0, zIndex: 100, transition: HOVER_TRANSITION }}
+            transition={{ ...CARD_TRANSITION, delay: 1 + index * 0.08 }}
+            style={{ zIndex: spread.zIndex }}
+            className="absolute cursor-pointer group"
+        >
+            <div className="absolute -inset-1 bg-gradient-to-b from-[#0998d5]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div
+                className={`relative overflow-hidden shadow border-4 border-white dark:border-gray-800 ${isCenterCard ? 'ring-2 ring-[#0998d5]/50' : 'ring-1 ring-white/80'}`}
+                style={{ width: 190, height: 260 }}
+            >
+                <img src={image.url} alt={image.alt} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" decoding="async" />
+                <CardOverlay />
+                <div className="absolute top-0 right-0 w-10 h-10 bg-gradient-to-bl from-[#0998d5]/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            </div>
+        </motion.div>
+    );
+});
+TabletCard.displayName = 'TabletCard';
+
+// ─── Mobile Masonry ───────────────────────────────────────────────────────────
+const MOBILE_OVERLAY = <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/5" />;
+
+const MobileImage = memo(({ image, delay, className, style }) => (
+    <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4, delay }}
+        whileTap={{ scale: 0.95 }}
+        className={`relative overflow-hidden shadow ring-1 ring-white/80 ${className}`}
+        style={style}
+    >
+        <img src={image.url} alt={image.alt} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+        {MOBILE_OVERLAY}
+    </motion.div>
+));
+MobileImage.displayName = 'MobileImage';
+
+const MobileMasonry = memo(() => (
+    <div className="w-full max-w-lg mx-auto px-4">
+        <div className="grid grid-cols-3 gap-3">
+            <MobileImage image={SELECTED_IMAGES[0]} delay={1} className="col-span-2 row-span-2" style={{ height: 280 }} />
+            <MobileImage image={SELECTED_IMAGES[1]} delay={1.08} className="col-span-1" style={{ height: 136 }} />
+            <MobileImage image={SELECTED_IMAGES[2]} delay={1.16} className="col-span-1" style={{ height: 136 }} />
+            <MobileImage image={SELECTED_IMAGES[3]} delay={1.24} className="col-span-1" style={{ height: 136 }} />
+            <MobileImage image={SELECTED_IMAGES[4]} delay={1.32} className="col-span-1" style={{ height: 136 }} />
+            <MobileImage image={SELECTED_IMAGES[5]} delay={1.40} className="col-span-1" style={{ height: 136 }} />
+            <MobileImage image={SELECTED_IMAGES[6]} delay={1.50} className="col-span-3" style={{ height: 120 }} />
+        </div>
+    </div>
+));
+MobileMasonry.displayName = 'MobileMasonry';
+
+// ─── Hero Background — memoized, never changes ─────────────────────────────────
+const HeroBackground = memo(() => (
+    <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-100/50 via-cyan-50/30 to-white dark:from-blue-950/30 dark:via-cyan-950/20 dark:to-gray-900" />
+        <div className="absolute top-0 right-0 w-[700px] h-[700px] bg-[radial-gradient(circle,rgba(59,130,246,0.15)_0%,rgba(14,165,233,0.08)_40%,transparent_70%)] blur-3xl" />
+        <div className="absolute top-1/3 left-0 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(14,165,233,0.12)_0%,rgba(59,130,246,0.06)_40%,transparent_70%)] blur-3xl" />
+        <div className="absolute inset-0 opacity-[0.18]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgb(59 130 246 / 0.8) 1.5px, transparent 0)', backgroundSize: '40px 40px' }} />
+        <div className="absolute inset-0 opacity-[0.12]" style={{ backgroundImage: 'linear-gradient(rgba(59,130,246,0.5) 1.5px,transparent 1.5px),linear-gradient(90deg,rgba(59,130,246,0.5) 1.5px,transparent 1.5px)', backgroundSize: '80px 80px' }} />
+        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'repeating-linear-gradient(45deg,transparent,transparent 12px,rgba(59,130,246,0.4) 12px,rgba(59,130,246,0.4) 14px)' }} />
+        <div className="absolute top-0 left-0 w-80 h-80 bg-gradient-to-br from-blue-500/12 via-cyan-400/6 to-transparent" />
+        <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-cyan-500/10 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/25 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-96 bg-gradient-to-t from-white dark:from-gray-900 via-white/98 dark:via-gray-900/98 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-80 bg-gradient-to-t from-white dark:from-gray-900 via-white/90 dark:via-gray-900/90 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-white dark:bg-gray-900" />
+    </div>
+));
+HeroBackground.displayName = 'HeroBackground';
+
+// ─── Motion variants — defined once outside ────────────────────────────────────
+const fadeUp = (delay = 0) => ({
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.8, delay },
+});
+
+const fadeDown = {
+    initial: { opacity: 0, y: -20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.6, delay: 0.2 },
+};
+
+// ─── Main Component ────────────────────────────────────────────────────────────
+const HeroSection = () => {
+    const [isSpread, setIsSpread] = useState(false);
+    const { isMobile, isTablet } = useBreakpoint();
+    const timerRef = useRef(null);
+
+    useEffect(() => {
+        timerRef.current = setTimeout(() => setIsSpread(true), 600);
+        return () => clearTimeout(timerRef.current);
+    }, []);
+
+    const isDesktop = !isMobile && !isTablet;
 
     return (
         <section id="hero" className="relative min-h-screen w-full overflow-hidden bg-white dark:bg-gray-900">
 
-            {/* Beautiful Background - Full Width with Blurred Image and Perfect White Fade */}
-            <div className="absolute inset-0 pointer-events-none">
+            <HeroBackground />
 
-                {/* Base gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-100/50 via-cyan-50/30 to-white dark:from-blue-950/30 dark:via-cyan-950/20 dark:to-gray-900" />
-
-                {/* Accent gradients */}
-                <div className="absolute top-0 right-0 w-[700px] h-[700px] bg-[radial-gradient(circle,rgba(59,130,246,0.15)_0%,rgba(14,165,233,0.08)_40%,transparent_70%)] blur-3xl" />
-                <div className="absolute top-1/3 left-0 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(14,165,233,0.12)_0%,rgba(59,130,246,0.06)_40%,transparent_70%)] blur-3xl" />
-
-                {/* Dot pattern */}
-                <div
-                    className="absolute inset-0 opacity-[0.18]"
-                    style={{
-                        backgroundImage: `radial-gradient(circle at 2px 2px, rgb(59 130 246 / 0.8) 1.5px, transparent 0)`,
-                        backgroundSize: '40px 40px',
-                    }}
-                />
-
-                {/* Grid pattern */}
-                <div
-                    className="absolute inset-0 opacity-[0.12]"
-                    style={{
-                        backgroundImage: 'linear-gradient(rgba(59, 130, 246, 0.5) 1.5px, transparent 1.5px), linear-gradient(90deg, rgba(59, 130, 246, 0.5) 1.5px, transparent 1.5px)',
-                        backgroundSize: '80px 80px',
-                    }}
-                />
-
-                {/* Diagonal lines */}
-                <div
-                    className="absolute inset-0 opacity-[0.06]"
-                    style={{
-                        backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 12px, rgba(59, 130, 246, 0.4) 12px, rgba(59, 130, 246, 0.4) 14px)',
-                    }}
-                />
-
-                {/* Corner accents */}
-                <div className="absolute top-0 left-0 w-80 h-80 bg-gradient-to-br from-blue-500/12 via-cyan-400/6 to-transparent" />
-                <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-cyan-500/10 to-transparent" />
-
-                {/* Top edge highlight */}
-                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/25 to-transparent" />
-
-                {/* Multi-layer white fade for seamless blend */}
-                <div className="absolute bottom-0 left-0 right-0 h-96 bg-gradient-to-t from-white dark:from-gray-900 via-white/98 dark:via-gray-900/98 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 h-80 bg-gradient-to-t from-white dark:from-gray-900 via-white/90 dark:via-gray-900/90 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 h-24 bg-white dark:bg-gray-900" />
-            </div>
-
-            {/* Main Content - Container */}
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="relative z-10 flex flex-col min-h-screen lg:h-screen lg:min-h-0">
 
-                    {/* Navbar Height Spacer */}
                     <div className={SPACING.navbarHeight} />
-
-                    {/* Top Padding - Increased breathing room */}
                     <div className={SPACING.topPadding} />
 
-                    {/* Church Name Badge */}
-                    <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                        className="text-center"
-                    >
-                        <div className="inline-flex items-center gap-2 px-5 py-2 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-[#0998d5]/30 dark:border-[#0998d5]/40 shadow group">
+                    {/* Badge */}
+                    <motion.div {...fadeDown} className="text-center">
+                        <div className="inline-flex items-center gap-2 px-5 py-2 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-[#0998d5]/30 dark:border-[#0998d5]/40 shadow">
                             <div className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full bg-[#0998d5] opacity-75" />
                                 <span className="relative inline-flex h-2 w-2 bg-[#0998d5]" />
                             </div>
-                            <span className="text-[10px] sm:text-xs md:text-sm font-bold tracking-[0.15em] sm:tracking-[0.2em] uppercase text-[#0998d5] dark:text-[#0998d5]">
+                            <span className="text-[10px] sm:text-xs md:text-sm font-bold tracking-[0.15em] sm:tracking-[0.2em] uppercase text-[#0998d5]">
                                 Glory Centre Community Church
                             </span>
                             <Sparkles className="w-3.5 h-3.5 text-[#0998d5]" />
                         </div>
                     </motion.div>
 
-                    {/* Spacing after badge */}
                     <div className={SPACING.elementGap} />
 
-                    {/* Main Heading */}
+                    {/* Heading */}
                     <motion.h1
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.4 }}
+                        {...fadeUp(0.4)}
                         className="text-center text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-bold leading-[1.1] tracking-tight"
                     >
-                        <span className="block text-gray-900 dark:text-white">
-                            Where God Meets With
-                        </span>
-                        <span className="block mt-1 text-[#0998d5] dark:text-[#0998d5]">
-                            His People
-                        </span>
+                        <span className="block text-gray-900 dark:text-white">Where God Meets With</span>
+                        <span className="block mt-1 text-[#0998d5]">His People</span>
                     </motion.h1>
 
-                    {/* Spacing after heading */}
                     <div className={SPACING.compactGap} />
 
-                    {/* Description Text */}
+                    {/* Description */}
                     <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.6 }}
-                        className="text-center text-base sm:text-base md:text-lg lg:text-lg text-gray-700 dark:text-gray-300 leading-relaxed max-w-2xl mx-auto px-4"
+                        {...fadeUp(0.6)}
+                        className="text-center text-base sm:text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed max-w-2xl mx-auto px-4"
                     >
                         Join our vibrant community of believers rooted and growing in the{' '}
-                        <span className="font-semibold text-[#0998d5] dark:text-[#0998d5]">Grace and Knowledge of God</span>.
+                        <span className="font-semibold text-[#0998d5]">Grace and Knowledge of God</span>.
                     </motion.p>
 
-                    {/* Spacing after description */}
                     <div className={SPACING.elementGap} />
 
-                    {/* CTA Button */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.8 }}
-                        className="text-center"
-                    >
+                    {/* CTA */}
+                    <motion.div {...fadeUp(0.8)} className="text-center">
                         <button className="group inline-flex items-center justify-center gap-2 px-8 sm:px-10 py-3.5 sm:py-4 lg:py-3.5 bg-[#0998d5] text-white font-semibold text-sm sm:text-base lg:text-sm shadow hover:bg-[#0886bd] transition-colors duration-200">
                             <span>Join Our Community</span>
                             <ArrowRight className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" />
                         </button>
                     </motion.div>
 
-                    {/* Spacing before images - Generous gap */}
                     <div className={SPACING.imagesPadding} />
 
-                    {/* Images Section */}
+                    {/* Images */}
                     <div className={`flex-1 flex items-center justify-center ${SPACING.bottomPadding}`}>
 
-                        {/* DESKTOP: Card Spreading */}
-                        {!isMobile && !isTablet && (
+                        {/* Desktop */}
+                        {isDesktop && (
                             <div className="relative w-full">
                                 <div className="relative h-[320px] lg:h-[300px] flex items-end justify-center">
-                                    {selectedImages.map((image, index) => {
-                                        const position = getDesktopCardPosition(index, selectedImages.length);
-                                        const centerIndex = Math.floor(selectedImages.length / 2);
-                                        const isCenterCard = index === centerIndex;
-
-                                        return (
-                                            <motion.div
-                                                key={image.id}
-                                                initial={{ x: 0, y: 0, rotate: 0, scale: 1, opacity: 0 }}
-                                                animate={{
-                                                    x: position.x,
-                                                    y: position.y,
-                                                    rotate: position.rotate,
-                                                    scale: position.scale,
-                                                    opacity: 1
-                                                }}
-                                                whileHover={{
-                                                    scale: 1.08,
-                                                    rotate: 0,
-                                                    y: position.y - 15,
-                                                    zIndex: 100,
-                                                    transition: { duration: 0.2 }
-                                                }}
-                                                transition={{
-                                                    duration: 0.6,
-                                                    delay: 1 + index * 0.08,
-                                                    ease: [0.22, 1, 0.36, 1],
-                                                }}
-                                                style={{ zIndex: position.zIndex }}
-                                                className="absolute cursor-pointer group"
-                                            >
-                                                {/* Decorative outer glow */}
-                                                <div className="absolute -inset-1 bg-gradient-to-b from-[#0998d5]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                                                <div
-                                                    className={`relative overflow-hidden shadow ${isCenterCard ? 'ring-2 ring-[#0998d5]/50' : 'ring-1 ring-white/80'} border-4 border-white dark:border-gray-800`}
-                                                    style={{
-                                                        width: '260px',
-                                                        height: '310px',
-                                                    }}
-                                                >
-                                                    <img
-                                                        src={image.url}
-                                                        alt={image.alt}
-                                                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                                        loading="lazy"
-                                                    />
-                                                    {/* Gradient overlay */}
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-white/10 group-hover:from-black/30 transition-colors duration-200" />
-
-                                                    {/* Decorative corner accent */}
-                                                    <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-bl from-[#0998d5]/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                                    <div className="absolute bottom-0 left-0 w-12 h-12 bg-gradient-to-tr from-[#0998d5]/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                                </div>
-                                            </motion.div>
-                                        );
-                                    })}
+                                    {SELECTED_IMAGES.map((image, index) => (
+                                        <DesktopCard
+                                            key={image.id}
+                                            image={image}
+                                            index={index}
+                                            total={SELECTED_IMAGES.length}
+                                            isSpread={isSpread}
+                                        />
+                                    ))}
                                 </div>
                             </div>
                         )}
 
-                        {/* TABLET: Overlapping Row */}
+                        {/* Tablet */}
                         {isTablet && (
                             <div className="relative w-full">
                                 <div className="relative h-[280px] flex items-center justify-center">
-                                    {selectedImages.map((image, index) => {
-                                        const position = getTabletCardPosition(index, selectedImages.length);
-                                        const centerIndex = Math.floor(selectedImages.length / 2);
-                                        const isCenterCard = index === centerIndex;
-
-                                        return (
-                                            <motion.div
-                                                key={image.id}
-                                                initial={{ x: 0, y: 0, rotate: 0, scale: 0.9, opacity: 0 }}
-                                                animate={{
-                                                    x: position.x,
-                                                    y: position.y,
-                                                    rotate: position.rotate,
-                                                    scale: 1,
-                                                    opacity: 1
-                                                }}
-                                                whileHover={{
-                                                    scale: 1.1,
-                                                    rotate: 0,
-                                                    zIndex: 100,
-                                                    transition: { duration: 0.2 }
-                                                }}
-                                                transition={{
-                                                    duration: 0.6,
-                                                    delay: 1 + index * 0.08,
-                                                    ease: [0.22, 1, 0.36, 1],
-                                                }}
-                                                style={{ zIndex: position.zIndex }}
-                                                className="absolute cursor-pointer group"
-                                            >
-                                                <div className="absolute -inset-1 bg-gradient-to-b from-[#0998d5]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                                                <div
-                                                    className={`relative overflow-hidden shadow ${isCenterCard ? 'ring-2 ring-[#0998d5]/50' : 'ring-1 ring-white/80'} border-3 border-white dark:border-gray-800`}
-                                                    style={{
-                                                        width: '190px',
-                                                        height: '260px',
-                                                    }}
-                                                >
-                                                    <img
-                                                        src={image.url}
-                                                        alt={image.alt}
-                                                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                                        loading="lazy"
-                                                    />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-white/10 group-hover:from-black/30 transition-colors duration-200" />
-
-                                                    <div className="absolute top-0 right-0 w-10 h-10 bg-gradient-to-bl from-[#0998d5]/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                                </div>
-                                            </motion.div>
-                                        );
-                                    })}
+                                    {SELECTED_IMAGES.map((image, index) => (
+                                        <TabletCard
+                                            key={image.id}
+                                            image={image}
+                                            index={index}
+                                            total={SELECTED_IMAGES.length}
+                                            isSpread={isSpread}
+                                        />
+                                    ))}
                                 </div>
                             </div>
                         )}
 
-                        {/* MOBILE: Masonry Grid */}
-                        {isMobile && isSpread && (
-                            <div className="w-full max-w-lg mx-auto px-4">
-                                <div className="grid grid-cols-3 gap-3">
-                                    {/* Large featured image */}
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.8 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ duration: 0.5, delay: 1 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className="col-span-2 row-span-2 relative overflow-hidden shadow ring-1 ring-white/80"
-                                    >
-                                        <img src={selectedImages[0].url} alt={selectedImages[0].alt} className="w-full h-full object-cover" style={{ height: '280px' }} loading="lazy" />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/5" />
-                                    </motion.div>
-
-                                    {/* Side images */}
-                                    {[1, 2].map((idx, i) => (
-                                        <motion.div
-                                            key={selectedImages[idx].id}
-                                            initial={{ opacity: 0, scale: 0.8 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            transition={{ duration: 0.4, delay: 1 + (i + 1) * 0.08 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            className="col-span-1 relative overflow-hidden shadow ring-1 ring-white/80"
-                                            style={{ height: '136px' }}
-                                        >
-                                            <img src={selectedImages[idx].url} alt={selectedImages[idx].alt} className="w-full h-full object-cover" loading="lazy" />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/5" />
-                                        </motion.div>
-                                    ))}
-
-                                    {/* Bottom row */}
-                                    {[3, 4, 5].map((idx, i) => (
-                                        <motion.div
-                                            key={selectedImages[idx].id}
-                                            initial={{ opacity: 0, scale: 0.8 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            transition={{ duration: 0.4, delay: 1 + (i + 3) * 0.08 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            className="col-span-1 relative overflow-hidden shadow ring-1 ring-white/80"
-                                            style={{ height: '136px' }}
-                                        >
-                                            <img src={selectedImages[idx].url} alt={selectedImages[idx].alt} className="w-full h-full object-cover" loading="lazy" />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/5" />
-                                        </motion.div>
-                                    ))}
-
-                                    {/* Wide bottom image */}
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.8 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ duration: 0.4, delay: 1.5 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className="col-span-3 relative overflow-hidden shadow ring-1 ring-white/80"
-                                        style={{ height: '120px' }}
-                                    >
-                                        <img src={selectedImages[6].url} alt={selectedImages[6].alt} className="w-full h-full object-cover" loading="lazy" />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/5" />
-                                    </motion.div>
-                                </div>
-                            </div>
-                        )}
+                        {/* Mobile */}
+                        {isMobile && isSpread && <MobileMasonry />}
                     </div>
 
                 </div>
@@ -433,4 +340,4 @@ const GcccHeroSection = () => {
     );
 };
 
-export default GcccHeroSection;
+export default HeroSection;

@@ -16,7 +16,10 @@ import {
     Star,
     Users,
     TrendingUp,
-    Zap, Lock
+    Zap,
+    Lock,
+    Bus,
+    Shirt,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import HomepageComponentCard from "@/components/common/HomepageComponentCard";
@@ -245,6 +248,8 @@ const SuccessScreen = ({ name }) => (
                 { icon: Calendar, label: "Date", value: "Sunday, 22nd February" },
                 { icon: Clock, label: "Time", value: "5:00 PM" },
                 { icon: MapPin, label: "Venue", value: "28 Efon Alaye Sule Abore, Lagos" },
+                { icon: Bus, label: "Departure", value: "2:00 PM from Church" },
+                { icon: Shirt, label: "Dress Code", value: "Shades of Brown" },
             ].map(({ icon: Icon, label, value }) => (
                 <div
                     key={label}
@@ -382,6 +387,8 @@ export default function EventRegistrationPage() {
                                 { icon: Calendar, label: "Date", value: "Sunday, 22nd February", accent: "#119bd6" },
                                 { icon: Clock, label: "Time", value: "5:00 PM", accent: "#eb2225" },
                                 { icon: MapPin, label: "Venue", value: "28 Efon Alaye Sule Abore, Lagos", accent: "#119bd6" },
+                                { icon: Bus, label: "Departure", value: "2:00 PM from Church", accent: "#eb2225" },
+                                { icon: Shirt, label: "Dress Code", value: "Shades of Brown", accent: "#119bd6" },
                             ].map(({ icon: Icon, label, value, accent }) => (
                                 <div
                                     key={label}

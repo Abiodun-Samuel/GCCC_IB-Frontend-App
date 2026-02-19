@@ -17,6 +17,8 @@ dist-ssr
 .env.test.local
 .env.production.local
 
+.deprecated
+
 # Editor directories and files
 # .vscode/*
 # .vscode/extensions.json

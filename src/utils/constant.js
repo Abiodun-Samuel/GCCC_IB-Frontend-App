@@ -167,3 +167,5 @@ export const QUICK_ACTION_LINKS = [
     external: true,
   },
 ];
+
+export const SECTION_SPACING = "py-24 sm:py-32 lg:py-40";

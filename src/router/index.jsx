@@ -1,74 +1,56 @@
 import { lazy, Suspense } from 'react';
+
 import HomeLayout from '../layout/HomeLayout';
 import AppLayout from '../layout/AppLayout';
-
 import ProtectedRoute from '../layout/route/ProtectedRoute';
 import AdminProtectedRoute from '../layout/route/AdminProtectedRoute';
 import LeadersProtectedRoute from '../layout/route/LeadersProtectedRoute';
 import PublicRoute from '../layout/route/PublicRoute';
 import PageLoader from '@/components/ui/PageLoader';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
-import AdminAttendanceReportPage from '@/pages/Admin/AdminAttendanceReportPage';
-import AdminFirstTimerReportPage from '@/pages/Admin/AdminFirstTimerReportPage';
-import MessagesPage from '@/pages/Dashboard/MessagesPage';
-import LandingPage from '@/components/Home/LandingPage';
-import EventsPage from '@/pages/Dashboard/EventsPage';
-import EventRegistrationPage from '@/pages/Home/EventRegistrationPage';
 
+// ─── Lazy imports — every page code-split ─────────────────────────────────────
+
+// Public / Home
+const HomePage = lazy(() => import('@/components/Home/HomePage'));
 const LoginPage = lazy(() => import('../pages/Home/Auth/LoginPage'));
 const RegisterPage = lazy(() => import('../pages/Home/Auth/RegisterPage'));
-const ResetPasswordPage = lazy(() =>
-  import('@/pages/Home/Auth/ResetPasswordPage')
-);
-const ForgotPasswordPage = lazy(() =>
-  import('@/pages/Home/Auth/ForgotPasswordPage')
-);
-
-const HomePage = lazy(() => import('../pages/Home/HomePage'));
+const ResetPasswordPage = lazy(() => import('@/pages/Home/Auth/ResetPasswordPage'));
+const ForgotPasswordPage = lazy(() => import('@/pages/Home/Auth/ForgotPasswordPage'));
 const FormPage = lazy(() => import('../pages/Home/FormPage'));
 const FirstTimerPage = lazy(() => import('../pages/Home/FirstTimerPage'));
+const EventRegistrationPage = lazy(() => import('@/pages/Home/EventRegistrationPage'));
 
+// Dashboard
 const DashboardPage = lazy(() => import('../pages/Dashboard/DashboardPage'));
 const AttendancePage = lazy(() => import('../pages/Dashboard/AttendancePage'));
-const UserProfilePage = lazy(() =>
-  import('../pages/Dashboard/UserProfilePage')
-);
-const FirstTimerDetailsPage = lazy(() =>
-  import('../pages/Dashboard/FirstTimerDetailsPage')
-);
-const MemberDetailsPage = lazy(() =>
-  import('../pages/Dashboard/MemberDetailsPage')
-);
+const UserProfilePage = lazy(() => import('../pages/Dashboard/UserProfilePage'));
+const EventsPage = lazy(() => import('@/pages/Dashboard/EventsPage'));
+const MessagesPage = lazy(() => import('@/pages/Dashboard/MessagesPage'));
+const FirstTimerDetailsPage = lazy(() => import('../pages/Dashboard/FirstTimerDetailsPage'));
+const MemberDetailsPage = lazy(() => import('../pages/Dashboard/MemberDetailsPage'));
 
-const AdminDashboardPage = lazy(() =>
-  import('../pages/Admin/AdminDashboardPage')
-);
-const AdminAttendancePage = lazy(() =>
-  import('../pages/Admin/AdminAttendancePage')
-);
-const AdminFirstTimerPage = lazy(() =>
-  import('../pages/Admin/AdminFirstTimerPage')
-);
+// Admin
+const AdminDashboardPage = lazy(() => import('../pages/Admin/AdminDashboardPage'));
+const AdminAttendancePage = lazy(() => import('../pages/Admin/AdminAttendancePage'));
+const AdminAttendanceReportPage = lazy(() => import('@/pages/Admin/AdminAttendanceReportPage'));
+const AdminFirstTimerPage = lazy(() => import('../pages/Admin/AdminFirstTimerPage'));
+const AdminFirstTimerReportPage = lazy(() => import('@/pages/Admin/AdminFirstTimerReportPage'));
 const AdminMembersPage = lazy(() => import('../pages/Admin/AdminMembersPage'));
 const AdminFormsPage = lazy(() => import('../pages/Admin/AdminFormsPage'));
-const AdminFollowupFeedbacksPage = lazy(() =>
-  import('../pages/Admin/AdminFollowupFeedbacksPage')
-);
-const AdminSettingsPage = lazy(() =>
-  import('../pages/Admin/AdminSettingsPage')
-);
-
+const AdminFollowupFeedbacksPage = lazy(() => import('../pages/Admin/AdminFollowupFeedbacksPage'));
+const AdminSettingsPage = lazy(() => import('../pages/Admin/AdminSettingsPage'));
 const AdminEventsPage = lazy(() => import('@/pages/Admin/AdminEventsPage'));
 
-const LeadersDashboardPage = lazy(() =>
-  import('../pages/Leaders/LeadersDashboardPage')
-);
-const LeadersAttendanceRecordsPage = lazy(() =>
-  import('../pages/Leaders/LeadersAttendanceRecordsPage')
-);
+// Leaders
+const LeadersDashboardPage = lazy(() => import('../pages/Leaders/LeadersDashboardPage'));
+const LeadersAttendanceRecordsPage = lazy(() => import('../pages/Leaders/LeadersAttendanceRecordsPage'));
 const LeadersUnitPage = lazy(() => import('../pages/Leaders/LeadersUnitPage'));
+
+// Errors
 const NotFoundPage = lazy(() => import('../pages/Error/NotfoundPage'));
 
+// ─── Suspense + ErrorBoundary wrapper ─────────────────────────────────────────
 const withSuspense = (Component) => (
   <ErrorBoundary>
     <Suspense fallback={<PageLoader />}>
@@ -77,31 +59,29 @@ const withSuspense = (Component) => (
   </ErrorBoundary>
 );
 
+// ─── Routes ───────────────────────────────────────────────────────────────────
 const AppRoutes = [
   {
     path: '/',
     element: <HomeLayout />,
     children: [
-      {
-        element: <ProtectedRoute />,
-        children: [{ index: true, element: withSuspense(HomePage) }],
-      },
+      { index: true, element: withSuspense(HomePage) },
+
+      // Auth — redirect to dashboard if already logged in
       {
         element: <PublicRoute />,
         children: [
           { path: 'login', element: withSuspense(LoginPage) },
           { path: 'register', element: withSuspense(RegisterPage) },
           { path: 'reset-password', element: withSuspense(ResetPasswordPage) },
-          {
-            path: 'forgot-password',
-            element: withSuspense(ForgotPasswordPage),
-          },
+          { path: 'forgot-password', element: withSuspense(ForgotPasswordPage) },
         ],
       },
+
+      // Public pages
       { path: 'forms', element: withSuspense(FormPage) },
       { path: 'first-timer/welcome', element: withSuspense(FirstTimerPage) },
       { path: 'events/call-to-meet-the-one-interest-form', element: withSuspense(EventRegistrationPage) },
-      { path: 'landing-page', element: withSuspense(LandingPage) },
     ],
   },
 
@@ -112,65 +92,36 @@ const AppRoutes = [
       {
         element: <AppLayout />,
         children: [
-          {
-            index: true,
-            element: withSuspense(DashboardPage),
-          },
+          { index: true, element: withSuspense(DashboardPage) },
+
+          // Member routes
           { path: 'attendance', element: withSuspense(AttendancePage) },
+          { path: 'attendance/report', element: withSuspense(AdminAttendanceReportPage) },
+          { path: 'attendance-records', element: withSuspense(LeadersAttendanceRecordsPage) },
           { path: 'profile', element: withSuspense(UserProfilePage) },
           { path: 'events', element: withSuspense(EventsPage) },
           { path: 'messages', element: withSuspense(MessagesPage) },
-          {
-            path: 'first-timers/:firstTimerId',
-            element: withSuspense(FirstTimerDetailsPage),
-          },
-          {
-            path: 'members/:memberId',
-            element: withSuspense(MemberDetailsPage),
-          },
-          {
-            path: 'attendance/report',
-            element: withSuspense(AdminAttendanceReportPage),
-          },
-          {
-            path: 'attendance-records',
-            element: withSuspense(LeadersAttendanceRecordsPage),
-          },
-          // admin route
+          { path: 'first-timers/:firstTimerId', element: withSuspense(FirstTimerDetailsPage) },
+          { path: 'members/:memberId', element: withSuspense(MemberDetailsPage) },
+
+          // Admin routes
           {
             path: 'admin',
             element: <AdminProtectedRoute />,
             children: [
               { index: true, element: withSuspense(AdminDashboardPage) },
-              {
-                path: 'attendance',
-                element: withSuspense(AdminAttendancePage),
-              },
-              {
-                path: 'events',
-                element: withSuspense(AdminEventsPage),
-              },
-              {
-                path: 'first-timers',
-                element: withSuspense(AdminFirstTimerPage),
-              },
-              {
-                path: 'first-timers/report',
-                element: withSuspense(AdminFirstTimerReportPage),
-              },
+              { path: 'attendance', element: withSuspense(AdminAttendancePage) },
+              { path: 'events', element: withSuspense(AdminEventsPage) },
+              { path: 'first-timers', element: withSuspense(AdminFirstTimerPage) },
+              { path: 'first-timers/report', element: withSuspense(AdminFirstTimerReportPage) },
               { path: 'members', element: withSuspense(AdminMembersPage) },
               { path: 'forms', element: withSuspense(AdminFormsPage) },
-              {
-                path: 'followup-feedbacks',
-                element: withSuspense(AdminFollowupFeedbacksPage),
-              },
-              {
-                path: 'settings',
-                element: withSuspense(AdminSettingsPage),
-              },
+              { path: 'followup-feedbacks', element: withSuspense(AdminFollowupFeedbacksPage) },
+              { path: 'settings', element: withSuspense(AdminSettingsPage) },
             ],
           },
 
+          // Leaders routes
           {
             path: 'leaders',
             element: <LeadersProtectedRoute />,

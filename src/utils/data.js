@@ -250,41 +250,41 @@ export const bibleVerses = [
   },
 ];
 
-export const ANNOUNCEMENTS = [
-  { icon: '📋', text: 'Please mark your attendance during service' },
-  {
-    icon: '⛪',
-    text: 'Sunday Service: 8:00 AM | Tuesday Service: 5:15 PM | Daily Prayer Online: 12:00 PM',
-  },
-  {
-    icon: '🌟',
-    text: 'Global Glory Team Meeting - Saturday, October 18th at 10:00 AM',
-  },
-  { icon: '⚡', text: 'Divine Demand - Daily on YouTube at 5:30 AM' },
-  { icon: '🎤', text: 'Share your testimonies at www.gcccibadan.org/forms' },
-  {
-    icon: '🙏',
-    text: 'Submit prayer requests anonymously at www.gcccibadan.org/forms',
-  },
-  { icon: '❓', text: 'Jesus Perspective Q&A - Second Tuesday of every month' },
-  {
-    icon: '📱',
-    text: 'Follow us: Instagram, Facebook, YouTube & Telegram @GCCC Ibadan',
-  },
-  { icon: '🔋', text: 'Phone charging available before service' },
-  { icon: '🔇', text: 'Please silence phones before entering church' },
-  { icon: '🏪', text: 'Storehouse Open - Donate items (See Comfort)' },
-  { icon: '📅', text: 'SOD 2025: The Call - Registration now open!' },
-  { icon: '🎓', text: 'Volunteer for Secondary School Outreach' },
-  {
-    icon: '👨‍🎓',
-    text: 'Student Fellowship - Wednesdays 6:00 PM, Alumni Hall UI',
-  },
-  {
-    icon: '🌍',
-    text: 'Global Fasting & Prayer - YouTube 6AM | Physical 6PM daily',
-  },
-];
+// export const ANNOUNCEMENTS = [
+//   { icon: '📋', text: 'Please mark your attendance during service' },
+//   {
+//     icon: '⛪',
+//     text: 'Sunday Service: 8:00 AM | Tuesday Service: 5:15 PM | Daily Prayer Online: 12:00 PM',
+//   },
+//   {
+//     icon: '🌟',
+//     text: 'Global Glory Team Meeting - Saturday, October 18th at 10:00 AM',
+//   },
+//   { icon: '⚡', text: 'Divine Demand - Daily on YouTube at 5:30 AM' },
+//   { icon: '🎤', text: 'Share your testimonies at www.gcccibadan.org/forms' },
+//   {
+//     icon: '🙏',
+//     text: 'Submit prayer requests anonymously at www.gcccibadan.org/forms',
+//   },
+//   { icon: '❓', text: 'Jesus Perspective Q&A - Second Tuesday of every month' },
+//   {
+//     icon: '📱',
+//     text: 'Follow us: Instagram, Facebook, YouTube & Telegram @GCCC Ibadan',
+//   },
+//   { icon: '🔋', text: 'Phone charging available before service' },
+//   { icon: '🔇', text: 'Please silence phones before entering church' },
+//   { icon: '🏪', text: 'Storehouse Open - Donate items (See Comfort)' },
+//   { icon: '📅', text: 'SOD 2025: The Call - Registration now open!' },
+//   { icon: '🎓', text: 'Volunteer for Secondary School Outreach' },
+//   {
+//     icon: '👨‍🎓',
+//     text: 'Student Fellowship - Wednesdays 6:00 PM, Alumni Hall UI',
+//   },
+//   {
+//     icon: '🌍',
+//     text: 'Global Fasting & Prayer - YouTube 6AM | Physical 6PM daily',
+//   },
+// ];
 
 export const ROLE_OPTIONS = [
   {
