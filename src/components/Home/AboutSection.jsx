@@ -190,8 +190,8 @@ const AboutSection = () => {
                     ))}
                 </motion.div>
 
-                <GallerySection />
             </div>
+            <GallerySection />
         </section>
     );
 };

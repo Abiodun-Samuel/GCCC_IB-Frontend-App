@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
+import { useState, useEffect, useMemo, memo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
@@ -14,27 +14,21 @@ const SPACING = {
     bottomPadding: 'pb-16 sm:pb-10 lg:pb-5',
 };
 
-// Pre-built image list — static, no reason to memoize
-const ALL_IMAGES = Array.from({ length: 29 }, (_, i) => ({
+// Full image pool
+const ALL_IMAGES = Array.from({ length: 10 }, (_, i) => ({
     id: i + 1,
-    url: `/images/home/image (${i + 1}).jpg`,
+    url: `/images/home/hero/hero${i + 1}.jpg`,
     alt: `Church image ${i + 1}`,
 }));
 
-// Pick 7 random images once at module load — stable across re-renders
-const SELECTED_IMAGES = [...ALL_IMAGES]
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 7);
+// Fixed 7 images — deterministic, no randomness, stable across every render/reload
+const SELECTED_IMAGES = ALL_IMAGES.slice(0, 7);
 
-// Framer Motion transition — defined once, shared across cards
-const CARD_TRANSITION = {
-    duration: 0.6,
-    ease: [0.22, 1, 0.36, 1],
-};
-
+// Framer Motion transitions — defined once, shared
+const CARD_TRANSITION = { duration: 0.6, ease: [0.22, 1, 0.36, 1] };
 const HOVER_TRANSITION = { duration: 0.2 };
 
-// Card glow overlay — identical for all cards, extracted to avoid inline JSX
+// ─── Shared card sub-components ───────────────────────────────────────────────
 const CardOverlay = memo(() => (
     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-white/10 group-hover:from-black/30 transition-colors duration-200" />
 ));
@@ -48,7 +42,7 @@ const CardCornerAccents = memo(() => (
 ));
 CardCornerAccents.displayName = 'CardCornerAccents';
 
-// ─── useBreakpoint: matchMedia is far cheaper than resize listeners ────────────
+// ─── useBreakpoint: matchMedia — far cheaper than resize listeners ─────────────
 const MQ_MOBILE = '(max-width: 639px)';
 const MQ_TABLET = '(min-width: 640px) and (max-width: 1023px)';
 
@@ -61,14 +55,10 @@ function useBreakpoint() {
     useEffect(() => {
         const mqMobile = window.matchMedia(MQ_MOBILE);
         const mqTablet = window.matchMedia(MQ_TABLET);
-
-        const handler = () => {
-            setBp({ isMobile: mqMobile.matches, isTablet: mqTablet.matches });
-        };
+        const handler = () => setBp({ isMobile: mqMobile.matches, isTablet: mqTablet.matches });
 
         mqMobile.addEventListener('change', handler);
         mqTablet.addEventListener('change', handler);
-
         return () => {
             mqMobile.removeEventListener('change', handler);
             mqTablet.removeEventListener('change', handler);
@@ -157,7 +147,9 @@ const TabletCard = memo(({ image, index, total, isSpread }) => {
 TabletCard.displayName = 'TabletCard';
 
 // ─── Mobile Masonry ───────────────────────────────────────────────────────────
-const MOBILE_OVERLAY = <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/5" />;
+const MOBILE_OVERLAY = (
+    <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/5" />
+);
 
 const MobileImage = memo(({ image, delay, className, style }) => (
     <motion.div
@@ -189,7 +181,7 @@ const MobileMasonry = memo(() => (
 ));
 MobileMasonry.displayName = 'MobileMasonry';
 
-// ─── Hero Background — memoized, never changes ─────────────────────────────────
+// ─── Hero Background ──────────────────────────────────────────────────────────
 const HeroBackground = memo(() => (
     <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-100/50 via-cyan-50/30 to-white dark:from-blue-950/30 dark:via-cyan-950/20 dark:to-gray-900" />
@@ -208,7 +200,7 @@ const HeroBackground = memo(() => (
 ));
 HeroBackground.displayName = 'HeroBackground';
 
-// ─── Motion variants — defined once outside ────────────────────────────────────
+// ─── Motion variants ──────────────────────────────────────────────────────────
 const fadeUp = (delay = 0) => ({
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
