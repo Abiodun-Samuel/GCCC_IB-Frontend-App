@@ -95,7 +95,7 @@ const AboutSection = () => {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
 
                         {/* Location tag */}
-                        <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-gray-950/90 backdrop-blur-sm px-3 py-1.5">
+                        <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-gray-950/90 backdrop-blur-sm px-2 py-1">
                             <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-gray-600 dark:text-gray-300">
                                 Bodija · Ibadan
                             </span>
