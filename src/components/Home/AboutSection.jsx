@@ -49,7 +49,7 @@ const ABOUT_IMAGES = Array.from({ length: 18 }, (_, i) => ({
     alt: `GCCC Ibadan Community — photo ${i + 1}`,
 }));
 
-const SLIDE_INTERVAL = 2800; // ms — faster per request
+const SLIDE_INTERVAL = 1000; // ms — faster per request
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
@@ -483,44 +483,65 @@ const ValueCard = memo(({ icon: Icon, title, body, isDefault, index }) => {
             whileHover={{ y: -4 }}
             onHoverStart={() => !isDefault && setHovered(true)}
             onHoverEnd={() => !isDefault && setHovered(false)}
-            className="flex flex-col gap-4 p-6 cursor-default transition-colors duration-300 shadow border border-white/20"
-            style={{ backgroundColor: active ? C.primary : undefined }}
+            className="relative flex flex-col gap-5 p-6 cursor-default overflow-hidden
+                       transition-colors duration-300 shadow
+                       bg-gray-50 dark:bg-gray-900/70"
+            style={active ? { backgroundColor: C.primary } : undefined}
         >
-            {/* Icon bubble */}
-            <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-300"
-                style={{ backgroundColor: active ? 'rgba(255,255,255,0.20)' : C.primaryDim }}
-            >
-                <Icon
-                    className="w-5 h-5 transition-colors duration-300"
-                    style={{ color: active ? '#fff' : C.primary }}
-                    strokeWidth={1.8}
-                />
+            {/* ── Icon row + index number ──────────────────────────────────── */}
+            <div className="flex items-center justify-between">
+                <div
+                    className="w-10 h-10 flex items-center justify-center transition-colors duration-300"
+                    style={{
+                        backgroundColor: active ? 'rgba(255,255,255,0.18)' : C.primaryDim,
+                    }}
+                >
+                    <Icon
+                        className="w-5 h-5 transition-colors duration-300"
+                        style={{ color: active ? '#fff' : C.primary }}
+                        strokeWidth={1.8}
+                    />
+                </div>
+
+                <span
+                    className="text-[11px] font-black tracking-widest tabular-nums select-none transition-colors duration-300"
+                    style={{
+                        color: active
+                            ? 'rgba(255,255,255,0.30)'
+                            : 'rgba(17,155,214,0.28)',
+                    }}
+                >
+                    0{index + 1}
+                </span>
             </div>
 
-            {/* Copy */}
-            <div>
+            {/* ── Copy ─────────────────────────────────────────────────────── */}
+            <div className="flex flex-col gap-1.5">
                 <h4
-                    className="text-base font-bold mb-1 transition-colors duration-300"
+                    className="text-base font-bold leading-snug transition-colors duration-300"
                     style={{ color: active ? '#fff' : undefined }}
-                // Falls back to Tailwind text-gray-900 / dark:text-white when not active
                 >
-                    <span className={active ? '' : 'text-gray-900 dark:text-white'}>{title}</span>
+                    <span className={active ? '' : 'text-gray-900 dark:text-white'}>
+                        {title}
+                    </span>
                 </h4>
                 <p
                     className="text-sm leading-relaxed transition-colors duration-300"
-                    style={{ color: active ? 'rgba(255,255,255,0.75)' : undefined }}
+                    style={{ color: active ? 'rgba(255,255,255,0.72)' : undefined }}
                 >
-                    <span className={active ? '' : 'text-gray-500 dark:text-gray-400'}>{body}</span>
+                    <span className={active ? '' : 'text-gray-500 dark:text-gray-400'}>
+                        {body}
+                    </span>
                 </p>
             </div>
 
-            {/* Accent bar */}
+            {/* ── Bottom accent bar ────────────────────────────────────────── */}
             <div
-                className="mt-auto h-[2px] origin-left transition-transform duration-500"
+                className="mt-auto h-[2px] origin-left transition-all duration-500"
                 style={{
-                    backgroundColor: 'rgba(255,255,255,0.40)',
-                    transform: active ? 'scaleX(1)' : 'scaleX(0)',
+                    backgroundColor: active ? 'rgba(255,255,255,0.32)' : C.primary,
+                    opacity: active ? 1 : 0.2,
+                    transform: active ? 'scaleX(1)' : 'scaleX(0.2)',
                 }}
             />
         </motion.div>
