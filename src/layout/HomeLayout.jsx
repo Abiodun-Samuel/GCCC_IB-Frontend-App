@@ -3,7 +3,6 @@ import Header from '@/layout/home/Header';
 import ProgressBar from '@/components/others/ProgressBar';
 import { ScrollToTop } from '@/components/others/ScrollToTop';
 import { Outlet } from 'react-router-dom';
-import LocationSection from '@/components/Home/LocationSection';
 
 const HomeLayout = () => (
     <>
