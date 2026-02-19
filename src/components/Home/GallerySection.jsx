@@ -35,7 +35,6 @@ const Letter = memo(({ char, src, index }) => (
             willChange: "transform",
             transformOrigin: "bottom center",
             width: "fit-content",
-            // marginLeft: index > 0 ? "-0.02em" : 0,
             padding: '30px 0px'
         }}
     >
@@ -64,18 +63,20 @@ const Letter = memo(({ char, src, index }) => (
 ));
 Letter.displayName = "GallerySection.Letter";
 
-const GcccGallerySection = () => {
+const GallerySection = () => {
     const ref = useRef(null);
     const inView = useInView(ref, { once: true, margin: "-60px 0px" });
 
     return (
         <section
             ref={ref}
-            className="relative w-full bg-white overflow-hidden py-8 sm:py-10 lg:py-14"
+            className="relative w-full bg-white dark:bg-gray-950 overflow-hidden py-8 sm:py-10 lg:py-14"
             aria-label="GCCC Ibadan Gallery"
         >
-            <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-white to-transparent pointer-events-none z-10" />
-            <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-white to-transparent pointer-events-none z-10" />
+            {/* Top fade — matches section bg in both modes */}
+            <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-white dark:from-gray-950 to-transparent pointer-events-none z-10" />
+            {/* Bottom fade */}
+            <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-white dark:from-gray-950 to-transparent pointer-events-none z-10" />
 
             <div className="relative w-full flex justify-center">
                 <motion.div
@@ -83,9 +84,11 @@ const GcccGallerySection = () => {
                     animate={inView ? "visible" : "hidden"}
                     variants={containerVariants}
                     style={{
-                        display: "inline-flex", alignItems: "flex-end", width: "100%",
+                        display: "inline-flex",
+                        alignItems: "flex-end",
+                        width: "100%",
                         justifyContent: "center",
-                        overflow: "hidden"
+                        overflow: "hidden",
                     }}
                 >
                     {LETTERS.map((l, i) => (
@@ -97,4 +100,4 @@ const GcccGallerySection = () => {
     );
 };
 
-export default memo(GcccGallerySection);
+export default memo(GallerySection);
