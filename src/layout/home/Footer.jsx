@@ -1,11 +1,8 @@
 import {
-    memo, useRef, useCallback, useState, useEffect, Suspense, lazy, useMemo,
+    memo, useRef, useCallback, useState, useEffect, useLayoutEffect, Suspense, lazy, useMemo,
 } from 'react';
 import { motion, useInView, useMotionValue, useTransform, useSpring } from 'framer-motion';
-import {
-    MapPin, Navigation, Phone, Mail, ExternalLink,
-    Globe, Facebook, Instagram, Youtube, ChevronRight,
-} from 'lucide-react';
+import { MapPin, Navigation, Phone, Mail, ExternalLink, Globe, Facebook, Instagram, Youtube, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 /* ─────────────────────────────── TOKENS ──────────────────────────────*/
@@ -15,7 +12,6 @@ export const BRAND_RGB = '9,152,213';
 const BRAND_DARK = '#0777a8';
 
 /* ─────────────────────── Deterministic star field ────────────────────*/
-/* 140 stars total — exported so other components can slice as needed   */
 export const SHARED_STARS = Array.from({ length: 140 }, (_, i) => ({
     id: i,
     size: Math.sin(i * 7.31) > 0.80 ? 2.5 : Math.sin(i * 3.11) > 0.65 ? 1.5 : 1,
@@ -30,6 +26,48 @@ export const SHARED_STARS = Array.from({ length: 140 }, (_, i) => ({
 const isTouchDevice = () =>
     typeof window !== 'undefined' &&
     ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
+/* ══════════════════════════════════════════════════════════════════════
+   RESPONSIVE SIZE HOOK
+   Measures the wrapper synchronously on mount (useLayoutEffect) to
+   prevent the 420 → real-width flash on mobile, then tracks changes
+   via ResizeObserver with a RAF-debounce for performance.
+   Returns 0 until the first measurement so the globe never renders
+   at a wrong size.
+   ══════════════════════════════════════════════════════════════════════*/
+function useContainerSize(ref) {
+    const [size, setSize] = useState(0);
+    const rafRef = useRef(null);
+
+    // Synchronous first measure — prevents layout flash
+    useLayoutEffect(() => {
+        if (ref.current) {
+            setSize(ref.current.offsetWidth);
+        }
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+
+        const measure = () => {
+            cancelAnimationFrame(rafRef.current);
+            rafRef.current = requestAnimationFrame(() => {
+                setSize(el.offsetWidth);
+            });
+        };
+
+        const ro = new ResizeObserver(measure);
+        ro.observe(el);
+
+        return () => {
+            ro.disconnect();
+            cancelAnimationFrame(rafRef.current);
+        };
+    }, [ref]);
+
+    return size;
+}
 
 /* ══════════════════════════════════════════════════════════════════════
    GLOBE
@@ -47,25 +85,10 @@ const POINT_ALTITUDE = 0.02;
 const LiveGlobe = memo(() => {
     const wrapRef = useRef(null);
     const globeRef = useRef(null);
-    const [size, setSize] = useState(420);
+    const size = useContainerSize(wrapRef);
     const [ready, setReady] = useState(false);
 
-    /* ResizeObserver — RAF-debounced for performance */
-    useEffect(() => {
-        let raf;
-        const measure = () => {
-            cancelAnimationFrame(raf);
-            raf = requestAnimationFrame(() => {
-                if (wrapRef.current) setSize(wrapRef.current.offsetWidth);
-            });
-        };
-        measure();
-        const ro = new ResizeObserver(measure);
-        if (wrapRef.current) ro.observe(wrapRef.current);
-        return () => { ro.disconnect(); cancelAnimationFrame(raf); };
-    }, []);
-
-    /* Focus camera on Ibadan once GL is ready */
+    // Focus camera on Ibadan once GL is ready
     useEffect(() => {
         if (!ready || !globeRef.current) return;
         globeRef.current.pointOfView({ lat: IBADAN_LAT, lng: IBADAN_LNG, altitude: 2.1 }, 1400);
@@ -88,7 +111,6 @@ const LiveGlobe = memo(() => {
             ref={wrapRef}
             className="relative w-full"
             style={{
-                /* Square aspect-ratio — fully fluid */
                 aspectRatio: '1 / 1',
                 maxWidth: 'min(560px, 100%)',
                 margin: '0 auto',
@@ -96,41 +118,44 @@ const LiveGlobe = memo(() => {
                 contain: 'layout style',
             }}
         >
-            {/* Spinner */}
-            {!ready && (
-                <div className="absolute inset-0 flex items-center justify-center z-10" aria-label="Loading globe">
-                    {''}   <div
+            {/* Spinner — shown while size is unknown OR globe is loading */}
+            {(!ready || size === 0) && (
+                <div className="absolute inset-0 flex items-center justify-center z-10" aria-label="Loading globe">{''}
+                    <div
                         className="w-10 h-10 rounded-full border-2 border-white/10 animate-spin"
                         style={{ borderTopColor: BRAND }}
                     />
                 </div>
             )}
 
-            <Suspense fallback={null}>
-                <GlobeGL
-                    ref={setGlobeRef}
-                    width={size}
-                    height={size}
-                    backgroundColor="rgba(0,0,0,0)"
-                    globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
-                    bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
-                    atmosphereColor={BRAND}
-                    atmosphereAltitude={0.20}
-                    pointsData={PIN_DATA}
-                    pointAltitude={POINT_ALTITUDE}
-                    pointRadius="size"
-                    pointColor="color"
-                    pointLabel="label"
-                    ringsData={RING_DATA}
-                    ringColor={RING_COLOR_FN}
-                    ringMaxRadius="maxR"
-                    ringPropagationSpeed="propagationSpeed"
-                    ringRepeatPeriod="repeatPeriod"
-                    enablePointerInteraction
-                    animateIn={false}
-                    onGlobeReady={handleReady}
-                />
-            </Suspense>
+            {/* Only mount GlobeGL once we have a real pixel measurement */}
+            {size > 0 && (
+                <Suspense fallback={null}>
+                    <GlobeGL
+                        ref={setGlobeRef}
+                        width={size}
+                        height={size}
+                        backgroundColor="rgba(0,0,0,0)"
+                        globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+                        bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
+                        atmosphereColor={BRAND}
+                        atmosphereAltitude={0.20}
+                        pointsData={PIN_DATA}
+                        pointAltitude={POINT_ALTITUDE}
+                        pointRadius="size"
+                        pointColor="color"
+                        pointLabel="label"
+                        ringsData={RING_DATA}
+                        ringColor={RING_COLOR_FN}
+                        ringMaxRadius="maxR"
+                        ringPropagationSpeed="propagationSpeed"
+                        ringRepeatPeriod="repeatPeriod"
+                        enablePointerInteraction
+                        animateIn={false}
+                        onGlobeReady={handleReady}
+                    />
+                </Suspense>
+            )}
 
             {/* Ibadan badge — bottom-right of globe */}
             {ready && (
@@ -161,7 +186,6 @@ LiveGlobe.displayName = 'LiveGlobe';
    SHARED SUB-COMPONENTS
    ══════════════════════════════════════════════════════════════════════*/
 
-/* Contact card — used inside the location panel */
 const BASE_CARD = { borderColor: `rgba(${BRAND_RGB},0.14)`, background: `rgba(${BRAND_RGB},0.04)` };
 const HOVER_CARD = { borderColor: `rgba(${BRAND_RGB},0.35)`, background: `rgba(${BRAND_RGB},0.09)` };
 
@@ -199,7 +223,6 @@ const ContactCard = memo(({ icon: Icon, label, value, link, delay }) => {
 });
 ContactCard.displayName = 'ContactCard';
 
-/* Memoised star layer — avoids re-painting parent state changes */
 const StarLayer = memo(({ stars, animName }) => (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden style={{ contain: 'strict' }}>
         {stars.map(s => (
@@ -220,7 +243,6 @@ const StarLayer = memo(({ stars, animName }) => (
 ));
 StarLayer.displayName = 'StarLayer';
 
-/* TikTok SVG */
 const TikTok = ({ className }) => (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
         <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
@@ -230,11 +252,11 @@ const TikTok = ({ className }) => (
 /* ══════════════════════════════════════════════════════════════════════
    STATIC DATA
    ══════════════════════════════════════════════════════════════════════*/
-const CHURCH_ADDRESS = '13 Ayo Oluwole Street, Bodija Akintola Road, adjacent Raian Pharmacy, Iyana Bodija, Ibadan';
+const CHURCH_ADDRESS = 'GCCC Ibadan, 13 Ayo Oluwole Street, Bodija Akintola Road, Bodija, adjacent Raian Pharmacy, Iyana Bodija, Ibadan 200284, Oyo';
 
 const MAP_EMBED_URL = `https://maps.google.com/maps?q=${IBADAN_LAT},${IBADAN_LNG}&z=17&hl=en&output=embed`;
 const DIRECTIONS_URL = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(CHURCH_ADDRESS)}`;
-const MAPS_LINK = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(CHURCH_ADDRESS + ', Ibadan 200284, Oyo')}`;
+const MAPS_LINK = DIRECTIONS_URL;
 
 const CONTACT_INFO = [
     { icon: Phone, label: 'Phone', value: '08063176234', link: 'tel:08063176234' },
@@ -255,12 +277,11 @@ const QUICK_LINKS = [
     { name: 'Contact', href: '#contact', isHash: true },
 ];
 
-/* Icon card styles for footer reach-out section */
 const ICON_BASE = { background: `rgba(${BRAND_RGB},0.11)`, border: `1px solid rgba(${BRAND_RGB},0.18)` };
 const ICON_HOVER = { background: BRAND, border: `1px solid ${BRAND}` };
 
 /* ══════════════════════════════════════════════════════════════════════
-   MAIN FOOTER — location section merged at top
+   MAIN FOOTER
    ══════════════════════════════════════════════════════════════════════*/
 const Footer = () => {
     const year = new Date().getFullYear();
@@ -293,18 +314,15 @@ const Footer = () => {
 
     useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
 
-    /* Directions button glow */
     const onDirEnter = useCallback(e => { e.currentTarget.style.boxShadow = `0 0 52px rgba(${BRAND_RGB},0.55)`; }, []);
     const onDirLeave = useCallback(e => { e.currentTarget.style.boxShadow = `0 0 28px rgba(${BRAND_RGB},0.28)`; }, []);
 
-    /* Smooth scroll for hash links */
     const handleHash = (e, href) => {
         e.preventDefault();
         document.getElementById(href.replace('#', ''))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         window.history.pushState(null, '', href);
     };
 
-    /* Split stars across the two visual zones */
     const locStars = SHARED_STARS.slice(0, 70);
     const ftStars = SHARED_STARS.slice(70);
 
@@ -317,7 +335,6 @@ const Footer = () => {
             className="relative overflow-hidden"
             style={{ background: PAGE_BG }}
         >
-            {/* ── Global keyframes ── */}
             <style>{`
                 @keyframes ft-twinkle {
                     from { opacity: 0.03; }
@@ -335,14 +352,10 @@ const Footer = () => {
                 }
             `}</style>
 
-            {/* ════════════════════════════════════════════════════
-                LOCATION SECTION — upper half of footer
-            ════════════════════════════════════════════════════ */}
+            {/* ════════ LOCATION SECTION ════════ */}
             <div className="relative">
-                {/* Stars — top zone */}
                 <StarLayer stars={locStars} animName="ft-twinkle" />
 
-                {/* Ambient glow blobs */}
                 <div aria-hidden className="absolute top-1/3 -left-48 w-[560px] h-[560px] rounded-full blur-[150px] pointer-events-none"
                     style={{ background: `rgba(${BRAND_RGB},0.07)` }} />
                 <div aria-hidden className="absolute bottom-0 -right-40 w-[420px] h-[420px] rounded-full blur-[120px] pointer-events-none"
@@ -350,7 +363,6 @@ const Footer = () => {
 
                 <div className="relative z-10 w-full container mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-16 sm:pb-20">
 
-                    {/* Header */}
                     <motion.div
                         initial={{ opacity: 0, y: 36 }}
                         animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -383,7 +395,6 @@ const Footer = () => {
                         </p>
                     </motion.div>
 
-                    {/* ── Two-column grid ── */}
                     <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-16 items-center">
 
                         {/* Globe column */}
@@ -394,9 +405,7 @@ const Footer = () => {
                             style={isTouch ? { transformPerspective: 1000 } : { rotateX, rotateY, transformPerspective: 1000 }}
                             className="flex flex-col items-center order-first lg:order-none"
                         >
-                            {/* Floating wrapper */}
                             <div className="ft-float relative w-full">
-                                {/* Globe glow halo */}
                                 <div
                                     aria-hidden
                                     className="absolute inset-[8%] rounded-full blur-[90px] pointer-events-none"
@@ -404,7 +413,6 @@ const Footer = () => {
                                 />
                                 <LiveGlobe />
                             </div>
-                            {/* Drop shadow beneath globe */}
                             <div
                                 aria-hidden
                                 className="w-3/5 h-5 rounded-full blur-2xl -mt-3 pointer-events-none"
@@ -415,7 +423,6 @@ const Footer = () => {
                         {/* Info panel */}
                         <div className="space-y-3 sm:space-y-4">
 
-                            {/* Address */}
                             <motion.div
                                 initial={{ opacity: 0, x: 28 }}
                                 animate={isInView ? { opacity: 1, x: 0 } : {}}
@@ -440,14 +447,12 @@ const Footer = () => {
                                 </div>
                             </motion.div>
 
-                            {/* Phone + email */}
                             <div className="space-y-3">
                                 {CONTACT_INFO.map((info, i) => (
                                     <ContactCard key={info.label} {...info} delay={0.32 + i * 0.1} />
                                 ))}
                             </div>
 
-                            {/* Embedded map */}
                             <motion.div
                                 initial={{ opacity: 0, x: 28 }}
                                 animate={isInView ? { opacity: 1, x: 0 } : {}}
@@ -474,7 +479,6 @@ const Footer = () => {
                                 </div>
                             </motion.div>
 
-                            {/* Get Directions CTA */}
                             <motion.div
                                 initial={{ opacity: 0, x: 28 }}
                                 animate={isInView ? { opacity: 1, x: 0 } : {}}
@@ -508,29 +512,10 @@ const Footer = () => {
                 </div>
             </div>
 
-            {/* ════════════════════════════════════════════════════
-                DIVIDER — subtle gradient line, not a hard border
-            ════════════════════════════════════════════════════ */}
-            {/* <div
-                aria-hidden
-                className="relative z-10 mx-auto container px-4 sm:px-6 lg:px-8"
-            >
-                <div
-                    className="h-px w-full"
-                    style={{
-                        background: `linear-gradient(to right, transparent, rgba(${BRAND_RGB},0.18) 30%, rgba(${BRAND_RGB},0.18) 70%, transparent)`,
-                    }}
-                />
-            </div> */}
-
-            {/* ════════════════════════════════════════════════════
-                FOOTER LINKS — lower half
-            ════════════════════════════════════════════════════ */}
+            {/* ════════ FOOTER LINKS ════════ */}
             <div className="relative">
-                {/* Stars — bottom zone */}
                 <StarLayer stars={ftStars} animName="ft-twinkle" />
 
-                {/* Ambient glows */}
                 <div aria-hidden className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full blur-[130px] pointer-events-none -translate-y-1/3 translate-x-1/3"
                     style={{ background: `rgba(${BRAND_RGB},0.06)` }} />
                 <div aria-hidden className="absolute bottom-0 left-0 w-[340px] h-[340px] rounded-full blur-[110px] pointer-events-none translate-y-1/3 -translate-x-1/4"
@@ -539,7 +524,7 @@ const Footer = () => {
                 <div className="relative z-10 w-full container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="pt-14 pb-16 lg:pb-20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-14">
 
-                        {/* Brand + social — spans 5 cols on lg */}
+                        {/* Brand + social */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -594,7 +579,7 @@ const Footer = () => {
                             </div>
                         </motion.div>
 
-                        {/* Pages — 3 cols on lg */}
+                        {/* Pages */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -629,7 +614,7 @@ const Footer = () => {
                             </ul>
                         </motion.div>
 
-                        {/* Reach Out — 4 cols on lg */}
+                        {/* Reach Out */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -666,7 +651,6 @@ const Footer = () => {
                                     </a>
                                 ))}
 
-                                {/* Address row */}
                                 <a
                                     href={MAPS_LINK}
                                     target="_blank"
