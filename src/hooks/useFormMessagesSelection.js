@@ -6,7 +6,7 @@ import {
 } from '@/queries/form.query';
 
 export function useFormMessagesSelection(type) {
-  const { data = [], isLoading, refetch } = useAllFormMessages(type);
+  const { data = [], isLoading, refetch, isRefetching } = useAllFormMessages(type);
 
   const [selectedIds, setSelectedIds] = useState([]);
 
@@ -79,6 +79,7 @@ export function useFormMessagesSelection(type) {
   return {
     data,
     isLoading,
+    refetch,
     selectedIds,
     isAllSelected,
     isIndeterminate,
@@ -87,7 +88,7 @@ export function useFormMessagesSelection(type) {
     isUpdating,
     isDeleting,
     updateSelected,
-    deleteSelected,
+    deleteSelected, isRefetching
   };
 }
 

@@ -7,16 +7,22 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { handleApiError } from '../utils/helper';
 
 export const useMe = (options = {}) => {
-  const { setAuthenticatedUser } = useAuthStore();
+  const { setAuthenticatedUser, resetAuthenticatedUser, isAuthenticated } = useAuthStore();
+  const navigate = useNavigate();
 
   return useQuery({
     queryKey: QUERY_KEYS.AUTH.ME,
     queryFn: async () => {
-      const {
-        data: { user },
-      } = await AuthService.getMe();
-      setAuthenticatedUser({ user });
-      return user;
+      try {
+        const {
+          data: { user },
+        } = await AuthService.getMe();
+        setAuthenticatedUser({ user });
+        return user;
+      } catch (error) {
+        resetAuthenticatedUser();
+        navigate('/', { replace: true });
+      }
     },
     staleTime: 1 * 60 * 1000,
     cacheTime: 1 * 60 * 1000,
@@ -25,8 +31,34 @@ export const useMe = (options = {}) => {
     refetchInterval: false,
     retry: 0,
     ...options,
+    enabled: isAuthenticated,
+    onError: (error) => {
+      options.onError?.(error);
+    },
   });
 };
+
+// export const useMe = (options = {}) => {
+//   const { setAuthenticatedUser } = useAuthStore();
+
+//   return useQuery({
+//     queryKey: QUERY_KEYS.AUTH.ME,
+//     queryFn: async () => {
+//       const {
+//         data: { user },
+//       } = await AuthService.getMe();
+//       setAuthenticatedUser({ user });
+//       return user;
+//     },
+//     staleTime: 1 * 60 * 1000,
+//     cacheTime: 1 * 60 * 1000,
+//     refetchOnWindowFocus: true,
+//     refetchOnReconnect: true,
+//     refetchInterval: false,
+//     retry: 0,
+//     ...options,
+//   });
+// };
 
 export const useLogin = (options = {}) => {
   const queryClient = useQueryClient();

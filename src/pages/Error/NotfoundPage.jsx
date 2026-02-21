@@ -23,11 +23,7 @@ export default function NotfoundPage() {
   }, []);
   return (
     <>
-      <PageMeta
-        title="React.js 404 Dashboard | TailAdmin - React.js Admin Dashboard Template"
-        description="This is React.js 404 Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
-      />
-
+      <PageMeta title="GCCC Ibadan" description="Page not found" />
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950 flex items-center justify-center p-4 sm:p-6 md:p-8 overflow-hidden relative">
         {/* Animated background elements */}

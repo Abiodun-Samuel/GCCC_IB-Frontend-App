@@ -1,23 +1,19 @@
-import { useRef, memo, useState, useEffect, useMemo } from 'react';
-import { motion, useInView, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { useRef, memo, useState, useEffect, useMemo, useCallback } from 'react';
 import { Heart, Users, Crown, MapPin, Camera } from 'lucide-react';
 import { SECTION_SPACING } from '@/utils/constant';
-import GallerySection from '@/components/Home/GallerySection';
 
-// ─── Design Tokens ────────────────────────────────────────────────────────────
-// Explicit hex values guarantee the primary blue renders regardless of
-// whether Tailwind JIT has purged the custom colour token from the CSS.
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const C = {
     primary: '#119bd6',
     primaryDim: 'rgba(17,155,214,0.12)',
     primaryBorder: 'rgba(17,155,214,0.22)',
-    primaryGlow: 'rgba(17,155,214,0.35)',
     primaryGhost: 'rgba(17,155,214,0.055)',
     primaryStroke: 'rgba(17,155,214,0.07)',
 };
 
-// ─── Static Data ──────────────────────────────────────────────────────────────
+const SLIDE_INTERVAL = 3200; // ms
+const THUMB_COUNT = 5;
 
 const VALUES = [
     {
@@ -49,8 +45,6 @@ const ABOUT_IMAGES = Array.from({ length: 18 }, (_, i) => ({
     alt: `GCCC Ibadan Community — photo ${i + 1}`,
 }));
 
-const SLIDE_INTERVAL = 1000; // ms — faster per request
-
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
 const fisherYates = (arr) => {
@@ -62,46 +56,148 @@ const fisherYates = (arr) => {
     return a;
 };
 
-// ─── Animation Variants ───────────────────────────────────────────────────────
+// ─── CSS (injected once) ──────────────────────────────────────────────────────
 
-const EASE = [0.22, 1, 0.36, 1];
+const STYLES = `
+/* ── Glitch transition ──────────────────────────────────────────────────── */
+@keyframes glitch-in {
+  0%   { clip-path: inset(0 0 100% 0); opacity: 0; transform: translateX(-3px); filter: brightness(1.6) saturate(0); }
+  8%   { clip-path: inset(0 0 70% 0);  opacity: 1; transform: translateX(4px);  filter: brightness(1.4) saturate(0.3) hue-rotate(30deg); }
+  16%  { clip-path: inset(30% 0 40% 0); transform: translateX(-2px); filter: brightness(1.2) saturate(0.6); }
+  24%  { clip-path: inset(60% 0 10% 0); transform: translateX(3px); }
+  32%  { clip-path: inset(80% 0 0% 0);  transform: translateX(-1px); filter: brightness(1.05); }
+  40%  { clip-path: inset(90% 0 0 0);   transform: translateX(0); filter: none; }
+  50%  { clip-path: inset(0 0 0 0);     transform: translateX(0); filter: none; }
+  /* micro-glitches after settle */
+  52%  { clip-path: inset(0 0 0 0); transform: translateX(2px); filter: hue-rotate(10deg); }
+  54%  { clip-path: inset(0 0 0 0); transform: translateX(0);   filter: none; }
+  100% { clip-path: inset(0 0 0 0); transform: translateX(0);   filter: none; opacity: 1; }
+}
 
-const V = {
-    stagger: { hidden: {}, visible: { transition: { staggerChildren: 0.12 } } },
-    rise: { hidden: { opacity: 0, y: 36 }, visible: { opacity: 1, y: 0, transition: { duration: 0.75, ease: EASE } } },
-    fromLeft: { hidden: { opacity: 0, x: -56 }, visible: { opacity: 1, x: 0, transition: { duration: 0.85, ease: EASE } } },
-    fromRight: { hidden: { opacity: 0, x: 56 }, visible: { opacity: 1, x: 0, transition: { duration: 0.85, ease: EASE } } },
-    ghost: { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1.6, ease: EASE, delay: 0.15 } } },
-    cardRise: { hidden: { opacity: 0, y: 28, scale: 0.97 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.6, ease: EASE } } },
-    slideIn: {
-        hidden: { opacity: 0, scale: 1.05 },
-        visible: { opacity: 1, scale: 1, transition: { duration: 0.9, ease: EASE } },
-        exit: { opacity: 0, scale: 0.97, transition: { duration: 0.5, ease: EASE } },
-    },
-    floatIn: {
-        hidden: { opacity: 0, y: 18, x: 18 },
-        visible: { opacity: 1, y: 0, x: 0, transition: { duration: 0.7, ease: EASE, delay: 0.6 } },
-    },
-    frameIn: {
-        hidden: { opacity: 0, scale: 0.94 },
-        visible: { opacity: 1, scale: 1, transition: { duration: 1.0, ease: EASE, delay: 0.3 } },
-    },
+@keyframes glitch-out {
+  0%   { opacity: 1; transform: translateX(0); filter: none; }
+  30%  { opacity: 1; transform: translateX(-3px); filter: brightness(1.3) hue-rotate(-15deg); }
+  60%  { opacity: 0.6; transform: translateX(4px); }
+  100% { opacity: 0; transform: translateX(0); }
+}
+
+@keyframes chromo-shift {
+  0%   { text-shadow: 2px 0 #eb2225, -2px 0 #119bd6; }
+  33%  { text-shadow: -3px 0 #eb2225, 3px 0 #119bd6; }
+  66%  { text-shadow: 2px 0 #119bd6, -2px 0 #eb2225; }
+  100% { text-shadow: 0 0 transparent; }
+}
+
+/* ── Image slots ────────────────────────────────────────────────────────── */
+.img-slot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.img-slot--entering {
+  animation: glitch-in 0.72s cubic-bezier(0.16,1,0.3,1) forwards;
+  z-index: 2;
+}
+
+.img-slot--leaving {
+  animation: glitch-out 0.45s ease-in forwards;
+  z-index: 1;
+}
+
+.img-slot--idle {
+  opacity: 1;
+  z-index: 0;
+}
+
+/* ── Progress bar ───────────────────────────────────────────────────────── */
+@keyframes pb-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.progress-bar-fill {
+  transform-origin: left;
+  animation: pb-fill linear forwards;
+}
+
+/* ── Thumbnail strip ────────────────────────────────────────────────────── */
+.thumb-btn {
+  flex: 1;
+  overflow: hidden;
+  transition: height 0.3s ease, opacity 0.3s ease;
+  cursor: pointer;
+}
+.thumb-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Value card hover ───────────────────────────────────────────────────── */
+.value-card {
+  transition: transform 0.3s cubic-bezier(0.22,1,0.36,1),
+              background-color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+.value-card:hover { transform: translateY(-4px); }
+
+/* ── Corner brackets ────────────────────────────────────────────────────── */
+.bracket {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  z-index: 30;
+  pointer-events: none;
+}
+.bracket::before, .bracket::after {
+  content: '';
+  position: absolute;
+  background-color: #119bd6;
+}
+.bracket::before { width: 100%; height: 2px; }
+.bracket::after  { width: 2px;  height: 100%; }
+
+.bracket--tl { top: -8px; left: -8px; }
+.bracket--tl::before { top: 0; left: 0; }
+.bracket--tl::after  { top: 0; left: 0; }
+
+.bracket--tr { top: -8px; right: -8px; }
+.bracket--tr::before { top: 0; right: 0; }
+.bracket--tr::after  { top: 0; right: 0; }
+
+.bracket--bl { bottom: -8px; left: -8px; }
+.bracket--bl::before { bottom: 0; left: 0; }
+.bracket--bl::after  { bottom: 0; left: 0; }
+
+.bracket--br { bottom: -8px; right: -8px; }
+.bracket--br::before { bottom: 0; right: 0; }
+.bracket--br::after  { bottom: 0; right: 0; }
+
+/* ── AOS overrides (make sure duration matches) ────────────────────────── */
+[data-aos] { pointer-events: none; }
+[data-aos].aos-animate { pointer-events: auto; }
+`;
+
+// Inject styles once
+let stylesInjected = false;
+const injectStyles = () => {
+    if (stylesInjected) return;
+    const el = document.createElement('style');
+    el.textContent = STYLES;
+    document.head.appendChild(el);
+    stylesInjected = true;
 };
 
 // ─── SectionLabel ─────────────────────────────────────────────────────────────
 
-const SectionLabel = memo(({ inView }) => (
-    <motion.div
-        initial="hidden"
-        animate={inView ? 'visible' : 'hidden'}
-        variants={V.rise}
-        className="flex items-center gap-3 mb-10 sm:mb-12"
-    >
-        <motion.div
-            style={{ height: 1, backgroundColor: C.primary }}
-            initial={{ width: 0 }}
-            animate={inView ? { width: 32 } : { width: 0 }}
-            transition={{ duration: 0.6, ease: EASE, delay: 0.2 }}
+const SectionLabel = memo(() => (
+    <div className="flex items-center gap-3 mb-10 sm:mb-12" data-aos="fade-up" data-aos-delay="0">
+        <div
+            className="h-px w-8"
+            style={{ backgroundColor: C.primary }}
         />
         <span
             className="text-[11px] font-bold tracking-[0.25em] uppercase select-none"
@@ -109,29 +205,27 @@ const SectionLabel = memo(({ inView }) => (
         >
             Who We Are
         </span>
-    </motion.div>
+    </div>
 ));
 SectionLabel.displayName = 'About.SectionLabel';
 
 // ─── ProgressBar ─────────────────────────────────────────────────────────────
 
-const ProgressBar = memo(({ current }) => (
+const ProgressBar = memo(({ current, duration }) => (
     <div className="absolute top-0 left-0 right-0 z-20 h-[2px] bg-white/10">
-        <motion.div
+        <div
             key={`pb-${current}`}
-            className="h-full origin-left"
-            style={{ backgroundColor: C.primary }}
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ duration: SLIDE_INTERVAL / 1000, ease: 'linear' }}
+            className="progress-bar-fill h-full"
+            style={{
+                backgroundColor: C.primary,
+                animationDuration: `${duration}ms`,
+            }}
         />
     </div>
 ));
 ProgressBar.displayName = 'About.ProgressBar';
 
 // ─── ThumbnailStrip ───────────────────────────────────────────────────────────
-
-const THUMB_COUNT = 5;
 
 const ThumbnailStrip = memo(({ images, current, onSelect }) => {
     const half = Math.floor(THUMB_COUNT / 2);
@@ -154,16 +248,10 @@ const ThumbnailStrip = memo(({ images, current, onSelect }) => {
                         key={img.id}
                         onClick={() => onSelect(realIdx)}
                         aria-label={img.alt}
-                        className="relative flex-1 overflow-hidden focus-visible:outline-none transition-all duration-300"
+                        className="thumb-btn relative border-0 p-0 bg-transparent"
                         style={{ height: isActive ? 48 : 32, opacity: isActive ? 1 : 0.5 }}
                     >
-                        <img
-                            src={img.src}
-                            alt={img.alt}
-                            loading="lazy"
-                            decoding="async"
-                            className="w-full h-full object-cover"
-                        />
+                        <img src={img.src} alt={img.alt} loading="lazy" decoding="async" />
                         {isActive && (
                             <div
                                 className="absolute inset-0 pointer-events-none"
@@ -181,7 +269,7 @@ ThumbnailStrip.displayName = 'About.ThumbnailStrip';
 // ─── SlideCounter ────────────────────────────────────────────────────────────
 
 const SlideCounter = memo(({ current, total }) => (
-    <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5">
+    <div className="absolute top-4 right-4 z-20">
         <div
             className="flex items-center gap-1.5 px-2 py-1"
             style={{ backgroundColor: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(8px)' }}
@@ -210,183 +298,162 @@ const LocationBadge = memo(() => (
 ));
 LocationBadge.displayName = 'About.LocationBadge';
 
-// ─── CornerBracket ────────────────────────────────────────────────────────────
-// Decorative L-shaped corner brackets that sit proud of the image frame.
+// ─── GlitchSlider ─────────────────────────────────────────────────────────────
+// Maintains prev + current slot; CSS animations handle the glitch transition.
 
-const BRACKET_SIZE = 24;
-const BRACKET_LINE = 2;
-const BRACKET_OFFSET = Math.round(BRACKET_SIZE * 0.35);
+const GlitchSlider = memo(({ images, current }) => {
+    const [slots, setSlots] = useState({
+        prev: null,
+        curr: current,
+        key: 0,
+    });
 
-const CornerBracket = memo(({ corner, inView }) => {
-    const isTop = corner.startsWith('t');
-    const isLeft = corner.endsWith('l');
+    useEffect(() => {
+        setSlots((s) => ({
+            prev: s.curr,
+            curr: current,
+            key: s.key + 1,
+        }));
+    }, [current]);
 
     return (
-        <motion.div
-            initial="hidden"
-            animate={inView ? 'visible' : 'hidden'}
-            variants={V.frameIn}
-            className="absolute z-30 pointer-events-none"
-            style={{
-                width: BRACKET_SIZE,
-                height: BRACKET_SIZE,
-                top: isTop ? -BRACKET_OFFSET : 'auto',
-                bottom: !isTop ? -BRACKET_OFFSET : 'auto',
-                left: isLeft ? -BRACKET_OFFSET : 'auto',
-                right: !isLeft ? -BRACKET_OFFSET : 'auto',
-            }}
-        >
-            {/* Horizontal arm */}
-            <div style={{
-                position: 'absolute',
-                backgroundColor: C.primary,
-                width: BRACKET_SIZE,
-                height: BRACKET_LINE,
-                top: isTop ? 0 : BRACKET_SIZE - BRACKET_LINE,
-                left: 0,
-            }} />
-            {/* Vertical arm */}
-            <div style={{
-                position: 'absolute',
-                backgroundColor: C.primary,
-                width: BRACKET_LINE,
-                height: BRACKET_SIZE,
-                left: isLeft ? 0 : BRACKET_SIZE - BRACKET_LINE,
-                top: 0,
-            }} />
-        </motion.div>
+        <div className="absolute inset-0">
+            {/* Leaving slot */}
+            {slots.prev !== null && slots.prev !== slots.curr && (
+                <img
+                    key={`leave-${slots.key}`}
+                    src={images[slots.prev].src}
+                    alt={images[slots.prev].alt}
+                    className="img-slot img-slot--leaving"
+                    decoding="async"
+                />
+            )}
+
+            {/* Entering slot */}
+            <img
+                key={`enter-${slots.key}`}
+                src={images[slots.curr].src}
+                alt={images[slots.curr].alt}
+                className="img-slot img-slot--entering"
+                loading={slots.curr === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+            />
+        </div>
     );
 });
-CornerBracket.displayName = 'About.CornerBracket';
-
-// ─── FloatBadge ──────────────────────────────────────────────────────────────
-
-const FloatBadge = memo(({ inView }) => (
-    <motion.div
-        initial="hidden"
-        animate={inView ? 'visible' : 'hidden'}
-        variants={V.floatIn}
-        className="absolute -bottom-5 -right-5 z-30 bg-white dark:bg-gray-900 flex items-stretch"
-        style={{
-            boxShadow: `0 8px 32px rgba(0,0,0,0.13), 0 0 0 1px ${C.primaryBorder}`,
-        }}
-    >
-        {/* Left accent stripe */}
-        <div style={{ width: 3, backgroundColor: C.primary }} />
-    </motion.div>
-));
-FloatBadge.displayName = 'About.FloatBadge';
+GlitchSlider.displayName = 'About.GlitchSlider';
 
 // ─── ImagePanel ───────────────────────────────────────────────────────────────
 
-const ImagePanel = memo(({ inView }) => {
-    const panelRef = useRef(null);
+const ImagePanel = memo(() => {
     const images = useMemo(() => fisherYates(ABOUT_IMAGES), []);
     const [current, setCurrent] = useState(0);
+    const intervalRef = useRef(null);
 
-    const { scrollYProgress } = useScroll({ target: panelRef, offset: ['start end', 'end start'] });
-    const wrapY = useTransform(scrollYProgress, [0, 1], ['-3%', '3%']);
+    const advance = useCallback(() => {
+        setCurrent((c) => (c + 1) % images.length);
+    }, [images.length]);
 
-    // Auto-advance
+    // Prefetch next image
+    const prefetchNext = useCallback(
+        (idx) => {
+            const next = images[(idx + 1) % images.length];
+            const link = Object.assign(document.createElement('link'), {
+                rel: 'prefetch',
+                as: 'image',
+                href: next.src,
+            });
+            document.head.appendChild(link);
+            return link;
+        },
+        [images],
+    );
+
     useEffect(() => {
-        if (!inView) return;
-        const id = setInterval(() => setCurrent((c) => (c + 1) % images.length), SLIDE_INTERVAL);
-        return () => clearInterval(id);
-    }, [inView, images.length]);
+        intervalRef.current = setInterval(advance, SLIDE_INTERVAL);
+        return () => clearInterval(intervalRef.current);
+    }, [advance]);
 
-    // Prefetch next
     useEffect(() => {
-        const next = images[(current + 1) % images.length];
-        const link = Object.assign(document.createElement('link'), {
-            rel: 'prefetch', as: 'image', href: next.src,
-        });
-        document.head.appendChild(link);
+        const link = prefetchNext(current);
         return () => link.remove();
-    }, [current, images]);
+    }, [current, prefetchNext]);
+
+    const handleSelect = useCallback(
+        (idx) => {
+            clearInterval(intervalRef.current);
+            setCurrent(idx);
+            intervalRef.current = setInterval(advance, SLIDE_INTERVAL);
+        },
+        [advance],
+    );
 
     return (
-        <motion.div
-            initial="hidden"
-            animate={inView ? 'visible' : 'hidden'}
-            variants={V.fromLeft}
-            style={{ y: wrapY }}
-            // Extra space at right + bottom so the offset frame and float badge are visible
+        <div
             className="relative pb-6 pr-6"
+            data-aos="fade-right"
+            data-aos-delay="100"
+            data-aos-duration="900"
         >
-            {/* ── Offset background frame ──────────────────────────────────── */}
-            <motion.div
-                initial="hidden"
-                animate={inView ? 'visible' : 'hidden'}
-                variants={V.frameIn}
-                className="absolute"
+            {/* Offset background frame */}
+            <div
+                className="absolute pointer-events-none"
                 style={{
                     inset: 0,
                     bottom: '1.5rem',
                     right: '1.5rem',
-                    transform: 'translate(10px, 10px)',
+                    transform: 'translate(10px,10px)',
                     border: `1.5px solid ${C.primary}`,
-                    opacity: 0.3,
-                    pointerEvents: 'none',
+                    opacity: 0.28,
                 }}
             />
 
-            {/* ── Inner image frame (clip + aspect ratio) ──────────────────── */}
-            <div
-                ref={panelRef}
-                className="relative aspect-[4/3] overflow-visible"
-            >
+            {/* Image frame */}
+            <div className="relative aspect-[4/3] overflow-visible">
                 {/* Corner brackets */}
-                <CornerBracket corner="tl" inView={inView} />
-                <CornerBracket corner="tr" inView={inView} />
-                <CornerBracket corner="bl" inView={inView} />
-                <CornerBracket corner="br" inView={inView} />
+                <div className="bracket bracket--tl" />
+                <div className="bracket bracket--tr" />
+                <div className="bracket bracket--bl" />
+                <div className="bracket bracket--br" />
 
                 {/* Clipped slide area */}
                 <div className="absolute inset-0 overflow-hidden">
-                    <AnimatePresence mode="sync">
-                        <motion.div
-                            key={images[current].id}
-                            initial="hidden"
-                            animate="visible"
-                            exit="exit"
-                            variants={V.slideIn}
-                            className="absolute inset-0"
-                        >
-                            <img
-                                src={images[current].src}
-                                alt={images[current].alt}
-                                loading={current === 0 ? 'eager' : 'lazy'}
-                                decoding="async"
-                                className="w-full h-full object-cover"
-                            />
-                        </motion.div>
-                    </AnimatePresence>
+                    <GlitchSlider images={images} current={current} />
 
                     {/* Scrim */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent pointer-events-none z-10" />
 
-                    <ProgressBar current={current} />
+                    <ProgressBar current={current} duration={SLIDE_INTERVAL} />
                     <SlideCounter current={current} total={images.length} />
                     <LocationBadge />
-                    <ThumbnailStrip images={images} current={current} onSelect={setCurrent} />
+                    <ThumbnailStrip images={images} current={current} onSelect={handleSelect} />
                 </div>
             </div>
 
-            {/* Floating stats badge */}
-            <FloatBadge inView={inView} />
-        </motion.div>
+            {/* Float accent badge */}
+            <div
+                className="absolute -bottom-2 -right-2 z-30 bg-white shadow dark:bg-gray-900 flex items-stretch"
+                data-aos="fade-left"
+                data-aos-delay="500"
+                data-aos-duration="700"
+            >
+                <div style={{ width: 3, backgroundColor: C.primary }} />
+                <div className="px-3 py-2">
+                    <p className="text-[10px] font-black tracking-[0.2em] uppercase text-gray-400 dark:text-gray-500 mb-0.5">
+                        GCCC
+                    </p>
+                </div>
+            </div>
+        </div>
     );
 });
 ImagePanel.displayName = 'About.ImagePanel';
 
 // ─── GhostWatermark ───────────────────────────────────────────────────────────
 
-const GhostWatermark = memo(({ inView }) => (
-    <motion.div
+const GhostWatermark = memo(() => (
+    <div
         aria-hidden="true"
-        initial="hidden"
-        animate={inView ? 'visible' : 'hidden'}
-        variants={V.ghost}
         className="pointer-events-none select-none absolute bottom-16 left-0 right-0 overflow-hidden"
     >
         <svg
@@ -410,26 +477,23 @@ const GhostWatermark = memo(({ inView }) => (
                 GCCC IB
             </text>
         </svg>
-    </motion.div>
+    </div>
 ));
 GhostWatermark.displayName = 'About.GhostWatermark';
 
 // ─── TextPanel ────────────────────────────────────────────────────────────────
 
-const TextPanel = memo(({ inView }) => (
+const TextPanel = memo(() => (
     <div className="relative overflow-hidden">
-        <GhostWatermark inView={inView} />
+        <GhostWatermark />
 
-        <motion.div
-            initial="hidden"
-            animate={inView ? 'visible' : 'hidden'}
-            variants={V.stagger}
-            className="relative z-10 flex flex-col gap-6"
-        >
-            <motion.h2
-                variants={V.fromRight}
+        <div className="relative z-10 flex flex-col gap-6">
+            <h2
                 className="text-3xl sm:text-4xl lg:text-[2.75rem] font-black leading-tight tracking-tight text-gray-900 dark:text-white"
                 style={{ fontFamily: "'Georgia', serif" }}
+                data-aos="fade-left"
+                data-aos-delay="150"
+                data-aos-duration="800"
             >
                 Where{' '}
                 <span style={{ color: C.primary }}>Love</span>,{' '}
@@ -437,29 +501,44 @@ const TextPanel = memo(({ inView }) => (
                 &amp;{' '}
                 <span style={{ color: C.primary }}>Kingdom</span>{' '}
                 converge.
-            </motion.h2>
+            </h2>
 
-            <motion.p variants={V.rise} className="text-base text-gray-600 dark:text-gray-400 leading-relaxed">
-                GCCC Ibadan is a growing community of close-knit believers in Bodija,
-                extending the frontiers of the Kingdom on all sides.
-            </motion.p>
+            <p
+                className="text-base text-gray-600 dark:text-gray-400 leading-relaxed"
+                data-aos="fade-up"
+                data-aos-delay="250"
+                data-aos-duration="700"
+            >
+                GCCC Ibadan is a growing community of close knit believers, extending
+                the frontiers of the Kingdom on every side.
+            </p>
 
-            <motion.p variants={V.rise} className="text-base text-gray-600 dark:text-gray-400 leading-relaxed">
+            <p
+                className="text-base text-gray-600 dark:text-gray-400 leading-relaxed"
+                data-aos="fade-up"
+                data-aos-delay="340"
+                data-aos-duration="700"
+            >
                 We do the Word, yield to the Spirit and practice the Culture of God's
-                Kingdom — with a deep desire to regularly experience and manifest the
+                Kingdom, with a deep desire to regularly experience and manifest the
                 Glory of God.
-            </motion.p>
+            </p>
 
-            <motion.div
-                variants={V.rise}
+            <div
                 className="pl-4"
                 style={{ borderLeft: `2px solid ${C.primary}` }}
+                data-aos="fade-up"
+                data-aos-delay="430"
+                data-aos-duration="700"
             >
-                <p className="text-lg font-bold text-gray-900 dark:text-white" style={{ fontFamily: "'Georgia', serif" }}>
+                <p
+                    className="text-lg font-bold text-gray-900 dark:text-white"
+                    style={{ fontFamily: "'Georgia', serif" }}
+                >
                     The plan is to take our generation for Jesus.
                 </p>
-            </motion.div>
-        </motion.div>
+            </div>
+        </div>
     </div>
 ));
 TextPanel.displayName = 'About.TextPanel';
@@ -467,34 +546,25 @@ TextPanel.displayName = 'About.TextPanel';
 // ─── ValueCard ────────────────────────────────────────────────────────────────
 
 const ValueCard = memo(({ icon: Icon, title, body, isDefault, index }) => {
-    const ref = useRef(null);
-    const cardIn = useInView(ref, { once: true, margin: '-40px' });
     const [hovered, setHovered] = useState(false);
-
     const active = isDefault || hovered;
 
     return (
-        <motion.div
-            ref={ref}
-            initial="hidden"
-            animate={cardIn ? 'visible' : 'hidden'}
-            variants={V.cardRise}
-            transition={{ delay: index * 0.1 }}
-            whileHover={{ y: -4 }}
-            onHoverStart={() => !isDefault && setHovered(true)}
-            onHoverEnd={() => !isDefault && setHovered(false)}
-            className="relative flex flex-col gap-5 p-6 cursor-default overflow-hidden
-                       transition-colors duration-300 shadow
-                       bg-gray-50 dark:bg-gray-900/70"
+        <div
+            className="value-card relative flex flex-col gap-5 p-6 cursor-default overflow-hidden shadow
+                 bg-gray-50 dark:bg-gray-900/70"
             style={active ? { backgroundColor: C.primary } : undefined}
+            onMouseEnter={() => !isDefault && setHovered(true)}
+            onMouseLeave={() => !isDefault && setHovered(false)}
+            data-aos="fade-up"
+            data-aos-delay={index * 100 + 100}
+            data-aos-duration="700"
         >
-            {/* ── Icon row + index number ──────────────────────────────────── */}
+            {/* Icon row */}
             <div className="flex items-center justify-between">
                 <div
                     className="w-10 h-10 flex items-center justify-center transition-colors duration-300"
-                    style={{
-                        backgroundColor: active ? 'rgba(255,255,255,0.18)' : C.primaryDim,
-                    }}
+                    style={{ backgroundColor: active ? 'rgba(255,255,255,0.18)' : C.primaryDim }}
                 >
                     <Icon
                         className="w-5 h-5 transition-colors duration-300"
@@ -502,49 +572,41 @@ const ValueCard = memo(({ icon: Icon, title, body, isDefault, index }) => {
                         strokeWidth={1.8}
                     />
                 </div>
-
                 <span
                     className="text-[11px] font-black tracking-widest tabular-nums select-none transition-colors duration-300"
-                    style={{
-                        color: active
-                            ? 'rgba(255,255,255,0.30)'
-                            : 'rgba(17,155,214,0.28)',
-                    }}
+                    style={{ color: active ? 'rgba(255,255,255,0.30)' : 'rgba(17,155,214,0.28)' }}
                 >
                     0{index + 1}
                 </span>
             </div>
 
-            {/* ── Copy ─────────────────────────────────────────────────────── */}
+            {/* Copy */}
             <div className="flex flex-col gap-1.5">
                 <h4
                     className="text-base font-bold leading-snug transition-colors duration-300"
                     style={{ color: active ? '#fff' : undefined }}
                 >
-                    <span className={active ? '' : 'text-gray-900 dark:text-white'}>
-                        {title}
-                    </span>
+                    <span className={active ? '' : 'text-gray-900 dark:text-white'}>{title}</span>
                 </h4>
                 <p
                     className="text-sm leading-relaxed transition-colors duration-300"
                     style={{ color: active ? 'rgba(255,255,255,0.72)' : undefined }}
                 >
-                    <span className={active ? '' : 'text-gray-500 dark:text-gray-400'}>
-                        {body}
-                    </span>
+                    <span className={active ? '' : 'text-gray-500 dark:text-gray-400'}>{body}</span>
                 </p>
             </div>
 
-            {/* ── Bottom accent bar ────────────────────────────────────────── */}
+            {/* Bottom accent bar */}
             <div
-                className="mt-auto h-[2px] origin-left transition-all duration-500"
+                className="mt-auto h-[2px] origin-left"
                 style={{
                     backgroundColor: active ? 'rgba(255,255,255,0.32)' : C.primary,
                     opacity: active ? 1 : 0.2,
                     transform: active ? 'scaleX(1)' : 'scaleX(0.2)',
+                    transition: 'all 0.5s ease',
                 }}
             />
-        </motion.div>
+        </div>
     );
 });
 ValueCard.displayName = 'About.ValueCard';
@@ -563,27 +625,26 @@ ValuesGrid.displayName = 'About.ValuesGrid';
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 const AboutSection = () => {
-    const sectionRef = useRef(null);
-    const inView = useInView(sectionRef, { once: true, margin: '-80px' });
+    useEffect(() => {
+        injectStyles();
+    }, []);
 
     return (
         <section
-            ref={sectionRef}
             id="about"
             className={`relative w-full bg-white dark:bg-gray-950 overflow-hidden ${SECTION_SPACING}`}
         >
-            <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
-                <SectionLabel inView={inView} />
+
+            <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
+                <SectionLabel />
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center mb-14 sm:mb-16">
-                    <ImagePanel inView={inView} />
-                    <TextPanel inView={inView} />
+                    <ImagePanel />
+                    <TextPanel />
                 </div>
 
                 <ValuesGrid />
             </div>
-
-            <GallerySection />
         </section>
     );
 };

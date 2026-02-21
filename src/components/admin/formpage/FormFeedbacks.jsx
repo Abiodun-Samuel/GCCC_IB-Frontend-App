@@ -36,6 +36,7 @@ const FormFeedbacks = () => {
     isDeleting,
     updateSelected,
     deleteSelected,
+    refetch, isRefetching
   } = useFormMessagesSelection(activeTab);
 
   const handleDelete = async () => {
@@ -129,7 +130,7 @@ const FormFeedbacks = () => {
           className="justify-center mb-5"
         />
 
-        {isLoading ? (
+        {isLoading || isRefetching ? (
           <FormsSkeleton />
         ) : (
           <div className="space-y-5">
@@ -181,6 +182,15 @@ const FormFeedbacks = () => {
                       Delete
                     </Button>
                   )}
+
+                  <Button
+                    size="sm"
+                    variant="outline-primary"
+                    loading={isRefetching}
+                    onClick={refetch}
+                  >
+                    Refesh
+                  </Button>
                 </div>
               </div>
             )}

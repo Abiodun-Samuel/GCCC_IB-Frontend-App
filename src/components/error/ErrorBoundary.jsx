@@ -1,3 +1,4 @@
+import HomepageComponentCard from '@/components/common/HomepageComponentCard';
 import $api from '@/lib/axios';
 import { Toast } from '@/lib/toastify';
 import { handleApiError } from '@/utils/helper';
@@ -94,131 +95,133 @@ class ErrorBoundary extends Component {
             const { error, errorInfo, errorId } = this.state;
 
             return (
-                <div className="flex items-center justify-center p-3 sm:p-4">
-                    <div className="max-w-2xl w-full">
-                        <div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-slate-700/50">
+                <HomepageComponentCard>
+                    <div className="flex items-center justify-center p-3 sm:p-4">
+                        <div className="max-w-2xl w-full">
+                            <div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-slate-700/50">
 
-                            {/* Compact Header */}
-                            <div className="relative overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-orange-500 to-pink-500 opacity-90"></div>
-                                <div className="relative px-4 py-5 sm:p-6 text-white text-center">
-                                    <h1 className="text-xl sm:text-2xl font-bold mb-1.5">
-                                        {isDev ? 'Development Error' : 'Something Went Wrong'}
-                                    </h1>
-                                    <p className="text-white/90 text-xs sm:text-sm">
-                                        {isDev
-                                            ? 'Error details below'
-                                            : "We've been notified and are looking into it"}
-                                    </p>
+                                {/* Compact Header */}
+                                <div className="relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-orange-500 to-pink-500 opacity-90"></div>
+                                    <div className="relative px-4 py-5 sm:p-6 text-white text-center">
+                                        <h1 className="text-xl sm:text-2xl font-bold mb-1.5">
+                                            {isDev ? 'Development Error' : 'Something Went Wrong'}
+                                        </h1>
+                                        <p className="text-white/90 text-xs sm:text-sm">
+                                            {isDev
+                                                ? 'Error details below'
+                                                : "We've been notified and are looking into it"}
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Compact Content */}
-                            <div className="p-4 sm:p-6">
-                                {isDev ? (
-                                    // DEV MODE - Compact
-                                    <div className="space-y-3">
-                                        <div className="bg-red-500/10 rounded-xl p-3 sm:p-4 border border-red-500/30">
-                                            <div className="flex items-start gap-3">
-                                                <div className="p-2 bg-red-500/20 rounded-lg flex-shrink-0 border border-red-500/30">
-                                                    <BugIcon />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <h3 className="font-semibold text-red-300 mb-2 text-sm">Error Message</h3>
-                                                    <p className="text-red-200 font-mono text-xs break-words bg-slate-900/50 p-2.5 rounded-lg border border-red-500/20">
-                                                        {error?.toString()}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {error?.stack && (
-                                            <details className="group bg-slate-700/30 rounded-xl overflow-hidden border border-slate-600/50">
-                                                <summary className="cursor-pointer p-3 text-sm font-medium text-slate-200 hover:bg-slate-700/50 transition-colors flex items-center justify-between">
-                                                    <span>Stack Trace</span>
-                                                    <span className="text-slate-400 group-open:rotate-90 transition-transform text-xs">▶</span>
-                                                </summary>
-                                                <div className="px-3 pb-3">
-                                                    <pre className="p-2.5 text-[10px] sm:text-xs overflow-x-auto bg-slate-900/80 text-green-300 rounded-lg whitespace-pre-wrap break-words font-mono border border-slate-700 max-h-40 overflow-y-auto">
-                                                        {error.stack}
-                                                    </pre>
-                                                </div>
-                                            </details>
-                                        )}
-
-                                        {errorInfo?.componentStack && (
-                                            <details className="group bg-slate-700/30 rounded-xl overflow-hidden border border-slate-600/50">
-                                                <summary className="cursor-pointer p-3 text-sm font-medium text-slate-200 hover:bg-slate-700/50 transition-colors flex items-center justify-between">
-                                                    <span>Component Stack</span>
-                                                    <span className="text-slate-400 group-open:rotate-90 transition-transform text-xs">▶</span>
-                                                </summary>
-                                                <div className="px-3 pb-3">
-                                                    <pre className="p-2.5 text-[10px] sm:text-xs overflow-x-auto bg-slate-900/80 text-blue-300 rounded-lg whitespace-pre-wrap break-words font-mono border border-slate-700 max-h-40 overflow-y-auto">
-                                                        {errorInfo.componentStack}
-                                                    </pre>
-                                                </div>
-                                            </details>
-                                        )}
-                                    </div>
-                                ) : (
-                                    // PROD MODE - Compact
-                                    <div className="space-y-3">
-                                        <div className="bg-slate-700/20 rounded-xl p-3 border border-slate-600/50">
-                                            <div className="space-y-2">
-                                                {[
-                                                    { icon: '🔄', text: 'Refresh and try again' },
-                                                    { icon: '🧹', text: 'Clear browser cache' },
-                                                    { icon: '🏠', text: 'Return to home' }
-                                                ].map((item, i) => (
-                                                    <div key={i} className="flex items-center gap-2.5 bg-slate-800/40 p-2.5 rounded-lg border border-slate-700/50 text-xs sm:text-sm">
-                                                        <span className="text-lg">{item.icon}</span>
-                                                        <span className="text-slate-200">{item.text}</span>
+                                {/* Compact Content */}
+                                <div className="p-4 sm:p-6">
+                                    {isDev ? (
+                                        // DEV MODE - Compact
+                                        <div className="space-y-3">
+                                            <div className="bg-red-500/10 rounded-xl p-3 sm:p-4 border border-red-500/30">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="p-2 bg-red-500/20 rounded-lg flex-shrink-0 border border-red-500/30">
+                                                        <BugIcon />
                                                     </div>
-                                                ))}
+                                                    <div className="flex-1 min-w-0">
+                                                        <h3 className="font-semibold text-red-300 mb-2 text-sm">Error Message</h3>
+                                                        <p className="text-red-200 font-mono text-xs break-words bg-slate-900/50 p-2.5 rounded-lg border border-red-500/20">
+                                                            {error?.toString()}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {error?.stack && (
+                                                <details className="group bg-slate-700/30 rounded-xl overflow-hidden border border-slate-600/50">
+                                                    <summary className="cursor-pointer p-3 text-sm font-medium text-slate-200 hover:bg-slate-700/50 transition-colors flex items-center justify-between">
+                                                        <span>Stack Trace</span>
+                                                        <span className="text-slate-400 group-open:rotate-90 transition-transform text-xs">▶</span>
+                                                    </summary>
+                                                    <div className="px-3 pb-3">
+                                                        <pre className="p-2.5 text-[10px] sm:text-xs overflow-x-auto bg-slate-900/80 text-green-300 rounded-lg whitespace-pre-wrap break-words font-mono border border-slate-700 max-h-40 overflow-y-auto">
+                                                            {error.stack}
+                                                        </pre>
+                                                    </div>
+                                                </details>
+                                            )}
+
+                                            {errorInfo?.componentStack && (
+                                                <details className="group bg-slate-700/30 rounded-xl overflow-hidden border border-slate-600/50">
+                                                    <summary className="cursor-pointer p-3 text-sm font-medium text-slate-200 hover:bg-slate-700/50 transition-colors flex items-center justify-between">
+                                                        <span>Component Stack</span>
+                                                        <span className="text-slate-400 group-open:rotate-90 transition-transform text-xs">▶</span>
+                                                    </summary>
+                                                    <div className="px-3 pb-3">
+                                                        <pre className="p-2.5 text-[10px] sm:text-xs overflow-x-auto bg-slate-900/80 text-blue-300 rounded-lg whitespace-pre-wrap break-words font-mono border border-slate-700 max-h-40 overflow-y-auto">
+                                                            {errorInfo.componentStack}
+                                                        </pre>
+                                                    </div>
+                                                </details>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        // PROD MODE - Compact
+                                        <div className="space-y-3">
+                                            <div className="bg-slate-700/20 rounded-xl p-3 border border-slate-600/50">
+                                                <div className="space-y-2">
+                                                    {[
+                                                        { icon: '🔄', text: 'Refresh and try again' },
+                                                        { icon: '🧹', text: 'Clear browser cache' },
+                                                        { icon: '🏠', text: 'Return to home' }
+                                                    ].map((item, i) => (
+                                                        <div key={i} className="flex items-center gap-2.5 bg-slate-800/40 p-2.5 rounded-lg border border-slate-700/50 text-xs sm:text-sm">
+                                                            <span className="text-lg">{item.icon}</span>
+                                                            <span className="text-slate-200">{item.text}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-purple-500/10 rounded-xl p-3 text-center border border-purple-500/30">
+                                                <p className="text-slate-300 text-xs mb-2">
+                                                    Error ID for support:
+                                                </p>
+                                                <div className="inline-block bg-slate-800/80 px-3 py-1.5 rounded-lg border border-purple-500/30">
+                                                    <code className="text-purple-300 font-mono text-[10px] sm:text-xs">{errorId}</code>
+                                                </div>
                                             </div>
                                         </div>
+                                    )}
 
-                                        <div className="bg-purple-500/10 rounded-xl p-3 text-center border border-purple-500/30">
-                                            <p className="text-slate-300 text-xs mb-2">
-                                                Error ID for support:
-                                            </p>
-                                            <div className="inline-block bg-slate-800/80 px-3 py-1.5 rounded-lg border border-purple-500/30">
-                                                <code className="text-purple-300 font-mono text-[10px] sm:text-xs">{errorId}</code>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Compact Buttons */}
-                                <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-slate-700/50">
-                                    {isDev && (
+                                    {/* Compact Buttons */}
+                                    <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-slate-700/50">
+                                        {isDev && (
+                                            <button
+                                                onClick={this.handleReset}
+                                                className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                                            >
+                                                <RefreshIcon />
+                                                Try Again
+                                            </button>
+                                        )}
                                         <button
-                                            onClick={this.handleReset}
-                                            className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                                            onClick={this.handleRefresh}
+                                            className="flex-1 bg-gradient-to-r from-slate-600 to-slate-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2"
                                         >
                                             <RefreshIcon />
-                                            Try Again
+                                            Reload
                                         </button>
-                                    )}
-                                    <button
-                                        onClick={this.handleRefresh}
-                                        className="flex-1 bg-gradient-to-r from-slate-600 to-slate-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2"
-                                    >
-                                        <RefreshIcon />
-                                        Reload
-                                    </button>
-                                    <button
-                                        onClick={this.handleGoHome}
-                                        className="flex-1 bg-gradient-to-r from-orange-500 to-pink-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2"
-                                    >
-                                        <HomeIcon />
-                                        Home
-                                    </button>
+                                        <button
+                                            onClick={this.handleGoHome}
+                                            className="flex-1 bg-gradient-to-r from-orange-500 to-pink-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                                        >
+                                            <HomeIcon />
+                                            Home
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </HomepageComponentCard>
             );
         }
         return this.props.children;

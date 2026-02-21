@@ -3,6 +3,7 @@ import { useState, useRef, useCallback, useMemo } from 'react';
 
 
 const AVATAR_SIZES = {
+  '2xs': { container: 'w-6 h-6', text: 'text-xs', icon: 8, badge: 'w-3 h-3', badgeIcon: 8 },
   xs: { container: 'w-8 h-8', text: 'text-xs', icon: 12, badge: 'w-4 h-4', badgeIcon: 12 },
   sm: { container: 'w-10 h-10', text: 'text-sm', icon: 14, badge: 'w-5 h-5', badgeIcon: 14 },
   md: { container: 'w-12 h-12', text: 'text-base', icon: 16, badge: 'w-5 h-5', badgeIcon: 14 },

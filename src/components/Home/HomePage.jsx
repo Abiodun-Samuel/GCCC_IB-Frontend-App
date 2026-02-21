@@ -1,14 +1,15 @@
 import AboutSection from '@/components/Home/AboutSection';
+import GallerySection from '@/components/Home/GallerySection';
 import HeroSection from '@/components/Home/HeroSection';
+import SanctuaryHub from '@/components/Home/SanctuaryHub';
 
 const HomePage = () => {
-
     return (
         <main className="w-full">
             <HeroSection />
-            <main className='container mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden'>
-                <AboutSection />
-            </main>
+            <AboutSection />
+            <SanctuaryHub />
+            <GallerySection />
         </main>
     );
 };

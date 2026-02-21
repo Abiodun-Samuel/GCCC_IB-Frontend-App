@@ -5,8 +5,11 @@ import { useCreateFormMessages } from '@/queries/form.query';
 import TextAreaForm from '@/components/form/TextAreaForm';
 import { testimonyFormSchema } from '@/schema';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useAuthStore } from '@/store/auth.store';
 
 export default function TestimonyForm() {
+  const { isAuthenticated, user } = useAuthStore();
+
   const {
     register,
     handleSubmit,
@@ -29,6 +32,8 @@ export default function TestimonyForm() {
       name: data.name,
       phone_number: data.phone_number,
       wants_to_share_testimony: data.sharePhysically === 'Yes',
+      ...(isAuthenticated && user?.id ? { user_id: user.id } : {}),
+
     };
     mutate(payload);
   };

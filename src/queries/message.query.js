@@ -3,6 +3,7 @@ import { QUERY_KEYS } from '../utils/queryKeys';
 import { Toast } from '../lib/toastify';
 import { handleApiError } from '../utils/helper';
 import { MessageService } from '@/services/message.service';
+import { useAuthStore } from '@/store/auth.store';
 
 // ============================================================================
 // QUERY HOOKS
@@ -105,18 +106,22 @@ export const useSearchMessages = (params = {}, options = {}) => {
 
 export const useSendMessage = (options = {}) => {
     const queryClient = useQueryClient();
+    const { setAuthenticatedUser } = useAuthStore();
+
 
     return useMutation({
         mutationFn: MessageService.sendMessage,
-        onSuccess: (response, variables) => {
+        onSuccess: ({ data, message }, variables) => {
+            const { user } = data
+            setAuthenticatedUser({ user })
             queryClient.invalidateQueries({
                 queryKey: QUERY_KEYS.MESSAGES.SENT(),
             });
             queryClient.invalidateQueries({
                 queryKey: QUERY_KEYS.MESSAGES.UNREAD_COUNT,
             });
-            Toast.success('Message sent successfully!');
-            options.onSuccess?.(response.data, variables);
+            Toast.success(message || 'Message sent successfully!');
+            options.onSuccess?.(data, variables);
         },
         onError: (error) => {
             console.log(error)

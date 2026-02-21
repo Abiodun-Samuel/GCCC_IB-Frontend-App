@@ -14,7 +14,6 @@ import ErrorBoundary from '@/components/error/ErrorBoundary';
 // Public / Home
 const HomePage = lazy(() => import('@/components/Home/HomePage'));
 const LoginPage = lazy(() => import('../pages/Home/Auth/LoginPage'));
-const RegisterPage = lazy(() => import('../pages/Home/Auth/RegisterPage'));
 const ResetPasswordPage = lazy(() => import('@/pages/Home/Auth/ResetPasswordPage'));
 const ForgotPasswordPage = lazy(() => import('@/pages/Home/Auth/ForgotPasswordPage'));
 const FormPage = lazy(() => import('../pages/Home/FormPage'));
@@ -72,7 +71,6 @@ const AppRoutes = [
         element: <PublicRoute />,
         children: [
           { path: 'login', element: withSuspense(LoginPage) },
-          { path: 'register', element: withSuspense(RegisterPage) },
           { path: 'reset-password', element: withSuspense(ResetPasswordPage) },
           { path: 'forgot-password', element: withSuspense(ForgotPasswordPage) },
         ],

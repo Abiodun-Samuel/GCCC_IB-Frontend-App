@@ -2,8 +2,11 @@ import { useForm } from 'react-hook-form';
 import Button from '../../components/ui/Button';
 import { useCreateFormMessages } from '@/queries/form.query';
 import TextAreaForm from '@/components/form/TextAreaForm';
+import { useAuthStore } from '@/store/auth.store';
 
 export default function QuestionForm() {
+  const { isAuthenticated, user } = useAuthStore();
+
   const {
     register,
     handleSubmit,
@@ -21,7 +24,9 @@ export default function QuestionForm() {
     const payload = {
       type: 'question',
       content: data.message,
+      ...(isAuthenticated && user?.id ? { user_id: user.id } : {}),
     };
+
     mutate(payload);
   };
 

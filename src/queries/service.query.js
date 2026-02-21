@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { ServiceService } from '../services/service.service';
 import { QUERY_KEYS } from '../utils/queryKeys';
+import { useAuthStore } from '@/store/auth.store';
 
 export const useServices = (options = {}) => {
   return useQuery({
@@ -15,6 +16,7 @@ export const useServices = (options = {}) => {
   });
 };
 export const useCoreAppData = (options = {}) => {
+  const { isAuthenticated } = useAuthStore()
   return useQuery({
     queryKey: QUERY_KEYS.SERVICES.CORE_DATA,
     queryFn: async () => {
@@ -24,6 +26,7 @@ export const useCoreAppData = (options = {}) => {
         anniversary_list: data?.anniversary_list,
       }
     },
+    enabled: isAuthenticated,
     staleTime: 2 * 60 * 1000,
     cacheTime: 5 * 60 * 1000,
     ...options,
@@ -31,6 +34,7 @@ export const useCoreAppData = (options = {}) => {
 };
 
 export const useTodaysService = (options = {}) => {
+  const { isAuthenticated } = useAuthStore()
   return useQuery({
     queryKey: QUERY_KEYS.SERVICES.TODAY,
     queryFn: async () => {
@@ -43,6 +47,7 @@ export const useTodaysService = (options = {}) => {
         attendance: data?.attendance,
       };
     },
+    enabled: isAuthenticated,
     staleTime: 0 * 60 * 1000,
     cacheTime: 0 * 60 * 1000,
     refetchOnWindowFocus: true,

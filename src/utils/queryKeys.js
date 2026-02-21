@@ -1,38 +1,21 @@
 export const QUERY_KEYS = {
+  // ═══════════════════════════════════════════════════════════════════════
+  // EVENTS
+  // ═══════════════════════════════════════════════════════════════════════
   EVENTS: {
-    // Base key for all event-related queries
     ALL: ['events'],
-
-    // Public event listing with filters
     LIST: (params = {}) => ['events', 'list', params],
-
-    // Admin event listing
-    ADMIN: (params = {}) => ['events', 'admin', params],
-
-    // Featured/upcoming events
-    FEATURED: ['events', 'featured'],
-
-    // Single event detail (by ID or slug)
     DETAIL: (identifier) => ['events', 'detail', identifier],
   },
 
   // ═══════════════════════════════════════════════════════════════════════
-  // EVENT REGISTRATIONS - User registrations for events
+  // EVENT REGISTRATIONS
   // ═══════════════════════════════════════════════════════════════════════
   EVENT_REGISTRATIONS: {
-    // Base key for all registration-related queries
     ALL: ['event-registrations'],
-
-    // Current user's own registrations
     MY_REGISTRATIONS: (params = {}) => ['event-registrations', 'my-registrations', params],
-
-    // All registrations for a specific event
     BY_EVENT: (eventId, params = {}) => ['event-registrations', 'by-event', eventId, params],
-
-    // Admin view of all registrations
     ADMIN: (params = {}) => ['event-registrations', 'admin', params],
-
-    // Single registration detail
     DETAIL: (id) => ['event-registrations', 'detail', id],
   },
 
@@ -59,11 +42,11 @@ export const QUERY_KEYS = {
     MEMBER_FIRST_TIMER: (id) => ['followup-feedbacks', id],
   },
 
-  // refactored
   FOLLOW_UP_STATUSES: {
     ALL: ['followup-status'],
     DETAIL: (statusId) => ['followup-status', statusId],
   },
+
   MEMBERS: {
     ALL_USERS: ['all_users'],
     ALL: (params) => ['allmembers', params],
@@ -71,11 +54,13 @@ export const QUERY_KEYS = {
     DETAIL: (id) => ['members', 'detail', id],
     ROLE: (role, params) => [('members', role, params)],
   },
+
   ATTENDANCE_RECORDS: {
     ALL: ['attendance-records'],
     DETAIL: (id) => ['attendance-records', id],
     ROLE: (role) => [('attendance-records', role)],
   },
+
   USER: {
     ABSENT: ['all_absent_members'],
     ASSIGNED_MEMBER: ['assigned_members'],
@@ -94,18 +79,14 @@ export const QUERY_KEYS = {
     FIRSTTIMER_FOLLOWUPS: ['first-timers', 'FIRSTTIMER_FOLLOWUPS'],
     DETAIL: (id) => ['first-timers', id],
     FOLLOWUPS: (id) => ['FOLLOWUPS', id],
-    FIRST_TIMERS_ANALYTICS: (params) => [
-      'admin',
-      'first-timers-analytics',
-      params,
-    ],
+    FIRST_TIMERS_ANALYTICS: (params) => ['admin', 'first-timers-analytics', params],
     ASSIGNED: ['assigned'],
   },
+
   UNITS: {
     ALL: ['units'],
   },
 
-  //////////////////////////////////////////////////////////////////////////////////////////////////
   AUTH: {
     ME: ['auth', 'me'],
     PROFILE: ['auth', 'profile'],
@@ -114,11 +95,6 @@ export const QUERY_KEYS = {
   ADMIN: {
     ALL: ['admin'],
     ANALYTICS: (params) => ['admin', 'analytics', params],
-  },
-
-  EVENTS: {
-    ALL: ['events'],
-    DETAIL: (id) => ['events', 'detail', id],
   },
 
   PAYMENT: {
@@ -133,11 +109,6 @@ export const QUERY_KEYS = {
     ALL_RECORDS: (params) => ['attendance', 'all-records', params],
     ALL_RECORDS_USER: (params) => ['attendance', 'all-records_user', params],
     BY_MONTH_YEAR: (month, year) => ['attendance', 'filtered', month, year],
-    USER_BY_MONTH_YEAR: (month, year) => [
-      'attendance',
-      'filtered',
-      month,
-      year,
-    ],
+    USER_BY_MONTH_YEAR: (month, year) => ['attendance', 'filtered', month, year],
   },
 };

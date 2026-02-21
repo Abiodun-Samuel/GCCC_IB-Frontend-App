@@ -1,5 +1,6 @@
 import { memo, useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import { SECTION_SPACING } from "@/utils/constant";
 
 const cssUrl = (path) => `url("${encodeURI(path)}")`;
 
@@ -199,37 +200,37 @@ const GallerySection = () => {
     return (
         <section
             ref={ref}
-            className="relative w-full bg-white dark:bg-gray-950 overflow-hidden py-8 sm:py-10 lg:py-14"
+            className={`relative w-full bg-white dark:bg-gray-950 overflow-hidden ${SECTION_SPACING}`}
             aria-label="GCCCIB Gallery"
         >
-            {/* Top fade */}
-            <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-white dark:from-gray-950 to-transparent pointer-events-none z-10" />
-            {/* Bottom fade */}
-            <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-white dark:from-gray-950 to-transparent pointer-events-none z-10" />
-
-            {/* ── MOBILE layout (< sm) ── */}
-            <div className="sm:hidden relative w-full">
-                <MobileGallery inView={inView} />
-            </div>
-
-            {/* ── TABLET + DESKTOP layout (≥ sm) — completely unchanged ── */}
-            <div className="hidden sm:flex relative w-full justify-center">
-                <motion.div
-                    initial="hidden"
-                    animate={inView ? "visible" : "hidden"}
-                    variants={containerVariants}
-                    style={{
-                        display: "inline-flex",
-                        alignItems: "flex-end",
-                        width: "100%",
-                        justifyContent: "center",
-                        overflow: "hidden",
-                    }}
-                >
-                    {LETTERS.map((l, i) => (
-                        <Letter key={i} char={l.char} src={l.src} index={i} />
-                    ))}
-                </motion.div>
+            <div className="relative z-10 py-5 container mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
+                {/* Top fade */}
+                <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-white dark:from-gray-950 to-transparent pointer-events-none z-10" />
+                {/* Bottom fade */}
+                <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-white dark:from-gray-950 to-transparent pointer-events-none z-10" />
+                {/* ── MOBILE layout (< sm) ── */}
+                <div className="sm:hidden relative w-full">
+                    <MobileGallery inView={inView} />
+                </div>
+                {/* ── TABLET + DESKTOP layout (≥ sm) — completely unchanged ── */}
+                <div className="hidden sm:flex relative w-full justify-center">
+                    <motion.div
+                        initial="hidden"
+                        animate={inView ? "visible" : "hidden"}
+                        variants={containerVariants}
+                        style={{
+                            display: "inline-flex",
+                            alignItems: "flex-end",
+                            width: "100%",
+                            justifyContent: "center",
+                            overflow: "hidden",
+                        }}
+                    >
+                        {LETTERS.map((l, i) => (
+                            <Letter key={i} char={l.char} src={l.src} index={i} />
+                        ))}
+                    </motion.div>
+                </div>
             </div>
         </section>
     );

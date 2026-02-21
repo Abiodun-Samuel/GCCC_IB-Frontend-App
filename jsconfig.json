@@ -12,6 +12,12 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false
   },
-  "include": ["src/**/*", "vite.config.js", ".deprecated/HomePage.jsx"],
+  "include": [
+    "src/**/*",
+    "vite.config.js",
+    ".deprecated/HomePage.jsx",
+    ".deprecated/SanctuaryDashboard.jsx",
+    ".deprecated/TodayEvents.jsx"
+  ],
   "exclude": ["node_modules"]
 }

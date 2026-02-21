@@ -168,4 +168,4 @@ export const QUICK_ACTION_LINKS = [
   },
 ];
 
-export const SECTION_SPACING = "py-24 sm:py-32 lg:py-40";
+export const SECTION_SPACING = 'py-20 sm:py-28 lg:py-36' //"py-24 sm:py-32 lg:py-40";

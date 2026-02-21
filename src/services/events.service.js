@@ -5,17 +5,22 @@ const ADMIN_BASE_URL = '/admin/events';
 
 export const EventService = {
   /**
-   * Create a new event
-   * @param {Object} payload - Event data (title, description, date, location, etc.)
-   * @returns {Promise} API response
+   * Get all events with optional filters (public)
+   * @param {Object} params - Query parameters (page, per_page, etc.)
+   * @returns {Promise} API response with pagination meta
    */
-  async createEvent(payload) {
-    const { data } = await $api.post(ADMIN_BASE_URL, payload);
+  async getEvents(params = {}) {
+    const { data } = await $api.get(BASE_URL, { params });
+    return data;
+  },
+
+  async getClosestEvents() {
+    const { data } = await $api.get(`${BASE_URL}/closest`);
     return data;
   },
 
   /**
-   * Get a single event by ID or slug
+   * Get a single event by ID or slug (public)
    * @param {string|number} identifier - Event ID or slug
    * @returns {Promise} API response
    */
@@ -25,36 +30,17 @@ export const EventService = {
   },
 
   /**
-   * Get all events with optional filters
-   * @param {Object} params - Query parameters (page, per_page, status, date_from, date_to, category, etc.)
-   * @returns {Promise} API response with pagination meta
-   */
-  async getEvents(params = {}) {
-    const { data } = await $api.get(BASE_URL, { params });
-    return data;
-  },
-
-  /**
-   * Get all events (admin view with additional data)
-   * @param {Object} params - Query parameters
+   * Create a new event (admin only)
+   * @param {Object} payload - Event data
    * @returns {Promise} API response
    */
-  async getAdminEvents(params = {}) {
-    const { data } = await $api.get(ADMIN_BASE_URL, { params });
+  async createEvent(payload) {
+    const { data } = await $api.post(ADMIN_BASE_URL, payload);
     return data;
   },
 
   /**
-   * Get featured/upcoming events
-   * @returns {Promise} API response
-   */
-  async getFeaturedEvents() {
-    const { data } = await $api.get(`${BASE_URL}/featured`);
-    return data;
-  },
-
-  /**
-   * Update an event
+   * Update an event (admin only)
    * @param {string|number} id - Event ID
    * @param {Object} payload - Updated event data
    * @returns {Promise} API response
@@ -65,23 +51,12 @@ export const EventService = {
   },
 
   /**
-   * Delete an event
+   * Delete an event (admin only)
    * @param {string|number} id - Event ID
    * @returns {Promise} API response
    */
   async deleteEvent(id) {
     const { data } = await $api.delete(`${ADMIN_BASE_URL}/${id}`);
-    return data;
-  },
-
-  /**
-   * Publish/unpublish an event
-   * @param {string|number} id - Event ID
-   * @param {boolean} published - Publish status
-   * @returns {Promise} API response
-   */
-  async toggleEventStatus({ id, published }) {
-    const { data } = await $api.patch(`${ADMIN_BASE_URL}/${id}/status`, { published });
     return data;
   },
 };
