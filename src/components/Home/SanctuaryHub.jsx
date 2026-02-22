@@ -21,7 +21,7 @@ import { useClosestEvent } from '@/queries/events.query';
 import { useAuthStore } from '@/store/auth.store';
 import { useSendMessage } from '@/queries/message.query';
 import { useModal } from '@/hooks/useModal';
-import { generateInitials } from '@/utils/helper';
+import { buildShareText, fetchEventImageFile, generateInitials } from '@/utils/helper';
 import animationData from '../../../src/utils/animation.json';
 
 import {
@@ -209,21 +209,76 @@ const fmtTime24 = (t) => {
 
 const doShare = async (event) => {
     const url = `${window.location.origin}/events/${event.id}`;
-    const data = { title: event.title, text: event.description || `Join us — ${event.title}`, url };
-    try {
-        if (navigator.share && navigator.canShare?.(data)) {
-            await navigator.share(data);
-        } else {
-            await navigator.clipboard.writeText(url);
-            Toast.success('Link copied!');
+    const richText = buildShareText(event, url);
+
+    // ── Tier 1: native share with image ─────────────────────────────────────
+    if (typeof navigator.share === 'function') {
+        // Attempt to attach the event image as a shareable file
+        const imageFile = await fetchEventImageFile(event.image);
+
+        if (imageFile) {
+            const payloadWithFile = {
+                title: event.title,
+                text: richText,
+                files: [imageFile],
+                // NOTE: some browsers reject `url` alongside `files`; the URL
+                // is already embedded in `richText` so omitting it here is safe.
+            };
+
+            if (navigator.canShare?.(payloadWithFile)) {
+                try {
+                    await navigator.share(payloadWithFile);
+                    return; // success — done
+                } catch (err) {
+                    if (err?.name === 'AbortError') return; // user cancelled
+                    // Any other error → fall through to Tier 2
+                }
+            }
         }
-    } catch (err) {
-        if (err?.name !== 'AbortError') {
-            try { await navigator.clipboard.writeText(url); Toast.success('Link copied!'); }
-            catch { Toast.error('Could not share event'); }
+
+        // ── Tier 2: native share, text + url only ───────────────────────────
+        const payloadTextOnly = {
+            title: event.title,
+            text: richText,
+            url,
+        };
+
+        if (navigator.canShare?.(payloadTextOnly) ?? true) {
+            try {
+                await navigator.share(payloadTextOnly);
+                return; // success — done
+            } catch (err) {
+                if (err?.name === 'AbortError') return; // user cancelled
+            }
         }
     }
+
+    // ── Tier 3: clipboard fallback ───────────────────────────────────────────
+    try {
+        await navigator.clipboard.writeText(richText);
+        Toast.success('Event details copied!');
+    } catch {
+        Toast.error('Could not share event');
+    }
 };
+
+// const doShare = async (event) => {
+//     const url = `${window.location.origin}/events/${event.id}`;
+//     const data = { title: event.title, text: event.description || `Join us — ${event.title}`, url };
+//     try {
+//         if (navigator.share && navigator.canShare?.(data)) {
+//             await navigator.share(data);
+//         } else {
+//             await navigator.clipboard.writeText(url);
+//             Toast.success('Link copied!');
+//         }
+//     } catch (err) {
+//         if (err?.name !== 'AbortError') {
+//             try { await navigator.clipboard.writeText(url); Toast.success('Link copied!'); }
+//             catch { Toast.error('Could not share event'); }
+//         }
+//     }
+// };
 
 const LiveDot = memo(({ color = BRAND }) => (
     <span className="relative inline-flex shrink-0 w-2 h-2">

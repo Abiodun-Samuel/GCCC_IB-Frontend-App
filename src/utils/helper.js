@@ -331,3 +331,42 @@ export const generateInitials = (name, maxInitials = 2) => {
     .slice(0, maxInitials) // Limit to maxInitials
     .join('');
 };
+
+export const buildShareText = (event, url) => {
+  const lines = [`${event.title}`];
+
+  if (event.description) {
+    lines.push(`\n${event.description}`);
+  }
+
+  const links = [];
+  if (event.has_streaming && event.video_streaming_link) {
+    links.push(`Watch Live: ${event.video_streaming_link}`);
+  }
+  if (event.has_streaming && event.audio_streaming_link) {
+    links.push(`Listen Live: ${event.audio_streaming_link}`);
+  }
+  if (event.is_registration_open && event.registration_link) {
+    links.push(`Register: ${event.registration_link}`);
+  }
+  if (links.length) {
+    lines.push(`\n${links.join('\n')}`);
+  }
+
+  // lines.push(`\n ${url}`);
+  return lines.join('\n');
+};
+
+export const fetchEventImageFile = async (imageUrl) => {
+  if (!imageUrl) return null;
+  try {
+    const res = await fetch(imageUrl, { mode: 'cors' });
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    const ext = blob.type?.split('/')[1]?.split('+')[0] || 'jpg';
+    const base = imageUrl.split('/').pop()?.split('?')[0] || `event.${ext}`;
+    return new File([blob], base, { type: blob.type || 'image/jpeg' });
+  } catch {
+    return null;
+  }
+};
