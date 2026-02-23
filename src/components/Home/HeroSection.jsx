@@ -330,11 +330,9 @@ const HeroSection = () => {
                                 </div>
                             </div>
                         )}
-
                         {/* Mobile */}
                         {isMobile && isSpread && <MobileMasonry />}
                     </div>
-
                 </div>
             </div>
         </section>
