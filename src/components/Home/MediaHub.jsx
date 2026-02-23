@@ -177,7 +177,7 @@ const SocialChip = memo(({ href, icon: Icon, label, colorRGB }) => (
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="group flex items-center gap-2 px-4 py-2 rounded-full transition-transform duration-150 hover:scale-105 active:scale-95"
+        className="group flex items-center justify-center gap-2 p-2 rounded-full transition-transform duration-150 hover:scale-105 active:scale-95"
         style={{
             background: `rgba(${colorRGB},0.10)`,
             border: `1px solid rgba(${colorRGB},0.22)`,
@@ -193,7 +193,7 @@ const SocialChip = memo(({ href, icon: Icon, label, colorRGB }) => (
         }}
     >
         <Icon size={14} strokeWidth={2} />
-        <span className="text-sm font-semibold tracking-wide">{label}</span>
+        <span className="text-xs sm:text-sm font-semibold tracking-wide">{label}</span>
         <ExternalLink size={11} className="opacity-0 group-hover:opacity-70 transition-opacity duration-200" />
     </a>
 ));
@@ -348,7 +348,7 @@ const PageHeader = memo(() => (
                 Watch services, dive into teachings, and listen to our podcast wherever you are.
             </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2.5 sm:pb-1 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 sm:pb-1 shrink-0">
             <SocialChip href="https://www.youtube.com/@GcccIbadan" icon={Youtube} label="YouTube" colorRGB="220,38,38" />
             <SocialChip href="https://t.me/Pastoropeyemipeter" icon={Send} label="Telegram" colorRGB="0,136,204" />
             <SocialChip href="https://open.spotify.com/show/5yc39lH1EtNRoUQb1mG7SY" icon={Music2} label="Podcast" colorRGB="29,185,84" />
