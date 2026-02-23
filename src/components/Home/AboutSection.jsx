@@ -75,8 +75,8 @@ const SectionLabel = memo(() => (
             </span>
         </div>
         <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white leading-tight tracking-tight">
-            A Church Built on{' '}
-            <span style={{ color: C.primary }}>Purpose</span>
+            A Family{' '}
+            <span style={{ color: C.primary }}>on Mission </span>
         </h2>
         <p className="text-base text-gray-500 dark:text-gray-400 leading-relaxed max-w-lg">
             More than a gathering, a family of believers committed to the Word, the Spirit, and one another.
