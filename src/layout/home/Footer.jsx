@@ -222,9 +222,10 @@ const SOCIAL_LINKS = [
 
 const QUICK_LINKS = [
     { name: 'About Us', href: '#about', isHash: true },
-    { name: 'Our Services', href: '#services', isHash: true },
-    { name: 'Forms', href: '/forms', isHash: false },
+    { name: 'Events', href: '#events', isHash: true },
+    { name: 'Media', href: '#media', isHash: true },
     { name: 'Contact', href: '#contact', isHash: true },
+    { name: 'Forms', href: '/forms', isHash: false },
 ];
 
 const ICON_BASE = { background: `rgba(${BRAND_RGB},0.11)`, border: `1px solid rgba(${BRAND_RGB},0.18)` };
