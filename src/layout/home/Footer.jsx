@@ -93,7 +93,7 @@ const LiveGlobe = memo(() => {
         >
             {(!ready || size === 0) && (
                 <div className="absolute inset-0 flex items-center justify-center z-10" aria-label="Loading globe">
-                    <div className="w-10 h-10 rounded-full border-2 border-white/10 animate-spin" style={{ borderTopColor: BRAND }} />
+                    {''}  <div className="w-10 h-10 rounded-full border-2 border-white/10 animate-spin" style={{ borderTopColor: BRAND }} />
                 </div>
             )}
             {size > 0 && (
@@ -448,11 +448,11 @@ const Footer = () => {
                 </div>
 
                 {/* ── Subtle divider — no hard background break ── */}
-                <div
+                {/* <div
                     className="mx-auto w-full container px-4 sm:px-6 lg:px-8"
                     style={{ height: '1px', background: `linear-gradient(90deg, transparent, rgba(${BRAND_RGB},0.12) 30%, rgba(${BRAND_RGB},0.12) 70%, transparent)` }}
                     aria-hidden
-                />
+                /> */}
 
                 {/* ── Footer links ── */}
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">

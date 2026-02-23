@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import {
     Home, Calendar, Users, LogIn, User, LayoutDashboard,
     ChevronDown, Menu, X, Clock, Star, FileText, LogOut, Video,
+    MapPin,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { useLogout, useMe } from '@/queries/auth.query';
@@ -114,6 +115,7 @@ const Header = () => {
         { label: 'About', icon: Users, href: '#about' },
         { label: 'Events', icon: Calendar, href: '#events' },
         { label: 'Media', icon: Video, href: '#media' },
+        { label: 'Contact', icon: MapPin, href: '#contact' },
         { label: 'Forms', icon: FileText, to: '/forms' },
     ], []);
 

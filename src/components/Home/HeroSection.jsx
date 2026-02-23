@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, memo, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
 // ─── Constants outside component — never re-created ───────────────────────────
@@ -14,17 +15,14 @@ const SPACING = {
     bottomPadding: 'pb-16 sm:pb-10 lg:pb-5',
 };
 
-// Full image pool
 const ALL_IMAGES = Array.from({ length: 10 }, (_, i) => ({
     id: i + 1,
     url: `/images/home/hero/hero${i + 1}.jpg`,
     alt: `Church image ${i + 1}`,
 }));
 
-// Fixed 7 images — deterministic, no randomness, stable across every render/reload
 const SELECTED_IMAGES = ALL_IMAGES.slice(0, 7);
 
-// Framer Motion transitions — defined once, shared
 const CARD_TRANSITION = { duration: 0.6, ease: [0.22, 1, 0.36, 1] };
 const HOVER_TRANSITION = { duration: 0.2 };
 
@@ -42,7 +40,7 @@ const CardCornerAccents = memo(() => (
 ));
 CardCornerAccents.displayName = 'CardCornerAccents';
 
-// ─── useBreakpoint: matchMedia — far cheaper than resize listeners ─────────────
+// ─── useBreakpoint ─────────────────────────────────────────────────────────────
 const MQ_MOBILE = '(max-width: 639px)';
 const MQ_TABLET = '(min-width: 640px) and (max-width: 1023px)';
 
@@ -56,7 +54,6 @@ function useBreakpoint() {
         const mqMobile = window.matchMedia(MQ_MOBILE);
         const mqTablet = window.matchMedia(MQ_TABLET);
         const handler = () => setBp({ isMobile: mqMobile.matches, isTablet: mqTablet.matches });
-
         mqMobile.addEventListener('change', handler);
         mqTablet.addEventListener('change', handler);
         return () => {
@@ -277,10 +274,22 @@ const HeroSection = () => {
 
                     {/* CTA */}
                     <motion.div {...fadeUp(0.8)} className="text-center">
-                        <button className="group inline-flex items-center justify-center gap-2 px-8 sm:px-10 py-3.5 sm:py-4 lg:py-3.5 bg-[#0998d5] text-white font-semibold text-sm sm:text-base lg:text-sm shadow hover:bg-[#0886bd] transition-colors duration-200">
+                        <Link
+                            to="/#contact"
+                            onClick={e => {
+                                // If already on the home page, smooth-scroll instead of navigating
+                                const el = document.getElementById('contact');
+                                if (el) {
+                                    e.preventDefault();
+                                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                    window.history.pushState(null, '', '/#contact');
+                                }
+                            }}
+                            className="group inline-flex items-center justify-center gap-2 px-8 sm:px-10 py-3.5 sm:py-4 lg:py-3.5 bg-[#0998d5] text-white font-semibold text-sm sm:text-base lg:text-sm shadow hover:bg-[#0886bd] transition-colors duration-200"
+                        >
                             <span>Join Our Community</span>
                             <ArrowRight className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" />
-                        </button>
+                        </Link>
                     </motion.div>
 
                     <div className={SPACING.imagesPadding} />

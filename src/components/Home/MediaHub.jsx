@@ -567,6 +567,7 @@ const MediaHub = () => {
 
     return (
         <section
+            id='media'
             className={`relative overflow-hidden w-full ${SECTION_SPACING}`}
             style={{ backgroundColor: PAGE_BG }}
         >
