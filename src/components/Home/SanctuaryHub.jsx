@@ -26,33 +26,24 @@ import animationData from '../../../src/utils/animation.json';
 
 import {
     Calendar, Clock, Send, Mail,
-    Cake, Gift, Church,
+    Cake, Gift,
     Timer, CheckCircle2, Youtube, Radio,
     LogIn, MapPin, Share2, Wifi, UserCheck, AlertCircle, Zap,
-    ExternalLink, Mic, Video, CalendarClock, UserPlus, AlarmClock,
+    Mic, Video, CalendarClock, UserPlus,
     ArrowRight,
 } from 'lucide-react';
 import AnimatedBackground, { BRAND, BRAND_RGB, PAGE_BG } from '@/components/common/AnimatedBackground';
 import { SECTION_SPACING } from '@/utils/constant';
 import { HandIcon } from '@/icons';
 
+// ─── Design Tokens ────────────────────────────────────────────────────────────
+
 const TEAL = '#07c4b8';
 const SKY = '#38bdf8';
 const TEAL_RGB = '7,196,184';
 const SKY_RGB = '56,189,248';
 
-const cardShell = () => ({
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.09)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-});
-
-const glassInner = (alpha = 0.07) => ({
-    background: `rgba(255,255,255,${alpha})`,
-    backdropFilter: 'blur(10px)',
-    WebkitBackdropFilter: 'blur(10px)',
-});
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const ATTENDANCE_SOURCES = { ONLINE: 'online', ONSITE: 'onsite' };
 const SERVICE_STATUS = { UPCOMING: 'upcoming', ONGOING: 'ongoing', ENDED: 'ended' };
@@ -76,123 +67,22 @@ const STATUS_META = {
     [SERVICE_STATUS.ENDED]: { label: 'Ended', color: '#94a3b8', Icon: null },
 };
 
-const HUB_CSS = `
-  @keyframes hub-ripple {
-    0%   { transform:scale(1);   opacity:.55; }
-    100% { transform:scale(2.6); opacity:0;   }
-  }
-  @keyframes hub-glow {
-    0%,100% { opacity:.28; }
-    50%     { opacity:.72; }
-  }
-  @keyframes hub-scale-in {
-    0%   { transform: scale(0);    opacity: 0; }
-    65%  { transform: scale(1.08); opacity: 1; }
-    100% { transform: scale(1);    opacity: 1; }
-  }
-  .hub-scale-in {
-    animation: hub-scale-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-  @keyframes hub-tab-in {
-    from { opacity: 0; transform: translateY(5px); }
-    to   { opacity: 1; transform: translateY(0);   }
-  }
-  .hub-tab-in { animation: hub-tab-in 0.18s ease-out both; }
-  @keyframes hub-fade-in {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-  .hub-fade-in { animation: hub-fade-in 0.22s ease-out both; }
-  .hub-scroll::-webkit-scrollbar       { width:3px; }
-  .hub-scroll::-webkit-scrollbar-track { background:transparent; }
-  .hub-scroll::-webkit-scrollbar-thumb {
-    background: rgba(${BRAND_RGB},.30);
-    border-radius: 99px;
-  }
-  .hub-ripple-ring { animation: hub-ripple 1.6s ease-out infinite; }
-  .ev-card {
-    transition: transform .26s cubic-bezier(.22,1,.36,1),
-                box-shadow .26s ease,
-                border-color .26s ease;
-  }
-  .ev-card:hover {
-    transform: translateY(-3px);
-    border-color: rgba(${BRAND_RGB},.28) !important;
-    box-shadow: 0 18px 52px rgba(0,0,0,.40), 0 0 0 1px rgba(${BRAND_RGB},.12);
-  }
-  .hub-celeb-btn {
-    transition: transform .15s ease, opacity .15s ease;
-  }
-  .hub-celeb-btn:hover  { transform: scale(1.03); opacity: .92; }
-  .hub-celeb-btn:active { transform: scale(0.97); }
+// ─── Style helpers ────────────────────────────────────────────────────────────
 
-  /* ── CLS FIXES ─────────────────────────────────────────────────────────── */
+const cardShell = () => ({
+    background: 'rgba(255,255,255,0.05)',
+    border: '1px solid rgba(255,255,255,0.09)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+});
 
-  /*
-   * FIX 1 — AOS FOUC GUARD
-   * Prevent elements from flickering invisible before AOS.init() fires in
-   * React's useEffect. Without this, elements briefly show at full opacity
-   * then snap to opacity:0 while the script initialises.
-   */
-  html:not(.aos-running) [data-aos] {
-    opacity: 1 !important;
-    transform: none !important;
-    pointer-events: auto !important;
-  }
+const glassInner = (alpha = 0.07) => ({
+    background: `rgba(255,255,255,${alpha})`,
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
+});
 
-  /*
-   * FIX 2 — LOTTIE WRAPPER
-   * Give every Lottie container an explicit intrinsic size so the DOM node
-   * never collapses to 0×0 while the animation JSON is being parsed and the
-   * canvas is being sized, which shifts surrounding siblings.
-   */
-  .hub-lottie-wrap {
-    width: 190px;
-    height: 190px;
-    flex-shrink: 0;
-    position: relative;
-  }
-
-  /*
-   * FIX 3 — SERVICE RAIL BODY RESERVATION
-   * Reserve the tallest possible content height (ClockInButton + labels
-   * ≈ 340 px) so swapping between Loading / Countdown / ClockIn /
-   * AttendanceRecorded / ServiceEnded never collapses the rail and shunts
-   * the EventPanel up or down on mobile.
-   */
-  .hub-service-body {
-    min-height: 340px;
-  }
-
-  /*
-   * FIX 4 — EVENT CARD RESERVATION
-   * The skeleton renders 180 px image + ~140 px body = ~320 px minimum.
-   * The real card can be taller, but never shorter, so locking min-height
-   * to the skeleton's computed height stops the upward jump when content
-   * arrives.
-   */
-  .hub-event-card-shell {
-    min-height: 320px;
-  }
-
-  @media (prefers-reduced-motion:reduce) {
-    .hub-ripple-ring  { animation:none!important; }
-    .hub-scale-in     { animation:none!important; }
-    .hub-tab-in       { animation:none!important; }
-    .hub-fade-in      { animation:none!important; }
-    .hub-celeb-btn:hover { transform:none; }
-    .ev-card:hover    { transform:none; }
-  }
-`;
-
-let _injected = false;
-const injectHubCss = () => {
-    if (_injected || typeof document === 'undefined') return;
-    const s = document.createElement('style');
-    s.textContent = HUB_CSS;
-    document.head.appendChild(s);
-    _injected = true;
-};
+// ─── Utilities ────────────────────────────────────────────────────────────────
 
 const fmtShortDate = (date) =>
     date ? new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
@@ -211,49 +101,22 @@ const doShare = async (event) => {
     const url = `${window.location.origin}/events/${event.id}`;
     const richText = buildShareText(event, url);
 
-    // ── Tier 1: native share with image ─────────────────────────────────────
     if (typeof navigator.share === 'function') {
-        // Attempt to attach the event image as a shareable file
         const imageFile = await fetchEventImageFile(event.image);
-
         if (imageFile) {
-            const payloadWithFile = {
-                title: event.title,
-                text: richText,
-                files: [imageFile],
-                // NOTE: some browsers reject `url` alongside `files`; the URL
-                // is already embedded in `richText` so omitting it here is safe.
-            };
-
+            const payloadWithFile = { title: event.title, text: richText, files: [imageFile] };
             if (navigator.canShare?.(payloadWithFile)) {
-                try {
-                    await navigator.share(payloadWithFile);
-                    return; // success — done
-                } catch (err) {
-                    if (err?.name === 'AbortError') return; // user cancelled
-                    // Any other error → fall through to Tier 2
-                }
+                try { await navigator.share(payloadWithFile); return; }
+                catch (err) { if (err?.name === 'AbortError') return; }
             }
         }
-
-        // ── Tier 2: native share, text + url only ───────────────────────────
-        const payloadTextOnly = {
-            title: event.title,
-            text: richText,
-            url,
-        };
-
+        const payloadTextOnly = { title: event.title, text: richText, url };
         if (navigator.canShare?.(payloadTextOnly) ?? true) {
-            try {
-                await navigator.share(payloadTextOnly);
-                return; // success — done
-            } catch (err) {
-                if (err?.name === 'AbortError') return; // user cancelled
-            }
+            try { await navigator.share(payloadTextOnly); return; }
+            catch (err) { if (err?.name === 'AbortError') return; }
         }
     }
 
-    // ── Tier 3: clipboard fallback ───────────────────────────────────────────
     try {
         await navigator.clipboard.writeText(richText);
         Toast.success('Event details copied!');
@@ -262,28 +125,39 @@ const doShare = async (event) => {
     }
 };
 
-// const doShare = async (event) => {
-//     const url = `${window.location.origin}/events/${event.id}`;
-//     const data = { title: event.title, text: event.description || `Join us — ${event.title}`, url };
-//     try {
-//         if (navigator.share && navigator.canShare?.(data)) {
-//             await navigator.share(data);
-//         } else {
-//             await navigator.clipboard.writeText(url);
-//             Toast.success('Link copied!');
-//         }
-//     } catch (err) {
-//         if (err?.name !== 'AbortError') {
-//             try { await navigator.clipboard.writeText(url); Toast.success('Link copied!'); }
-//             catch { Toast.error('Could not share event'); }
-//         }
-//     }
-// };
+// ─── SectionHeader ────────────────────────────────────────────────────────────
+
+const SectionHeader = memo(({ eyebrow, titleWhite, titleBlue, subtitle }) => (
+    <div data-aos="fade" data-aos-duration="380" className="flex flex-col gap-3 mb-16 sm:mb-24">
+        {eyebrow && (
+            <div className="flex items-center gap-2.5">
+                <div className="w-5 h-0.5 rounded-full shrink-0" style={{ background: BRAND }} />
+                <span
+                    className="text-[10px] font-black uppercase tracking-[0.24em]"
+                    style={{ color: BRAND }}
+                >
+                    {eyebrow}
+                </span>
+            </div>
+        )}
+        <h2 className="text-3xl sm:text-4xl font-bold text-white leading-tight tracking-tight">
+            {titleWhite && <span>{titleWhite} </span>}
+            {titleBlue && <span style={{ color: BRAND }}>{titleBlue}</span>}
+        </h2>
+        {subtitle && (
+            <p className="text-base text-white/40 leading-relaxed max-w-lg">
+                {subtitle}
+            </p>
+        )}
+    </div>
+));
+SectionHeader.displayName = 'Hub.SectionHeader';
+
+// ─── Shared atoms ─────────────────────────────────────────────────────────────
 
 const LiveDot = memo(({ color = BRAND }) => (
     <span className="relative inline-flex shrink-0 w-2 h-2">
-        <span className="absolute inset-0 rounded-full hub-ripple-ring"
-            style={{ backgroundColor: color }} />
+        <span className="absolute inset-0 rounded-full hub-ripple-ring" style={{ backgroundColor: color }} />
         <span className="relative rounded-full w-2 h-2" style={{ backgroundColor: color }} />
     </span>
 ));
@@ -317,6 +191,9 @@ ServiceStatusPill.displayName = 'Hub.ServiceStatusPill';
 const SkeletonBlock = memo(({ className = '' }) => (
     <div className={`animate-pulse rounded-lg bg-white/5 ${className}`} />
 ));
+SkeletonBlock.displayName = 'Hub.SkeletonBlock';
+
+// ─── SendMessageModal ─────────────────────────────────────────────────────────
 
 const SendMessageModal = memo(({ isOpen, onClose, recipient }) => {
     const { mutateAsync, isPending } = useSendMessage();
@@ -337,8 +214,8 @@ const SendMessageModal = memo(({ isOpen, onClose, recipient }) => {
             onClose();
             reset();
             Toast.success(`Message sent to ${recipient?.first_name}!`);
-        } catch (error) { }
-    }, [recipient, mutateAsync, isPending, reset, onClose]);
+        } catch { }
+    }, [recipient, mutateAsync, reset, onClose]);
 
     return (
         <Modal
@@ -368,10 +245,11 @@ const SendMessageModal = memo(({ isOpen, onClose, recipient }) => {
 });
 SendMessageModal.displayName = 'Hub.SendMessageModal';
 
+// ─── Celebrations ─────────────────────────────────────────────────────────────
+
 const CelebRow = memo(({ person, type, anniversary, onWish }) => {
     const name = `${person.first_name} ${person.last_name}`;
     const isBday = type === 'birthday';
-
     const subLine = isBday
         ? dayjs(person.date_of_birth).format('MMMM D')
         : [
@@ -397,15 +275,6 @@ const CelebRow = memo(({ person, type, anniversary, onWish }) => {
 });
 CelebRow.displayName = 'Hub.CelebRow';
 
-/*
- * FIX 5 — NO AOS INSIDE MODAL OVERFLOW CONTAINERS
- * AOS relies on IntersectionObserver against the viewport root. Items inside
- * `overflow: hidden / auto` containers (like the modal's max-h scroll area)
- * are never detected as "in view", so they stay at opacity:0 indefinitely or
- * fire all at once causing a visual pop. The hub-tab-in CSS animation on
- * TabPanel already handles the smooth entrance of the whole list panel.
- * Individual row stagger is removed to eliminate the per-row pop-in jump.
- */
 const BirthdayEntry = memo(({ person }) => {
     const { isOpen, openModal, closeModal } = useModal();
     return (
@@ -436,20 +305,13 @@ const PersonAnniversaryEntries = memo(({ person, startIdx }) =>
 PersonAnniversaryEntries.displayName = 'Hub.PersonAnniversaryEntries';
 
 const TabPanel = memo(({ tabKey, children }) => (
-    <div
-        key={tabKey}
-        className="hub-tab-in divide-y divide-gray-100 dark:divide-gray-700/60 max-h-[55vh] overflow-y-auto hub-scroll"
-    >
+    <div key={tabKey} className="hub-tab-in divide-y divide-gray-100 dark:divide-gray-700/60 max-h-[55vh] overflow-y-auto hub-scroll">
         {children}
     </div>
 ));
 TabPanel.displayName = 'Hub.TabPanel';
 
-const CelebrationsModal = memo(({
-    isOpen, onClose,
-    birthdayList, anniversaryList,
-    hasBirthdays, hasAnniversaries,
-}) => {
+const CelebrationsModal = memo(({ isOpen, onClose, birthdayList, anniversaryList, hasBirthdays, hasAnniversaries }) => {
     const totalB = birthdayList.length;
     const totalA = anniversaryList.reduce((s, p) => s + (p.anniversaries?.length || 0), 0);
     const grand = totalB + totalA;
@@ -520,77 +382,80 @@ const CelebrationsModal = memo(({
 });
 CelebrationsModal.displayName = 'Hub.CelebrationsModal';
 
+// ─── PageHeader ───────────────────────────────────────────────────────────────
+
 const PageHeader = memo(({ user, isAuthenticated, totalCelebrations, isCoreLoading, onCelebrations }) => {
     const today = dayjs();
 
     return (
-        /*
-         * FIX 6 — OPACITY-ONLY ENTRANCE (no translate)
-         * The original data-aos="fade-down" applied translateY(-30px) before
-         * animating in. On mobile this pushed the entire header above the
-         * viewport edge, then it slid down and visually shunted the content
-         * grid. Switching to data-aos="fade" uses opacity only — no
-         * positional shift, no downstream jump.
-         */
-        <header
-            data-aos="fade"
-            data-aos-duration="380"
-            className="flex items-center justify-between gap-3"
-        >
-            <div className="flex items-center gap-3">
-                <div
-                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex flex-col items-center justify-center shrink-0 select-none"
-                    style={{ background: `rgba(${BRAND_RGB},0.10)`, border: `1px solid rgba(${BRAND_RGB},0.18)` }}
-                >
-                    <span className="text-[7px] font-black uppercase tracking-widest leading-none" style={{ color: BRAND }}>
-                        {today.format('MMM')}
-                    </span>
-                    <span className="text-base font-black text-white leading-tight">{today.format('D')}</span>
-                </div>
-                <div>
-                    <p className="text-sm sm:text-base font-bold text-white leading-tight">{today.format('dddd')}</p>
-                    <p className="text-[10px] sm:text-xs text-white/35">{today.format('MMMM D, YYYY')}</p>
-                </div>
-            </div>
+        <div className="flex flex-col gap-6">
+            {/* Section title */}
+            <SectionHeader
+                eyebrow="GCCCC · Ibadan"
+                titleWhite="Services &"
+                titleBlue="Events"
+                subtitle="Mark attendance, view upcoming events, and celebrate milestones together."
+            />
 
-            <div className="flex items-center gap-2 sm:gap-3">
-                {isAuthenticated && (
-                    <button
-                        onClick={onCelebrations}
-                        aria-label="View today's celebrations"
-                        className="hub-celeb-btn flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-white"
-                        style={{
-                            background: `linear-gradient(135deg, rgba(${BRAND_RGB},0.24), rgba(${TEAL_RGB},0.16))`,
-                            border: `1px solid rgba(${BRAND_RGB},0.28)`,
-                        }}
+            {/* Date bar + actions */}
+            <header data-aos="fade" data-aos-duration="380" className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                    <div
+                        className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex flex-col items-center justify-center shrink-0 select-none"
+                        style={{ background: `rgba(${BRAND_RGB},0.10)`, border: `1px solid rgba(${BRAND_RGB},0.18)` }}
                     >
-                        {isCoreLoading
-                            ? <div className="w-3.5 h-3.5 rounded-full border-2 border-white/25 border-t-white/80 animate-spin" />
-                            : <Cake className='hidden sm:block' size={13} style={{ color: '#93c5fd' }} />
-                        }
-                        <span style={{ color: '#93c5fd' }}>Celebrations</span>
-                        {!isCoreLoading && totalCelebrations > 0 && (
-                            <span
-                                className="flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-black shrink-0"
-                                style={{ background: BRAND, color: '#fff' }}
-                            >
-                                {totalCelebrations > 9 ? '9+' : totalCelebrations}
-                            </span>
-                        )}
-                    </button>
-                )}
-                {user && (
-                    <Avatar
-                        src={user.avatar}
-                        name={generateInitials(`${user.first_name || ''} ${user.last_name || ''}`)}
-                        size="sm"
-                    />
-                )}
-            </div>
-        </header>
+                        <span className="text-[7px] font-black uppercase tracking-widest leading-none" style={{ color: BRAND }}>
+                            {today.format('MMM')}
+                        </span>
+                        <span className="text-base font-black text-white leading-tight">{today.format('D')}</span>
+                    </div>
+                    <div>
+                        <p className="text-sm sm:text-base font-bold text-white leading-tight">{today.format('dddd')}</p>
+                        <p className="text-[10px] sm:text-xs text-white/35">{today.format('MMMM D, YYYY')}</p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2 sm:gap-3">
+                    {isAuthenticated && (
+                        <button
+                            onClick={onCelebrations}
+                            aria-label="View today's celebrations"
+                            className="hub-celeb-btn flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-white"
+                            style={{
+                                background: `linear-gradient(135deg, rgba(${BRAND_RGB},0.24), rgba(${TEAL_RGB},0.16))`,
+                                border: `1px solid rgba(${BRAND_RGB},0.28)`,
+                            }}
+                        >
+                            {isCoreLoading
+                                ? <div className="w-3.5 h-3.5 rounded-full border-2 border-white/25 border-t-white/80 animate-spin" />
+                                : <Cake className="hidden sm:block" size={13} style={{ color: '#93c5fd' }} />
+                            }
+                            <span style={{ color: '#93c5fd' }}>Celebrations</span>
+                            {!isCoreLoading && totalCelebrations > 0 && (
+                                <span
+                                    className="flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-black shrink-0"
+                                    style={{ background: BRAND, color: '#fff' }}
+                                >
+                                    {totalCelebrations > 9 ? '9+' : totalCelebrations}
+                                </span>
+                            )}
+                        </button>
+                    )}
+                    {user && (
+                        <Avatar
+                            src={user.avatar}
+                            name={generateInitials(`${user.first_name || ''} ${user.last_name || ''}`)}
+                            size="sm"
+                        />
+                    )}
+                </div>
+            </header>
+        </div>
     );
 });
 PageHeader.displayName = 'Hub.PageHeader';
+
+// ─── Service Rail ─────────────────────────────────────────────────────────────
 
 const StateIconCircle = memo(({ icon: Icon, iconSize = 50, style = {} }) => (
     <div
@@ -616,6 +481,7 @@ const TimeUnit = memo(({ value, label }) => (
         <span className="text-[8px] font-bold uppercase tracking-widest text-white/28">{label}</span>
     </div>
 ));
+TimeUnit.displayName = 'Hub.TimeUnit';
 
 const CountdownTimer = memo(({ secondsUntilStart, onRefresh }) => {
     const [left, setLeft] = useState(secondsUntilStart || 0);
@@ -681,14 +547,6 @@ const ClockInButton = memo(({ onClockIn, isPending }) => (
                         }}
                     />
                 ))}
-                {/*
-                 * FIX 7 — STABLE INITIAL SCALE ON CLOCK-IN BUTTON
-                 * The original initial={{ scale: 0.88 }} caused the 150×150
-                 * HandIcon button to render at ~132px on first paint, then
-                 * animate up to 1.05× — the size jump was visible and shifted
-                 * surrounding text labels downward. Starting at scale:1 means
-                 * the layout is stable on first paint; the pulse still runs.
-                 */}
                 <motion.button
                     onClick={onClockIn}
                     disabled={isPending}
@@ -710,13 +568,6 @@ const ClockInButton = memo(({ onClockIn, isPending }) => (
                 </motion.button>
             </div>
         ) : (
-            /*
-             * FIX 8 — EXPLICIT LOTTIE WRAPPER DIMENSIONS
-             * Lottie mounts asynchronously. Without a fixed-size wrapper the
-             * container collapses to 0×0 then expands to 190×190 once the
-             * canvas is ready — a classic CLS source. The hub-lottie-wrap
-             * class reserves 190×190 before the canvas paints.
-             */
             <div className="hub-lottie-wrap">
                 <div
                     className="absolute inset-0 blur-3xl rounded-full pointer-events-none"
@@ -736,14 +587,8 @@ ClockInButton.displayName = 'Hub.ClockInButton';
 const AttendanceRecordedState = memo(({ attendance }) => (
     <div className="hub-fade-in flex flex-col items-center gap-5">
         <div className="relative w-24 h-24 hub-scale-in">
-            <div
-                className="absolute inset-0 rounded-full blur-2xl pointer-events-none"
-                style={{ background: `rgba(${BRAND_RGB},0.22)` }}
-            />
-            <div
-                className="relative z-10 w-24 h-24 rounded-full flex items-center justify-center"
-                style={glassInner(0.10)}
-            >
+            <div className="absolute inset-0 rounded-full blur-2xl pointer-events-none" style={{ background: `rgba(${BRAND_RGB},0.22)` }} />
+            <div className="relative z-10 w-24 h-24 rounded-full flex items-center justify-center" style={glassInner(0.10)}>
                 <CheckCircle2 size={50} style={{ color: BRAND }} strokeWidth={1.4} />
             </div>
         </div>
@@ -791,16 +636,14 @@ ServiceEndedState.displayName = 'Hub.ServiceEndedState';
 const RecapLinks = memo(() => (
     <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-2">
         <a
-            href="https://www.youtube.com/@GcccIbadan"
-            target="_blank" rel="noopener noreferrer"
+            href="https://www.youtube.com/@GcccIbadan" target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold text-white hover:opacity-85 active:scale-95 transition-all"
             style={{ background: '#cc0000' }}
         >
             <Youtube size={13} />Watch Recap
         </a>
         <a
-            href="https://t.me/Pastoropeyemipeter"
-            target="_blank" rel="noopener noreferrer"
+            href="https://t.me/Pastoropeyemipeter" target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold text-white hover:opacity-85 active:scale-95 transition-all"
             style={{ background: `rgba(${BRAND_RGB},0.26)`, border: `1px solid rgba(${BRAND_RGB},0.36)` }}
         >
@@ -808,6 +651,7 @@ const RecapLinks = memo(() => (
         </a>
     </div>
 ));
+RecapLinks.displayName = 'Hub.RecapLinks';
 
 const NoServiceContent = memo(() => (
     <div className="flex flex-col items-center gap-5">
@@ -819,21 +663,12 @@ const NoServiceContent = memo(() => (
             </p>
         </div>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
-            <Button
-                startIcon={<Youtube />}
-                endIcon={<ArrowRight size={14} />}
-                variant='danger'
-                href="https://www.youtube.com/@GcccIbadan"
-                target="_blank" rel="noopener noreferrer"
-            >
+            <Button startIcon={<Youtube />} endIcon={<ArrowRight size={14} />} variant="danger"
+                href="https://www.youtube.com/@GcccIbadan" target="_blank" rel="noopener noreferrer">
                 Watch on YouTube
             </Button>
-            <Button
-                endIcon={<ArrowRight size={14} />}
-                startIcon={<Radio />}
-                href="https://t.me/Pastoropeyemipeter"
-                target="_blank" rel="noopener noreferrer"
-            >
+            <Button endIcon={<ArrowRight size={14} />} startIcon={<Radio />}
+                href="https://t.me/Pastoropeyemipeter" target="_blank" rel="noopener noreferrer">
                 Telegram
             </Button>
         </div>
@@ -851,7 +686,7 @@ const UnauthContent = memo(() => (
             </p>
         </div>
         <Button
-            href={'/login'}
+            href="/login"
             startIcon={<LogIn />}
             style={{
                 background: `linear-gradient(135deg, ${BRAND} 0%, ${TEAL} 100%)`,
@@ -866,12 +701,8 @@ UnauthContent.displayName = 'Hub.UnauthContent';
 
 const ServiceLoadingContent = memo(() => (
     <div className="flex flex-col items-center gap-4">
-        {/* FIX 8 applied here too — explicit wrapper prevents Lottie CLS */}
         <div className="hub-lottie-wrap">
-            <div
-                className="absolute inset-0 blur-3xl rounded-full pointer-events-none"
-                style={{ background: `rgba(${BRAND_RGB},0.14)` }}
-            />
+            <div className="absolute inset-0 blur-3xl rounded-full pointer-events-none" style={{ background: `rgba(${BRAND_RGB},0.14)` }} />
             <Lottie animationData={animationData} loop style={{ width: 190, height: 190 }} className="relative z-10" />
         </div>
         <p className="text-xs text-white/40">Loading service…</p>
@@ -893,12 +724,10 @@ const ServiceRail = memo(({
         switch (status) {
             case SERVICE_STATUS.UPCOMING:
                 return <CountdownTimer secondsUntilStart={secondsUntilStart || 0} onRefresh={onRefresh} />;
-
             case SERVICE_STATUS.ONGOING:
                 return showMarkedAttendance
                     ? <AttendanceRecordedState key="rec" attendance={attendance} />
                     : <ClockInButton key="btn" onClockIn={onClockIn} isPending={isPending} />;
-
             case SERVICE_STATUS.ENDED:
                 return (
                     <div className="flex flex-col items-center gap-5">
@@ -906,26 +735,13 @@ const ServiceRail = memo(({
                         <RecapLinks />
                     </div>
                 );
-
             default:
                 return <NoServiceContent />;
         }
     };
 
     return (
-        /*
-         * FIX 9 — OPACITY-ONLY ENTRANCE ON SERVICE RAIL
-         * Original data-aos="fade-right" shifted the entire rail ~30px right
-         * before sliding it in. On mobile (single column) this created a
-         * horizontal overflow flash and then the whole column jumped as the
-         * element settled. Pure fade keeps spatial position stable.
-         */
-        <aside
-            data-aos="fade"
-            data-aos-duration="480"
-            data-aos-delay="60"
-            className="relative flex flex-col h-full"
-        >
+        <aside data-aos="fade" data-aos-duration="480" data-aos-delay="60" className="relative flex flex-col h-full">
             <div
                 className="absolute pointer-events-none"
                 style={{
@@ -939,34 +755,20 @@ const ServiceRail = memo(({
                 style={{ borderLeft: `2px solid rgba(${BRAND_RGB},0.28)` }}
             >
                 <div className="flex flex-col gap-2">
-                    <p
-                        className="text-[9px] font-black uppercase tracking-[0.22em]"
-                        style={{ color: `rgba(${BRAND_RGB},0.55)` }}
-                    >
+                    <p className="text-[9px] font-black uppercase tracking-[0.22em]" style={{ color: `rgba(${BRAND_RGB},0.55)` }}>
                         Today's Service
                     </p>
                     <div className="flex items-start justify-between gap-3 flex-wrap">
                         <h2 className="text-xl sm:text-2xl font-black text-white leading-tight tracking-tight">
                             {isLoading && isAuthenticated ? '—' : (service?.name || 'GCCC Ibadan.')}
                         </h2>
-                        {isAuthenticated && !isLoading && status && (
-                            <ServiceStatusPill status={status} />
-                        )}
+                        {isAuthenticated && !isLoading && status && <ServiceStatusPill status={status} />}
                     </div>
                     {isAuthenticated && service?.description && !isLoading && (
-                        <p className="text-xs text-white/32 leading-relaxed max-w-[280px]">
-                            {service.description}
-                        </p>
+                        <p className="text-xs text-white/32 leading-relaxed max-w-[280px]">{service.description}</p>
                     )}
                 </div>
                 <div className="w-10 h-px my-5" style={{ background: `rgba(${BRAND_RGB},0.18)` }} />
-                {/*
-                 * FIX 3 APPLIED — hub-service-body reserves min-height so that
-                 * every content swap (Loading → Countdown → ClockIn →
-                 * AttendanceRecorded → ServiceEnded) happens inside a stable
-                 * bounding box. Without this the rail shrinks/grows on each
-                 * state change and shunts the EventPanel on mobile.
-                 */}
                 <div className="hub-service-body flex-1 flex flex-col items-center justify-center text-center">
                     {renderBody()}
                 </div>
@@ -975,6 +777,8 @@ const ServiceRail = memo(({
     );
 });
 ServiceRail.displayName = 'Hub.ServiceRail';
+
+// ─── Event Panel ──────────────────────────────────────────────────────────────
 
 const EventCardInner = memo(({ event }) => {
     const [imgError, setImgError] = useState(false);
@@ -985,13 +789,10 @@ const EventCardInner = memo(({ event }) => {
     const endTimeFmt = fmtTime24(event.end_time);
     const timeRange = endTimeFmt ? `${startTimeFmt} – ${endTimeFmt}` : startTimeFmt;
 
-    const startDateFmt = event.date;
     const endDateFmt = event.end_date
         ? new Date(event.end_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
         : null;
-    const dateRange = endDateFmt && endDateFmt !== startDateFmt
-        ? `${startDateFmt} – ${endDateFmt}`
-        : startDateFmt;
+    const dateRange = endDateFmt && endDateFmt !== event.date ? `${event.date} – ${endDateFmt}` : event.date;
 
     const regDeadlineFmt = event.registration_deadline
         ? new Date(event.registration_deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -1005,16 +806,11 @@ const EventCardInner = memo(({ event }) => {
         <div className="flex flex-col">
             <div className="relative overflow-hidden bg-white/5 rounded-t-2xl" style={{ height: 180 }}>
                 {!imgError ? (
-                    <img
-                        src={event.image} alt={event.title}
-                        onError={() => setImgError(true)}
-                        className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-                    />
+                    <img src={event.image} alt={event.title} onError={() => setImgError(true)}
+                        className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" />
                 ) : (
-                    <div
-                        className="w-full h-full flex items-center justify-center"
-                        style={{ background: `linear-gradient(135deg, rgba(${BRAND_RGB},0.07), rgba(${TEAL_RGB},0.04))` }}
-                    >
+                    <div className="w-full h-full flex items-center justify-center"
+                        style={{ background: `linear-gradient(135deg, rgba(${BRAND_RGB},0.07), rgba(${TEAL_RGB},0.04))` }}>
                         <Calendar size={36} style={{ color: `rgba(${BRAND_RGB},0.22)` }} strokeWidth={1} />
                     </div>
                 )}
@@ -1023,19 +819,9 @@ const EventCardInner = memo(({ event }) => {
                 <div className="absolute top-4 left-4">
                     <span
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold backdrop-blur-sm"
-                        style={{
-                            background: `rgba(${cfg.colorRGB},0.18)`,
-                            border: `1px solid rgba(${cfg.colorRGB},0.32)`,
-                            color: cfg.color,
-                        }}
+                        style={{ background: `rgba(${cfg.colorRGB},0.18)`, border: `1px solid rgba(${cfg.colorRGB},0.32)`, color: cfg.color }}
                     >
-                        <span
-                            className="w-1.5 h-1.5 rounded-full shrink-0"
-                            style={{
-                                backgroundColor: cfg.color,
-                                ...(cfg.pulse && { animation: 'hub-ripple 1.6s ease-out infinite' }),
-                            }}
-                        />
+                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: cfg.color, ...(cfg.pulse && { animation: 'hub-ripple 1.6s ease-out infinite' }) }} />
                         {cfg.label}
                     </span>
                 </div>
@@ -1045,15 +831,12 @@ const EventCardInner = memo(({ event }) => {
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-white"
                         style={{ background: `rgba(${BRAND_RGB},0.65)`, backdropFilter: 'blur(6px)' }}
                     >
-                        <Clock size={10} />
-                        {timeRange}
+                        <Clock size={10} />{timeRange}
                     </span>
                 </div>
 
                 <div className="absolute bottom-0 left-0 right-0 px-5 pb-4">
-                    <h3 className="text-white font-bold text-lg sm:text-xl leading-tight line-clamp-2 drop-shadow">
-                        {event.title}
-                    </h3>
+                    <h3 className="text-white font-bold text-lg sm:text-xl leading-tight line-clamp-2 drop-shadow">{event.title}</h3>
                 </div>
             </div>
 
@@ -1076,75 +859,50 @@ const EventCardInner = memo(({ event }) => {
                 {(hasVideo || hasAudio || hasRegistration) && (
                     <div className="flex flex-wrap gap-2 pt-1 pb-1">
                         {hasVideo && (
-                            <a
-                                href={event.video_streaming_link}
-                                target="_blank" rel="noopener noreferrer"
+                            <a href={event.video_streaming_link} target="_blank" rel="noopener noreferrer"
                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:opacity-85 active:scale-95"
-                                style={{ background: '#cc000022', border: '1px solid #cc000055', color: '#f87171' }}
-                            >
+                                style={{ background: '#cc000022', border: '1px solid #cc000055', color: '#f87171' }}>
                                 <Video size={11} />Watch Live
                             </a>
                         )}
                         {hasAudio && (
-                            <a
-                                href={event.audio_streaming_link}
-                                target="_blank" rel="noopener noreferrer"
+                            <a href={event.audio_streaming_link} target="_blank" rel="noopener noreferrer"
                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:opacity-85 active:scale-95"
-                                style={{
-                                    background: `rgba(${TEAL_RGB},0.12)`,
-                                    border: `1px solid rgba(${TEAL_RGB},0.28)`,
-                                    color: TEAL,
-                                }}
-                            >
+                                style={{ background: `rgba(${TEAL_RGB},0.12)`, border: `1px solid rgba(${TEAL_RGB},0.28)`, color: TEAL }}>
                                 <Mic size={11} />Listen Live
                             </a>
                         )}
                         {hasRegistration && (
-                            <a
-                                href={event.registration_link}
-                                target="_blank" rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:opacity-85 active:scale-95"
-                            >
+                            <a href={event.registration_link} target="_blank" rel="noopener noreferrer"
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:opacity-85 active:scale-95">
                                 <UserPlus size={11} />Register
-                                {regDeadlineFmt && (
-                                    <span className="text-white/30 font-normal">· {regDeadlineFmt}</span>
-                                )}
+                                {regDeadlineFmt && <span className="text-white/30 font-normal">· {regDeadlineFmt}</span>}
                             </a>
                         )}
                     </div>
                 )}
 
-                <div
-                    className="flex items-center justify-between gap-3 pt-2"
-                    style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
-                >
+                <div className="flex items-center justify-between gap-3 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
                     <div className="flex items-center gap-2 flex-wrap">
                         {event.has_streaming && (
-                            <span
-                                className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg"
-                                style={{ background: `rgba(${BRAND_RGB},0.14)`, color: '#7dd3fc' }}
-                            >
+                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg"
+                                style={{ background: `rgba(${BRAND_RGB},0.14)`, color: '#7dd3fc' }}>
                                 <Wifi size={10} />Streaming
                             </span>
                         )}
                         {event.is_registration_open && (
-                            <span
-                                className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg"
-                                style={{ background: 'rgba(52,211,153,0.14)', color: '#6ee7b7' }}
-                            >
+                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg"
+                                style={{ background: 'rgba(52,211,153,0.14)', color: '#6ee7b7' }}>
                                 <UserCheck size={10} />Open
                             </span>
                         )}
                         {!event.has_streaming && !event.is_registration_open && (
-                            <span
-                                className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg"
-                                style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.28)' }}
-                            >
+                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg"
+                                style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.28)' }}>
                                 <MapPin size={10} />In-person
                             </span>
                         )}
                     </div>
-
                     <button
                         onClick={handleShare}
                         className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all duration-200 hover:opacity-90 active:scale-95"
@@ -1167,23 +925,11 @@ const EventPanel = memo(({ event, isLoading, isError }) => {
     const isLive = event?.status === 'ongoing';
 
     return (
-        /*
-         * FIX 10 — OPACITY-ONLY ENTRANCE ON EVENT PANEL
-         * Original data-aos="fade-left" shifted the panel ~30px left before
-         * sliding it in. On mobile (single column, stacked below ServiceRail)
-         * this caused a visible horizontal overflow flash AND a vertical jump
-         * as the element entered from the side into a top-to-bottom flow.
-         */
-        <section
-            data-aos="fade"
-            data-aos-duration="480"
-            data-aos-delay="100"
-            className="flex flex-col gap-4"
-        >
+        <section data-aos="fade" data-aos-duration="480" data-aos-delay="100" className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
                     <div
-                        className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                         style={{ background: `rgba(${BRAND_RGB},0.11)`, border: `1px solid rgba(${BRAND_RGB},0.16)` }}
                     >
                         <Zap size={14} style={{ color: BRAND }} />
@@ -1191,9 +937,7 @@ const EventPanel = memo(({ event, isLoading, isError }) => {
                     <div>
                         <h2 className="text-sm font-black text-white tracking-tight capitalize leading-tight">{event?.status} Event</h2>
                         {!isLoading && !isError && (
-                            <p className="text-[10px] text-white/28 mt-0.5">
-                                {!event ? 'Nothing scheduled' : event.date}
-                            </p>
+                            <p className="text-[10px] text-white/28 mt-0.5">{!event ? 'Nothing scheduled' : event.date}</p>
                         )}
                     </div>
                 </div>
@@ -1205,12 +949,6 @@ const EventPanel = memo(({ event, isLoading, isError }) => {
                 )}
             </div>
 
-            {/*
-              * FIX 4 APPLIED — hub-event-card-shell reserves min-height equal
-              * to the skeleton's rendered height (180px image + padding ≈ 320px).
-              * When real content arrives and the card grows taller, it expands
-              * downward — never upward — so nothing above it jumps.
-              */}
             <div className="ev-card hub-event-card-shell rounded-2xl overflow-hidden" style={cardShell()}>
                 {isLoading ? (
                     <div className="animate-pulse">
@@ -1253,60 +991,21 @@ const EventPanel = memo(({ event, isLoading, isError }) => {
 });
 EventPanel.displayName = 'Hub.EventPanel';
 
+// ─── Root ─────────────────────────────────────────────────────────────────────
+
 const SanctuaryHub = () => {
-    useMemo(injectHubCss, []);
-
     useEffect(() => {
-        /*
-         * FIX 1 APPLIED — Mark <html> with .aos-running BEFORE AOS.init()
-         * so the FOUC guard rule in HUB_CSS activates immediately, preventing
-         * the brief fully-visible flash → snap-to-invisible → animate-in
-         * sequence that made the page look like it was jumping on first load.
-         */
         document.documentElement.classList.add('aos-running');
-
-        AOS.init({
-            once: true,
-            /*
-             * duration/easing kept as authored — we only changed the animation
-             * TYPE (direction removed), not the timing.
-             */
-            duration: 400,
-            easing: 'ease-out-cubic',
-            offset: 40,
-            /*
-             * disableMutationObserver: false is the default but stated here
-             * explicitly so AOS picks up dynamically-inserted elements without
-             * needing a manual AOS.refresh() call after async data loads.
-             */
-            disableMutationObserver: false,
-        });
+        AOS.init({ once: true, duration: 400, easing: 'ease-out-cubic', offset: 40, disableMutationObserver: false });
     }, []);
 
     const [searchParams] = useSearchParams();
     const [celebOpen, setCelebOpen] = useState(false);
     const { user, isAuthenticated } = useAuthStore();
 
-    const {
-        data: serviceData,
-        isLoading: svcLoading,
-        isFetching: svcFetching,
-        isError: svcError,
-        refetch,
-    } = useTodaysService();
-
-    const {
-        data: coreData,
-        isLoading: coreLoading,
-        isFetching: coreFetching,
-    } = useCoreAppData();
-
-    const {
-        data: eventsData,
-        isLoading: eventsLoading,
-        isError: eventsError,
-    } = useClosestEvent();
-
+    const { data: serviceData, isLoading: svcLoading, isFetching: svcFetching, isError: svcError, refetch } = useTodaysService();
+    const { data: coreData, isLoading: coreLoading, isFetching: coreFetching } = useCoreAppData();
+    const { data: eventsData, isLoading: eventsLoading, isError: eventsError } = useClosestEvent();
     const { mutate, isPending, isSuccess } = useMarkAttendance();
 
     const { service, service_status, seconds_until_start, can_mark, attendance } = serviceData || {};
@@ -1320,9 +1019,7 @@ const SanctuaryHub = () => {
         + anniversary_list.reduce((s, p) => s + (p.anniversaries?.length || 0), 0);
 
     const todayEvent = eventsData?.data ?? null;
-
     const showMarkedAttendance = isSuccess || (serviceData && !can_mark && attendance);
-
     const isSvcLoading = isAuthenticated && (svcLoading || svcFetching || isPending);
     const isSvcError = isAuthenticated && svcError;
     const isCoreLoading = coreLoading || coreFetching;
@@ -1340,15 +1037,14 @@ const SanctuaryHub = () => {
 
     return (
         <section
-            id='events'
+            id="events"
             className={`relative overflow-hidden w-full min-h-screen ${SECTION_SPACING}`}
             style={{ backgroundColor: PAGE_BG }}
         >
             <AnimatedBackground withBaseBg={false} />
             {isAuthenticated && hasCelebrations && <ConfettiShower duration={10} />}
 
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-10 sm:py-14 flex flex-col gap-8 sm:gap-10">
-
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col gap-8 sm:gap-10">
                 <PageHeader
                     user={user}
                     isAuthenticated={isAuthenticated}
@@ -1371,12 +1067,7 @@ const SanctuaryHub = () => {
                         isError={isSvcError}
                         isAuthenticated={isAuthenticated}
                     />
-
-                    <EventPanel
-                        event={todayEvent}
-                        isLoading={eventsLoading}
-                        isError={eventsError}
-                    />
+                    <EventPanel event={todayEvent} isLoading={eventsLoading} isError={eventsError} />
                 </div>
             </div>
 

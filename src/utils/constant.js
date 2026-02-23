@@ -143,12 +143,6 @@ export const attendanceLevels = [
 ];
 export const QUICK_ACTION_LINKS = [
   {
-    to: '#',
-    src: '/images/contribution.jpg',
-    alt: 'contribution',
-    external: false,
-  },
-  {
     to: '/forms?tab=question',
     src: '/images/forms/question2.png',
     alt: 'question',

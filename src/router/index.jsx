@@ -76,8 +76,14 @@ const AppRoutes = [
         ],
       },
 
+      {
+        element: <ProtectedRoute />,
+        children: [
+          { path: 'forms', element: withSuspense(FormPage) },
+        ],
+      },
+
       // Public pages
-      { path: 'forms', element: withSuspense(FormPage) },
       { path: 'first-timer/welcome', element: withSuspense(FirstTimerPage) },
       { path: 'events/call-to-meet-the-one-interest-form', element: withSuspense(EventRegistrationPage) },
     ],

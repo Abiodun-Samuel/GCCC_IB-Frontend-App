@@ -54,6 +54,30 @@ module.exports = {
         primary: '#119bd6',
         danger: '#eb2225',
       },
+      animation: {
+        'mh-shimmer': 'mh-shimmer 1.5s ease infinite',
+        'mh-glow': 'mh-glow 4s ease-in-out infinite',
+        'mh-ripple': 'mh-ripple 1.8s ease-out infinite',
+        'glow-pulse': 'glow-pulse 4s ease-in-out infinite',
+      },
+      keyframes: {
+        'mh-shimmer': {
+          '0%': { backgroundPosition: '200% 0' },
+          '100%': { backgroundPosition: '-200% 0' },
+        },
+        'mh-glow': {
+          '0%, 100%': { opacity: '0.25' },
+          '50%': { opacity: '0.65' },
+        },
+        'mh-ripple': {
+          '0%': { transform: 'scale(1)', opacity: '0.55' },
+          '100%': { transform: 'scale(2.6)', opacity: '0' },
+        },
+        'glow-pulse': {
+          '0%, 100%': { opacity: '0.18' },
+          '50%': { opacity: '0.40' },
+        },
+      },
     },
   },
   plugins: [],

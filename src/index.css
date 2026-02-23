@@ -549,3 +549,404 @@ layer(base);
 .simplebar-scrollbar.simplebar-visible:before {
   @apply opacity-100;
 }
+
+/* ─── QuickActionsSection ───────────────────────────────────────────────── */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.18;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* ─── MediaHub ──────────────────────────────────────────────────────────── */
+@keyframes mh-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+@keyframes mh-glow {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.65;
+  }
+}
+@keyframes mh-ripple {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+/* Thin scrollbar for filter row */
+.mh-filter-scroll::-webkit-scrollbar {
+  height: 3px;
+}
+.mh-filter-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.mh-filter-scroll::-webkit-scrollbar-thumb {
+  background: rgba(9, 152, 213, 0.28);
+  border-radius: 99px;
+}
+
+/* ─── AboutSection — Glitch Slider ──────────────────────────────────────────
+   Add these rules to your index.css (or globals.css).
+   Class names are prefixed "about-" to avoid collisions.
+──────────────────────────────────────────────────────────────────────────── */
+
+@keyframes about-glitch-in {
+  0% {
+    clip-path: inset(0 0 100% 0);
+    opacity: 0;
+    transform: translateX(-3px);
+    filter: brightness(1.6) saturate(0);
+  }
+  8% {
+    clip-path: inset(0 0 70% 0);
+    opacity: 1;
+    transform: translateX(4px);
+    filter: brightness(1.4) saturate(0.3) hue-rotate(30deg);
+  }
+  16% {
+    clip-path: inset(30% 0 40% 0);
+    transform: translateX(-2px);
+    filter: brightness(1.2) saturate(0.6);
+  }
+  24% {
+    clip-path: inset(60% 0 10% 0);
+    transform: translateX(3px);
+  }
+  32% {
+    clip-path: inset(80% 0 0% 0);
+    transform: translateX(-1px);
+    filter: brightness(1.05);
+  }
+  40% {
+    clip-path: inset(90% 0 0 0);
+    transform: translateX(0);
+    filter: none;
+  }
+  50% {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+  52% {
+    transform: translateX(2px);
+    filter: hue-rotate(10deg);
+  }
+  54% {
+    transform: translateX(0);
+    filter: none;
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    transform: translateX(0);
+    filter: none;
+    opacity: 1;
+  }
+}
+
+@keyframes about-glitch-out {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+    filter: none;
+  }
+  30% {
+    opacity: 1;
+    transform: translateX(-3px);
+    filter: brightness(1.3) hue-rotate(-15deg);
+  }
+  60% {
+    opacity: 0.6;
+    transform: translateX(4px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+}
+
+@keyframes about-pb-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.about-img-entering {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: about-glitch-in 0.72s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  z-index: 2;
+}
+
+.about-img-leaving {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: about-glitch-out 0.45s ease-in forwards;
+  z-index: 1;
+}
+
+.about-pb-fill {
+  transform-origin: left;
+  animation: about-pb-fill linear forwards;
+}
+
+/* ─── SanctuaryHub ───────────────────────────────────────────────────────────
+   Paste into your index.css. All classes prefixed hub- / ev- to avoid collisions.
+──────────────────────────────────────────────────────────────────────────── */
+
+@keyframes hub-ripple {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+@keyframes hub-glow {
+  0%,
+  100% {
+    opacity: 0.28;
+  }
+  50% {
+    opacity: 0.72;
+  }
+}
+@keyframes hub-scale-in {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  65% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes hub-tab-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes hub-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.hub-scale-in {
+  animation: hub-scale-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.hub-tab-in {
+  animation: hub-tab-in 0.18s ease-out both;
+}
+.hub-fade-in {
+  animation: hub-fade-in 0.22s ease-out both;
+}
+
+.hub-scroll::-webkit-scrollbar {
+  width: 3px;
+}
+.hub-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.hub-scroll::-webkit-scrollbar-thumb {
+  background: rgba(17, 155, 214, 0.3);
+  border-radius: 99px;
+}
+
+.hub-ripple-ring {
+  animation: hub-ripple 1.6s ease-out infinite;
+}
+
+.ev-card {
+  transition:
+    transform 0.26s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.26s ease,
+    border-color 0.26s ease;
+}
+.ev-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(17, 155, 214, 0.28) !important;
+  box-shadow:
+    0 18px 52px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(17, 155, 214, 0.12);
+}
+
+.hub-celeb-btn {
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+.hub-celeb-btn:hover {
+  transform: scale(1.03);
+  opacity: 0.92;
+}
+.hub-celeb-btn:active {
+  transform: scale(0.97);
+}
+
+/* AOS FOUC guard — prevents elements flickering visible before AOS.init() */
+html:not(.aos-running) [data-aos] {
+  opacity: 1 !important;
+  transform: none !important;
+  pointer-events: auto !important;
+}
+
+/* Lottie wrapper — reserves space before canvas mounts to prevent CLS */
+.hub-lottie-wrap {
+  width: 190px;
+  height: 190px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* Service rail body — stable min-height prevents layout shift on state swap */
+.hub-service-body {
+  min-height: 340px;
+}
+
+/* Event card shell — stable min-height matches skeleton to prevent upward jump */
+.hub-event-card-shell {
+  min-height: 320px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hub-ripple-ring,
+  .hub-scale-in,
+  .hub-tab-in,
+  .hub-fade-in {
+    animation: none !important;
+  }
+  .hub-celeb-btn:hover {
+    transform: none;
+  }
+  .ev-card:hover {
+    transform: none;
+  }
+}
+
+/* ─── Header ──────────────────────────────────────────────────────────────────
+   Paste into your index.css. Prefixed hdr- to avoid collisions.
+──────────────────────────────────────────────────────────────────────────── */
+
+@keyframes hdr-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes hdr-fade-down {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── AnimatedBackground ──────────────────────────────────────────────────────
+   Paste into your index.css. Prefixed bg- to avoid collisions.
+──────────────────────────────────────────────────────────────────────────── */
+
+@keyframes bg-twinkle {
+  from {
+    opacity: 0.04;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes bg-float {
+  0%,
+  100% {
+    transform: translateY(0px);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translateY(-14px);
+    opacity: 0.85;
+  }
+}
+
+@keyframes bg-blob-slow {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(22px, -28px) scale(1.06);
+  }
+  66% {
+    transform: translate(-16px, 18px) scale(0.97);
+  }
+}
+
+@keyframes bg-blob-slower {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-26px, 24px) scale(1.09);
+  }
+}
+
+@keyframes bg-blob-medium {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(18px, -20px) scale(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-anim-star,
+  .bg-anim-particle,
+  .bg-anim-blob {
+    animation: none !important;
+  }
+}
