@@ -8,6 +8,9 @@ import LeadersProtectedRoute from '../layout/route/LeadersProtectedRoute';
 import PublicRoute from '../layout/route/PublicRoute';
 import PageLoader from '@/components/ui/PageLoader';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
+import AdminEventRegistrationPage from '@/pages/Admin/AdminEventRegistrationPage';
+import FirstTimerPage from '@/pages/Dashboard/FirstTimerPage';
+import ServiceAttendancePage from '@/pages/Dashboard/ServiceAttendancePage';
 
 // ─── Lazy imports — every page code-split ─────────────────────────────────────
 
@@ -17,7 +20,7 @@ const LoginPage = lazy(() => import('../pages/Home/Auth/LoginPage'));
 const ResetPasswordPage = lazy(() => import('@/pages/Home/Auth/ResetPasswordPage'));
 const ForgotPasswordPage = lazy(() => import('@/pages/Home/Auth/ForgotPasswordPage'));
 const FormPage = lazy(() => import('../pages/Home/FormPage'));
-const FirstTimerPage = lazy(() => import('../pages/Home/FirstTimerPage'));
+const FirstTimerWelcomePage = lazy(() => import('../pages/Home/FirstTimerWelcomePage'));
 const EventRegistrationPage = lazy(() => import('@/pages/Home/EventRegistrationPage'));
 
 // Dashboard
@@ -43,7 +46,6 @@ const AdminEventsPage = lazy(() => import('@/pages/Admin/AdminEventsPage'));
 
 // Leaders
 const LeadersDashboardPage = lazy(() => import('../pages/Leaders/LeadersDashboardPage'));
-const LeadersAttendanceRecordsPage = lazy(() => import('../pages/Leaders/LeadersAttendanceRecordsPage'));
 const LeadersUnitPage = lazy(() => import('../pages/Leaders/LeadersUnitPage'));
 
 // Errors
@@ -80,12 +82,13 @@ const AppRoutes = [
         element: <ProtectedRoute />,
         children: [
           { path: 'forms', element: withSuspense(FormPage) },
+
         ],
       },
 
       // Public pages
-      { path: 'first-timer/welcome', element: withSuspense(FirstTimerPage) },
-      { path: 'events/call-to-meet-the-one-interest-form', element: withSuspense(EventRegistrationPage) },
+      { path: 'events/:eventId/registration', element: withSuspense(EventRegistrationPage) },
+      { path: 'first-timer/welcome', element: withSuspense(FirstTimerWelcomePage) },
     ],
   },
 
@@ -101,12 +104,13 @@ const AppRoutes = [
           // Member routes
           { path: 'attendance', element: withSuspense(AttendancePage) },
           { path: 'attendance/report', element: withSuspense(AdminAttendanceReportPage) },
-          { path: 'attendance-records', element: withSuspense(LeadersAttendanceRecordsPage) },
           { path: 'profile', element: withSuspense(UserProfilePage) },
           { path: 'events', element: withSuspense(EventsPage) },
           { path: 'messages', element: withSuspense(MessagesPage) },
           { path: 'first-timers/:firstTimerId', element: withSuspense(FirstTimerDetailsPage) },
           { path: 'members/:memberId', element: withSuspense(MemberDetailsPage) },
+          { path: 'service-attendance', element: withSuspense(ServiceAttendancePage) },
+          { path: 'first-timers', element: withSuspense(FirstTimerPage) },
 
           // Admin routes
           {
@@ -116,6 +120,7 @@ const AppRoutes = [
               { index: true, element: withSuspense(AdminDashboardPage) },
               { path: 'attendance', element: withSuspense(AdminAttendancePage) },
               { path: 'events', element: withSuspense(AdminEventsPage) },
+              { path: 'events/:eventId/registration', element: withSuspense(AdminEventRegistrationPage) },
               { path: 'first-timers', element: withSuspense(AdminFirstTimerPage) },
               { path: 'first-timers/report', element: withSuspense(AdminFirstTimerReportPage) },
               { path: 'members', element: withSuspense(AdminMembersPage) },

@@ -1,4 +1,5 @@
 import AboutSection from '@/components/Home/AboutSection';
+import Gallery from '@/components/Home/Gallery';
 import GallerySection from '@/components/Home/GallerySection';
 import HeroSection from '@/components/Home/HeroSection';
 import MediaHub from '@/components/Home/MediaHub';
@@ -10,10 +11,11 @@ const HomePage = () => {
         <main className="w-full">
             <HeroSection />
             <AboutSection />
+            <Gallery />
             <SanctuaryHub />
-            <QuickActionsSection />
-            <MediaHub />
             <GallerySection />
+            <MediaHub />
+            <QuickActionsSection />
         </main>
     );
 };

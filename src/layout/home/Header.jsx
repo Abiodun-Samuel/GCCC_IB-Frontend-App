@@ -11,6 +11,7 @@ import Avatar from '@/components/ui/Avatar';
 import RoleBadge from '@/components/userProfile/RoleBadge';
 import { useScrollState } from '@/hooks/useScrollState';
 import { ThemeToggleButton } from '@/components/common/ThemeToggleButton';
+import { EventIcon } from '@/icons';
 
 // ─── Shared style tokens ──────────────────────────────────────────────────────
 
@@ -122,6 +123,7 @@ const Header = () => {
     const authNavItems = useMemo(() => [
         { label: 'Dashboard', icon: LayoutDashboard, to: '/dashboard', show: true },
         { label: 'Profile', icon: User, to: '/dashboard/profile', show: true },
+        { label: 'Events', icon: EventIcon, to: '/dashboard/events', show: true },
         { label: 'Admin', icon: Users, to: '/dashboard/admin', show: isAdmin },
         { label: 'Leader', icon: Star, to: '/dashboard/leaders', show: isLeader },
     ], [isAdmin, isLeader]);
@@ -475,6 +477,9 @@ const Header = () => {
                     </div>
                 </div>
             </nav>
+
+            {/* ── Spacer: compensates for fixed nav height ── */}
+            <div className="h-20" aria-hidden="true" />
         </>
     );
 };

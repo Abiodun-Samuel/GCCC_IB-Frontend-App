@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import {
     CalendarDays,
     Clock,
@@ -15,6 +16,7 @@ import {
     Mic,
     X,
     Play,
+    Users,
 } from 'lucide-react';
 import { Tabs } from '@/components/ui/tab/Tabs';
 import Modal from '@/components/ui/modal/Modal';
@@ -123,15 +125,12 @@ const EventCard = ({ event, onViewDetails }) => {
                     </div>
                 )}
 
-                {/* Overlay gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
-                {/* Status badge top-right */}
                 <div className="absolute top-3 right-3">
                     <StatusBadge status={event.status} />
                 </div>
 
-                {/* Streaming badges bottom-left */}
                 {event.has_streaming && (
                     <div className="absolute bottom-3 left-3">
                         <StreamingBadge
@@ -158,22 +157,42 @@ const EventCard = ({ event, onViewDetails }) => {
                     <MetaItem icon={MapPin}>{event.location}</MetaItem>
                 </div>
 
-                {/* CTA */}
-                <button
-                    onClick={() => onViewDetails(event)}
-                    className="
-            mt-2 w-full flex items-center justify-center gap-2
-            px-4 py-2.5 rounded-xl text-sm font-semibold
-            bg-gradient-to-r from-indigo-600 to-purple-600
-            hover:from-indigo-500 hover:to-purple-500
-            text-white shadow-md shadow-indigo-500/20 dark:shadow-indigo-900/40
-            transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/30
-            active:scale-95
-          "
-                >
-                    View Details
-                    <ChevronRight className="w-4 h-4" />
-                </button>
+                {/* CTA row — View Details + Registrations */}
+                <div className="flex gap-2 mt-2">
+                    <button
+                        onClick={() => onViewDetails(event)}
+                        className="
+                            flex-1 flex items-center justify-center gap-2
+                            px-4 py-2.5 rounded-xl text-sm font-semibold
+                            bg-gradient-to-r from-indigo-600 to-purple-600
+                            hover:from-indigo-500 hover:to-purple-500
+                            text-white shadow-md shadow-indigo-500/20 dark:shadow-indigo-900/40
+                            transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/30
+                            active:scale-95
+                        "
+                    >
+                        View Details
+                        <ChevronRight className="w-4 h-4" />
+                    </button>
+
+                    <Link
+                        to={`/events/${event.id}/registration`}
+                        title="View registrations"
+                        className="
+                            flex items-center justify-center
+                            px-3.5 py-2.5 rounded-xl text-sm font-semibold
+                            bg-gray-100 dark:bg-gray-700/60
+                            text-gray-600 dark:text-gray-300
+                            border border-gray-200 dark:border-gray-700
+                            hover:bg-indigo-50 dark:hover:bg-indigo-900/30
+                            hover:text-indigo-600 dark:hover:text-indigo-400
+                            hover:border-indigo-200 dark:hover:border-indigo-800
+                            transition-all duration-200 active:scale-95 shrink-0
+                        "
+                    >
+                        <Users className="w-4 h-4" />
+                    </Link>
+                </div>
             </div>
         </div>
     );
@@ -188,7 +207,6 @@ const EventDetailContent = ({ event }) => {
 
     return (
         <div className="flex flex-col gap-6">
-            {/* Hero Image */}
             {event.image && (
                 <div className="relative -mx-6 -mt-6 h-52 overflow-hidden rounded-t-lg">
                     <img
@@ -203,20 +221,18 @@ const EventDetailContent = ({ event }) => {
                 </div>
             )}
 
-            {/* Title & Description */}
             <div className="flex flex-col gap-2">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{event.title}</h2>
                 <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{event.description}</p>
             </div>
 
-            {/* Meta Grid */}
             <div className="grid grid-cols-2 gap-3">
                 {[
                     { icon: CalendarDays, label: 'Date', value: event.date },
                     { icon: Clock, label: 'Time', value: event.time },
                     { icon: MapPin, label: 'Location', value: event.location },
                     event.end_date && { icon: CalendarDays, label: 'End Date', value: event.end_date },
-                ].filter(Boolean).map(({ icon: Icon, label, value }) => (
+                ]?.filter(Boolean).map(({ icon: Icon, label, value }) => (
                     <div
                         key={label}
                         className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700"
@@ -232,7 +248,6 @@ const EventDetailContent = ({ event }) => {
                 ))}
             </div>
 
-            {/* Registration */}
             {event.is_registration_open && event.registration_link && (
                 <div className="flex flex-col gap-2 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
                     <div className="flex items-center gap-2">
@@ -253,7 +268,6 @@ const EventDetailContent = ({ event }) => {
                 </div>
             )}
 
-            {/* Streaming Links */}
             {hasStreaming && (
                 <div className="flex flex-col gap-2">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
@@ -342,7 +356,11 @@ const EventCardSkeleton = () => (
                     <div key={i} className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full w-2/3" />
                 ))}
             </div>
-            <div className="h-9 bg-gray-200 dark:bg-gray-700 rounded-xl mt-2" />
+            {/* Mirrors two-button layout */}
+            <div className="flex gap-2 mt-2">
+                <div className="h-9 flex-1 bg-gray-200 dark:bg-gray-700 rounded-xl" />
+                <div className="h-9 w-11 bg-gray-200 dark:bg-gray-700 rounded-xl" />
+            </div>
         </div>
     </div>
 );
@@ -356,9 +374,11 @@ const EventsList = () => {
 
     const { data, isLoading, isError } = useEvents();
 
-    const events = data?.data ?? [];
+    // `useEvents()` without params may return a paginated shape { data: [...], meta: {} }
+    // or a plain array — normalise to always be an array.
+    const raw = data?.data;
+    const events = Array.isArray(raw) ? raw : (Array.isArray(raw?.data) ? raw.data : []);
 
-    // Derive tab counts
     const tabsWithCounts = useMemo(() => {
         return STATUS_TABS.map((tab) => ({
             ...tab,
@@ -369,7 +389,6 @@ const EventsList = () => {
         }));
     }, [events]);
 
-    // Filter events by active tab
     const filteredEvents = useMemo(() => {
         if (activeTab === 'all') return events;
         return events.filter((e) => e.status === activeTab);
@@ -385,7 +404,6 @@ const EventsList = () => {
 
     const handleCloseModal = useCallback(() => {
         closeModal();
-        // Delay clearing so modal exit animation can play
         setTimeout(() => setSelectedEvent(null), 300);
     }, [closeModal]);
 
@@ -393,7 +411,6 @@ const EventsList = () => {
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
             {/* ── Header ── */}
             <div className="relative overflow-hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                {/* Decorative blobs */}
                 <div className="pointer-events-none absolute -top-20 -left-20 w-72 h-72 rounded-full bg-indigo-100/60 dark:bg-indigo-900/20 blur-3xl" />
                 <div className="pointer-events-none absolute -top-10 -right-10 w-56 h-56 rounded-full bg-purple-100/60 dark:bg-purple-900/20 blur-3xl" />
 
@@ -424,16 +441,13 @@ const EventsList = () => {
 
             {/* ── Content ── */}
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
-
-                {/* Tabs */}
                 <Tabs
                     tabs={tabsWithCounts}
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
-                    className="!border-b-0 bg-white dark:bg-gray-800 rounded-2xl p-3 shadow-sm border border-gray-100 dark:border-gray-700"
+                    className="!border-b-0 bg-white flex justify-center dark:bg-gray-800 rounded-2xl p-3 shadow-sm border border-gray-100 dark:border-gray-700"
                 />
 
-                {/* Error */}
                 {isError && (
                     <div className="flex items-center gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm font-medium">
                         <X className="w-4 h-4 shrink-0" />
@@ -441,7 +455,6 @@ const EventsList = () => {
                     </div>
                 )}
 
-                {/* Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     {isLoading ? (
                         Array.from({ length: 3 }).map((_, i) => <EventCardSkeleton key={i} />)
@@ -462,7 +475,6 @@ const EventsList = () => {
                 </div>
             </div>
 
-            {/* ── Event Detail Modal ── */}
             <Modal
                 isOpen={isOpen}
                 onClose={handleCloseModal}

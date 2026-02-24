@@ -9,10 +9,10 @@ import 'aos/dist/aos.css';
 
 import App from './App.jsx';
 import { Toaster } from 'react-hot-toast';
-import { ThemeProvider } from './context/ThemeContext.tsx';
 import { AppWrapper } from './components/common/PageMeta.jsx';
 import { QueryProvider } from './providers/QueryProvider.jsx';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
+import { ThemeProvider } from '@/context/ThemeContext';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

@@ -11,6 +11,7 @@ const AdminFirstTimerPage = () => {
             <PageBreadcrumb pageTitle="Admin: First Timers" description={'Log, track, and manage all first timer`s records, follow-up process and assign care tasks.'} />
             <ComponentCard>
                 <Button variant='outline-primary' href={'/dashboard/admin/first-timers/report'}>First Timer Report</Button>
+                <Button variant='outline-primary' href={'/dashboard/admin/first-timers/report'}>First Timer Report</Button>
                 <AdminFirstTimersTable />
             </ComponentCard>
         </>

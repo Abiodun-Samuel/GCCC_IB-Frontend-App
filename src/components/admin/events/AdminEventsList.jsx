@@ -3,6 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useCallback, useMemo, memo, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -58,7 +59,6 @@ const MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024; // 2 MB
 
 // ─── Yup Schemas ──────────────────────────────────────────────────────────────
 
-// Normalise empty strings → null so optional URL / date fields don't break
 const nullableUrl = yup
     .string()
     .nullable()
@@ -72,7 +72,6 @@ const nullableString = yup
     .optional()
     .transform((v) => (v === '' ? null : v));
 
-// HH:MM — matches what the API expects
 const HH_MM_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 const timeField = (label) =>
@@ -81,7 +80,6 @@ const timeField = (label) =>
         .nullable()
         .optional()
         .transform((v) => {
-            // Strip empty string → null; strip seconds from "HH:MM:SS" → "HH:MM"
             if (!v || v === '') return null;
             const parts = v.split(':');
             return parts.length >= 2 ? `${parts[0]}:${parts[1]}` : v;
@@ -120,7 +118,6 @@ const baseShape = {
         .string()
         .nullable()
         .transform((v) => {
-            // API may return "HH:MM:SS"; strip seconds so HH:MM validation passes
             if (!v || v === '') return null;
             const parts = v.split(':');
             return parts.length >= 2 ? `${parts[0]}:${parts[1]}` : v;
@@ -134,7 +131,6 @@ const baseShape = {
         function (val) {
             const { start_time, start_date, end_date } = this.parent;
             if (!val || !start_time) return true;
-            // Allow any end time when dates differ
             if (end_date && start_date && end_date !== start_date) return true;
             return val > start_time;
         }
@@ -185,10 +181,6 @@ const fileToBase64 = (file) =>
         reader.readAsDataURL(file);
     });
 
-/**
- * Strips "HH:MM:SS" → "HH:MM" for time fields returned by the API.
- * Also normalises null values so inputs aren't prefilled with the string "null".
- */
 const toHHMM = (val) => {
     if (!val) return '';
     const parts = String(val).split(':');
@@ -197,17 +189,10 @@ const toHHMM = (val) => {
         : val;
 };
 
-/**
- * Prepare an API event record for use as react-hook-form defaultValues.
- * The only non-obvious transform: time fields from Laravel are "HH:MM:SS",
- * but <input type="time"> outputs "HH:MM", so we strip the seconds here
- * before the form mounts — avoiding the 422 "HH:MM format" error on submit.
- */
 const normalizeEventForForm = (event) => ({
     ...event,
     start_time: toHHMM(event.start_time),
     end_time: toHHMM(event.end_time),
-    // Cloudinary URL → keep for preview; user must re-upload to change image
     image: event.image ?? null,
     location: event.location ?? '',
     registration_link: event.registration_link ?? '',
@@ -226,7 +211,7 @@ const SkeletonRow = memo(() => (
     <tr className="border-b border-gray-100 dark:border-gray-700/50">
         <td className="px-4 py-3.5"><div className="flex items-center gap-3"><Pulse className="w-9 h-9 rounded-lg flex-shrink-0" /><div className="space-y-1.5"><Pulse className="h-3.5 w-36" /><Pulse className="h-2.5 w-24" /></div></div></td>
         {[80, 90, 70, 60, 80, 70].map((w, i) => (
-            <td key={i} className="px-4 py-3.5"><Pulse className={`h-3.5`} style={{ width: w }} /></td>
+            <td key={i} className="px-4 py-3.5"><Pulse className="h-3.5" style={{ width: w }} /></td>
         ))}
         <td className="px-4 py-3.5"><div className="flex gap-1.5">{[1, 2, 3].map(i => <Pulse key={i} className="w-8 h-8 rounded-lg" />)}</div></td>
     </tr>
@@ -461,7 +446,7 @@ const DeleteModal = memo(({ isOpen, onClose, onConfirm, eventTitle, isLoading })
     </Modal>
 ));
 
-// ─── Action Button (accessible, always visible) ────────────────────────────────
+// ─── Action Button ─────────────────────────────────────────────────────────────
 
 const ActionBtn = memo(({ onClick, href, title, colorClass, children }) => {
     const cls = `p-2 rounded-lg transition-colors flex items-center justify-center ${colorClass}`;
@@ -575,9 +560,20 @@ const EventRow = memo(({ event, onEdit, onDelete }) => {
                 ) : <span className="text-gray-300 dark:text-gray-600 text-sm">—</span>}
             </td>
 
-            {/* Actions — always visible */}
+            {/* Actions */}
             <td className="px-4 py-3.5">
                 <div className="flex items-center gap-1.5">
+
+                    {/* ── Registrations page ── */}
+                    <Link
+                        to={`/dashboard/admin/events/${event.id}/registration`}
+                        title="View registrations"
+                        className="p-2 rounded-lg transition-colors flex items-center justify-center bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40"
+                    >
+                        <Users size={13} />
+                    </Link>
+
+                    {/* ── External registration link ── */}
                     {event.registration_link && (
                         <ActionBtn
                             href={event.registration_link}
@@ -587,6 +583,7 @@ const EventRow = memo(({ event, onEdit, onDelete }) => {
                             <ExternalLink size={13} />
                         </ActionBtn>
                     )}
+
                     <ActionBtn
                         onClick={() => onEdit(event)}
                         title="Edit event"
@@ -594,6 +591,7 @@ const EventRow = memo(({ event, onEdit, onDelete }) => {
                     >
                         <Pencil size={13} />
                     </ActionBtn>
+
                     <ActionBtn
                         onClick={() => onDelete(event)}
                         title="Delete event"
@@ -620,7 +618,6 @@ const TH = ({ children }) => (
 const FilterBar = memo(({ filters, onFiltersChange, onSearch }) => {
     const [localSearch, setLocalSearch] = useState(filters.search ?? '');
 
-    // Sync if filters reset externally
     useEffect(() => { setLocalSearch(filters.search ?? ''); }, [filters.search]);
 
     const handleKeyDown = (e) => { if (e.key === 'Enter') onSearch(localSearch); };
@@ -628,7 +625,6 @@ const FilterBar = memo(({ filters, onFiltersChange, onSearch }) => {
     return (
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 px-4 py-3.5 border-b border-gray-200 dark:border-gray-700">
 
-            {/* Search */}
             <div className="relative flex items-center gap-2 flex-1 w-full sm:max-w-xs">
                 <div className="relative flex-1">
                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
@@ -647,7 +643,6 @@ const FilterBar = memo(({ filters, onFiltersChange, onSearch }) => {
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-                {/* Status filter */}
                 <div className="flex items-center gap-1.5">
                     <Filter size={13} className="text-gray-400 flex-shrink-0" />
                     <div className="flex gap-1">
@@ -666,7 +661,6 @@ const FilterBar = memo(({ filters, onFiltersChange, onSearch }) => {
                     </div>
                 </div>
 
-                {/* Order */}
                 <div className="flex items-center gap-1.5">
                     <ArrowUpDown size={13} className="text-gray-400 flex-shrink-0" />
                     <select
@@ -678,7 +672,6 @@ const FilterBar = memo(({ filters, onFiltersChange, onSearch }) => {
                     </select>
                 </div>
 
-                {/* Per page */}
                 <div className="flex items-center gap-1.5">
                     <ChevronDown size={13} className="text-gray-400 flex-shrink-0" />
                     <select
@@ -725,19 +718,16 @@ const EmptyState = memo(({ hasFilters, onCreateClick }) => (
 
 const INITIAL_FILTERS = { search: '', status: '', order: 'asc', per_page: '15' };
 
-const EventsManagement = () => {
-    // ── Filter & pagination state ──────────────────────────────────────────────
+const AdminEventsList = () => {
     const [filters, setFilters] = useState(INITIAL_FILTERS);
     const [page, setPage] = useState(1);
 
-    // ── Modal & selected-record state ─────────────────────────────────────────
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [eventToDelete, setEventToDelete] = useState(null);
     const createModal = useModal(false);
     const editModal = useModal(false);
     const deleteModal = useModal(false);
 
-    // ── Query params (derived from state) ─────────────────────────────────────
     const queryParams = useMemo(() => ({
         page,
         per_page: Number(filters.per_page),
@@ -746,7 +736,6 @@ const EventsManagement = () => {
         ...(filters.status && { status: filters.status }),
     }), [page, filters]);
 
-    // ── Data hooks ─────────────────────────────────────────────────────────────
     const { data: eventsData, isLoading } = useEvents(queryParams);
 
     const { mutate: createEvent, isPending: isCreating } = useCreateEvent({
@@ -759,11 +748,9 @@ const EventsManagement = () => {
         onSuccess: () => { deleteModal.closeModal(); setEventToDelete(null); },
     });
 
-    // ── Derived data ───────────────────────────────────────────────────────────
     const events = eventsData?.data ?? [];
-    const pagination = eventsData?.meta ?? null;   // Laravel paginator meta
+    const pagination = eventsData?.meta ?? null;
     const paginatorObj = useMemo(() => {
-        // Build the shape Paginator component expects
         if (!pagination) return null;
         return {
             links: pagination.links ?? [],
@@ -783,7 +770,6 @@ const EventsManagement = () => {
 
     const hasFilters = !!(filters.search || filters.status);
 
-    // ── Handlers ───────────────────────────────────────────────────────────────
     const handleFiltersChange = useCallback((key, value) => {
         setFilters((prev) => ({ ...prev, [key]: value }));
         setPage(1);
@@ -804,30 +790,16 @@ const EventsManagement = () => {
         deleteModal.openModal();
     }, [deleteModal]);
 
-    const handleCreateSubmit = useCallback((data) => {
-        createEvent(data);
-    }, [createEvent]);
+    const handleCreateSubmit = useCallback((data) => { createEvent(data); }, [createEvent]);
+    const handleUpdateSubmit = useCallback((data) => { updateEvent({ id: selectedEvent.id, ...data }); }, [updateEvent, selectedEvent]);
+    const handleDeleteConfirm = useCallback(() => { if (eventToDelete) deleteEvent(eventToDelete.id); }, [deleteEvent, eventToDelete]);
+    const handleCloseDelete = useCallback(() => { deleteModal.closeModal(); setEventToDelete(null); }, [deleteModal]);
 
-    const handleUpdateSubmit = useCallback((data) => {
-        updateEvent({ id: selectedEvent.id, ...data });
-    }, [updateEvent, selectedEvent]);
-
-    const handleDeleteConfirm = useCallback(() => {
-        if (eventToDelete) deleteEvent(eventToDelete.id);
-    }, [deleteEvent, eventToDelete]);
-
-    const handleCloseDelete = useCallback(() => {
-        deleteModal.closeModal();
-        setEventToDelete(null);
-    }, [deleteModal]);
-
-    // ── Render ─────────────────────────────────────────────────────────────────
     if (isLoading) return <SkeletonTable />;
 
     return (
         <div className="space-y-4">
 
-            {/* Page Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                     <h1 className="text-xl font-bold text-gray-900 dark:text-white">Events</h1>
@@ -840,7 +812,6 @@ const EventsManagement = () => {
                 </Button>
             </div>
 
-            {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <StatsCard icon={CalendarDays} label="Total Events" value={stats.total} color="blue" />
                 <StatsCard icon={TrendingUp} label="Upcoming" value={stats.upcoming} color="amber" />
@@ -848,17 +819,9 @@ const EventsManagement = () => {
                 <StatsCard icon={Users} label="Past" value={stats.past} color="slate" />
             </div>
 
-            {/* Table Card */}
             <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+                <FilterBar filters={filters} onFiltersChange={handleFiltersChange} onSearch={handleSearch} />
 
-                {/* Filter Bar */}
-                <FilterBar
-                    filters={filters}
-                    onFiltersChange={handleFiltersChange}
-                    onSearch={handleSearch}
-                />
-
-                {/* Table */}
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[900px]">
                         <thead>
@@ -890,7 +853,6 @@ const EventsManagement = () => {
                     </table>
                 </div>
 
-                {/* Pagination */}
                 {paginatorObj && (
                     <div className="px-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30">
                         <Paginator paginationData={paginatorObj} onPageChange={setPage} />
@@ -898,33 +860,13 @@ const EventsManagement = () => {
                 )}
             </div>
 
-            {/* ── Modals ── */}
-
-            <Modal
-                isOpen={createModal.isOpen}
-                onClose={createModal.closeModal}
-                title="Create Event"
-                description="Fill in the details below to create a new event"
-                maxWidth="max-w-2xl"
-            >
+            <Modal isOpen={createModal.isOpen} onClose={createModal.closeModal} title="Create Event" description="Fill in the details below to create a new event" maxWidth="max-w-2xl">
                 <EventForm onSubmit={handleCreateSubmit} isLoading={isCreating} />
             </Modal>
 
-            <Modal
-                isOpen={editModal.isOpen}
-                onClose={editModal.closeModal}
-                title="Edit Event"
-                description="Update the event details"
-                maxWidth="max-w-2xl"
-            >
+            <Modal isOpen={editModal.isOpen} onClose={editModal.closeModal} title="Edit Event" description="Update the event details" maxWidth="max-w-2xl">
                 {selectedEvent && (
-                    <EventForm
-                        key={selectedEvent.id}
-                        defaultValues={selectedEvent}
-                        onSubmit={handleUpdateSubmit}
-                        isLoading={isUpdating}
-                        isEdit
-                    />
+                    <EventForm key={selectedEvent.id} defaultValues={selectedEvent} onSubmit={handleUpdateSubmit} isLoading={isUpdating} isEdit />
                 )}
             </Modal>
 
@@ -939,4 +881,4 @@ const EventsManagement = () => {
     );
 };
 
-export default EventsManagement;
+export default AdminEventsList;

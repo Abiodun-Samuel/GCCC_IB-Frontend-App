@@ -1,13 +1,10 @@
-import AnimatedBackground from "@/components/common/AnimatedBackground"
-
 const HomepageComponentCard = ({ children }) => {
     return (
-        <>
-            <AnimatedBackground />
-            <div className='mt-40 relative mb-6 flex flex-col gap-6 justify-center p-3'>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
+            <div className='max-w-7xl mx-auto relative pt-10 md:pt-14'>
                 {children}
             </div>
-        </>
+        </div>
     )
 }
 

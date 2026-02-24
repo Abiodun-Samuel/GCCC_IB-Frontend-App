@@ -1,11 +1,76 @@
-import { useForm } from 'react-hook-form';
-import InputForm from '../form/useForm/InputForm';
-import Button from '../ui/Button';
-import { useCreateFormMessages } from '@/queries/form.query';
-import TextAreaForm from '@/components/form/TextAreaForm';
-import { testimonyFormSchema } from '@/schema';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useAuthStore } from '@/store/auth.store';
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import InputForm from "../form/useForm/InputForm";
+import Button from "../ui/Button";
+import { useCreateFormMessages } from "@/queries/form.query";
+import TextAreaForm from "@/components/form/TextAreaForm";
+import { testimonyFormSchema } from "@/schema";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useAuthStore } from "@/store/auth.store";
+import AOS from "aos";
+import "aos/dist/aos.css";
+
+/* ─── Brand ─────────────────────────────────────────────── */
+const B = "#0998d5";
+const B_D = "#0778aa";
+const B_RGB = "9,152,213";
+
+/* ─── Custom radio option ────────────────────────────────── */
+const RadioOption = ({ name, value, label, register, checked }) => (
+  <label
+    className={`
+            relative flex items-center gap-3 px-4 py-3.5 rounded-xl cursor-pointer
+            border-2 transition-all duration-200 select-none
+            ${checked
+        ? "border-[#0998d5] bg-[#0998d5]/5 dark:bg-[#0998d5]/10"
+        : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/40 hover:border-slate-300 dark:hover:border-slate-600"
+      }
+        `}
+  >
+    <input
+      type="radio"
+      value={value}
+      {...register}
+      className="sr-only"
+    />
+    {/* Custom indicator */}
+    <span
+      className={`
+                w-4 h-4 rounded-full border-2 flex items-center justify-center
+                flex-shrink-0 transition-all duration-200
+                ${checked
+          ? "border-[#0998d5]"
+          : "border-slate-300 dark:border-slate-600"
+        }
+            `}
+    >
+      {checked && (
+        <span
+          className="w-2 h-2 rounded-full"
+          style={{ background: B }}
+        />
+      )}
+    </span>
+    <span
+      className={`
+                text-sm font-semibold transition-colors duration-200
+                ${checked
+          ? "text-slate-900 dark:text-white"
+          : "text-slate-600 dark:text-slate-400"
+        }
+            `}
+    >
+      {label}
+    </span>
+    {/* Active dot indicator */}
+    {checked && (
+      <span
+        className="absolute top-2.5 right-2.5 w-1.5 h-1.5 rounded-full"
+        style={{ background: B }}
+      />
+    )}
+  </label>
+);
 
 export default function TestimonyForm() {
   const { isAuthenticated, user } = useAuthStore();
@@ -14,127 +79,162 @@ export default function TestimonyForm() {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(testimonyFormSchema),
   });
 
   const { mutate, isPending } = useCreateFormMessages({
-    onSuccess: () => {
-      reset();
-    },
+    onSuccess: () => reset(),
   });
 
+  useEffect(() => {
+    AOS.init({ duration: 500, easing: "ease-out-cubic", once: true, offset: 8 });
+    AOS.refresh();
+  }, []);
+
+  const sharePhysically = watch("sharePhysically");
+
   const onSubmit = (data) => {
-    const payload = {
-      type: 'testimony',
+    mutate({
+      type: "testimony",
       content: data.content,
       name: data.name,
       phone_number: data.phone_number,
-      wants_to_share_testimony: data.sharePhysically === 'Yes',
+      wants_to_share_testimony: data.sharePhysically === "Yes",
       ...(isAuthenticated && user?.id ? { user_id: user.id } : {}),
-
-    };
-    mutate(payload);
+    });
   };
 
   return (
-    <div className="mt-5 space-y-5 text-gray-800 dark:text-gray-100">
-      <h3 className="text-[24px] font-bold text-[#24244e] dark:text-gray-100">
-        Hi Friend
-      </h3>
-      <h3 className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-        At the GCCC Ibadan, we have a culture of sharing with the family of God
-        what the Lord has done.
-      </h3>
+    <div className="flex flex-col gap-7">
 
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="p-5 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700"
+      {/* ── Section header ─────────────────────────────── */}
+      <div
+        className="flex flex-col gap-2.5"
+        data-aos="fade-up"
+        data-aos-duration="440"
       >
-        <div className="grid grid-cols-1 mt-4 space-x-0 md:space-x-2 md:grid-cols-2 gap-y-4">
-          <div>
-            <InputForm
-              label="Name"
-              name="name"
-              type="text"
-              required={true}
-              register={register}
-              error={errors.name?.message}
-              placeholder="Enter Your Name"
-            />
-          </div>
-          <div>
-            <InputForm
-              label="Phone Number"
-              name="phone_number"
-              required={true}
-              type="text"
-              register={register}
-              error={errors.phone_number?.message}
-              placeholder="Enter Your Phone Number"
-            />
-          </div>
-          <div className="md:col-span-2">
-            <TextAreaForm
-              label="What are your testimonies?"
-              name="content"
-              register={register}
-              rows={6}
-              required={true}
-              cols={40}
-              placeholder="Type your testimonies here..."
-              error={errors.content?.message}
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block mb-2 text-sm font-medium text-gray-800 dark:text-gray-200">
-              Do you want to share your testimony physically?{' '}
-              <span className="text-red-500">*</span>
-            </label>
-            <div className="flex flex-col space-y-2">
-              <label className="flex items-center space-x-2 text-gray-700 dark:text-gray-300">
-                <input
-                  type="radio"
-                  value="Yes"
-                  {...register('sharePhysically', {
-                    required: 'This field is required',
-                  })}
-                  className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-700"
-                />
-                <span>Yes</span>
-              </label>
-
-              <label className="flex items-center space-x-2 text-gray-700 dark:text-gray-300">
-                <input
-                  type="radio"
-                  value="No"
-                  {...register('sharePhysically', {
-                    required: 'This field is required',
-                  })}
-                  className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-700"
-                />
-                <span>No</span>
-              </label>
-            </div>
-            {errors.sharePhysically && (
-              <p className="mt-1 text-sm text-red-500">
-                {errors.sharePhysically.message}
-              </p>
-            )}
-          </div>
+        {/* Eyebrow */}
+        <div className="flex items-center gap-2.5">
+          <span
+            className="block w-[3px] h-[18px] rounded-full flex-shrink-0"
+            style={{ background: B }}
+          />
+          <span
+            className="text-[11px] font-black uppercase tracking-[0.2em]"
+            style={{ color: B }}
+          >
+            Share Your Story
+          </span>
         </div>
 
-        <div className="mt-5">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight
+                    text-slate-900 dark:text-white leading-snug">
+          Hi Friend 👋
+        </h2>
+
+        <p className="text-[15px] leading-relaxed max-w-prose
+                    text-slate-600 dark:text-slate-300">
+          At GCCC Ibadan, we have a culture of sharing with the family of
+          God what the Lord has done. We'd love to hear your testimony.
+        </p>
+      </div>
+
+      {/* Brand-tinted divider */}
+      <div
+        className="h-px"
+        style={{
+          background: `linear-gradient(90deg, rgba(${B_RGB},0.30) 0%, rgba(${B_RGB},0.06) 60%, transparent 100%)`
+        }}
+        data-aos="fade-right"
+        data-aos-duration="380"
+        data-aos-delay="80"
+      />
+
+      {/* ── Form ───────────────────────────────────────── */}
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+        className="flex flex-col gap-5"
+        data-aos="fade-up"
+        data-aos-duration="480"
+        data-aos-delay="110"
+      >
+        {/* Name + Phone */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <InputForm
+            label="Your Name"
+            name="name"
+            type="text"
+            required
+            register={register}
+            error={errors.name?.message}
+            placeholder="Enter your name"
+          />
+          <InputForm
+            label="Phone Number"
+            name="phone_number"
+            required
+            type="text"
+            register={register}
+            error={errors.phone_number?.message}
+            placeholder="e.g. 08012345678"
+          />
+        </div>
+
+        {/* Testimony textarea */}
+        <TextAreaForm
+          label="What are your testimonies?"
+          name="content"
+          register={register}
+          rows={6}
+          required
+          placeholder="Share what the Lord has done…"
+          error={errors.content?.message}
+        />
+
+        {/* Physical sharing */}
+        <div className="flex flex-col gap-2.5">
+          <label className="text-[13px] font-semibold
+                        text-slate-700 dark:text-slate-300">
+            Do you want to share your testimony physically?{" "}
+            <span style={{ color: B }}>*</span>
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <RadioOption
+              name="sharePhysically"
+              value="Yes"
+              label="Yes, I'd love to"
+              register={register("sharePhysically", { required: "This field is required" })}
+              checked={sharePhysically === "Yes"}
+            />
+            <RadioOption
+              name="sharePhysically"
+              value="No"
+              label="No, not now"
+              register={register("sharePhysically", { required: "This field is required" })}
+              checked={sharePhysically === "No"}
+            />
+          </div>
+          {errors.sharePhysically && (
+            <p className="text-[12px] font-medium text-red-500 mt-0.5">
+              {errors.sharePhysically.message}
+            </p>
+          )}
+        </div>
+
+        {/* Action */}
+        <div className="mt-1 flex items-center justify-end">
           <Button
             type="submit"
             loading={isPending}
             size="md"
             variant="primary"
-            className="w-full md:w-auto"
+            className="w-full sm:w-auto"
           >
-            Submit
+            Submit Testimony
           </Button>
         </div>
       </form>

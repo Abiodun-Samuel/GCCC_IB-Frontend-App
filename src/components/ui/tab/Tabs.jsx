@@ -1,7 +1,11 @@
 import { TabButton } from "@/components/ui/tab/TabButton";
 
-export const Tabs = ({ tabs, activeTab, onTabChange, className = '' }) => (
-    <div className={`flex flex-wrap border-b gap-5 pb-3 border-gray-200 dark:border-gray-700 ${className}`}>
+export const Tabs = ({ tabs, activeTab, onTabChange, className = "" }) => (
+    <div
+        className={`flex flex-wrap gap-2 pb-4 border-b
+            border-slate-200 dark:border-slate-700/60
+            ${className}`}
+    >
         {tabs.map((tab) => (
             <TabButton
                 key={tab.key}

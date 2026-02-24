@@ -6,7 +6,7 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 // ─── Constants outside component — never re-created ───────────────────────────
 const SPACING = {
     navbarHeight: 'h-20',
-    topPadding: 'h-16 sm:h-20 lg:h-20',
+    topPadding: 'h-10',
     sectionGap: 'h-8 sm:h-10 lg:h-12',
     elementGap: 'h-6 sm:h-8 lg:h-10',
     compactGap: 'h-5 sm:h-6 lg:h-7',
@@ -231,7 +231,7 @@ const HeroSection = () => {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="relative z-10 flex flex-col min-h-screen lg:h-screen lg:min-h-0">
 
-                    <div className={SPACING.navbarHeight} />
+                    {/* <div className={SPACING.navbarHeight} /> */}
                     <div className={SPACING.topPadding} />
 
                     {/* Badge */}

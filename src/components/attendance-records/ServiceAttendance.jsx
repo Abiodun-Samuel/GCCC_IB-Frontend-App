@@ -331,7 +331,7 @@ const AttendanceChart = ({ chartData }) => {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-const UsherAttendanceRecords = () => {
+const ServiceAttendance = () => {
   const { data, isLoading, refetch, isError, error, isFetching } = useAttendanceRecords();
   const { can } = usePermission();
 
@@ -677,4 +677,4 @@ const UsherAttendanceRecords = () => {
   );
 };
 
-export default UsherAttendanceRecords;
+export default ServiceAttendance;

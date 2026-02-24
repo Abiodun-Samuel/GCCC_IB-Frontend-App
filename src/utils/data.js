@@ -36,6 +36,16 @@ export const navItems = [
     name: 'Messages',
     path: '/dashboard/messages',
   },
+  {
+    icon: 'AttendanceIcon2',
+    name: 'Attendance Records (Usher)',
+    path: '/dashboard/service-attendance',
+  },
+  {
+    icon: 'UserIcon',
+    name: 'First Timers',
+    path: '/dashboard/first-timers',
+  },
 ];
 export const adminNavItems = [
   {
@@ -82,7 +92,7 @@ export const leaderNavItems = [
       },
       {
         name: 'Attendance Records',
-        path: '/dashboard/attendance-records',
+        path: '/dashboard/service-attendance',
         pro: true,
       },
       {

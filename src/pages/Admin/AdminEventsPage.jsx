@@ -1,9 +1,7 @@
 import PageMeta from '@/components/common/PageMeta';
 import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 import ComponentCard from '@/components/common/ComponentCard';
-import EventsManagement from '@/components/admin/events/EventsManagement';
-import AdminEvent from '@/components/admin/events/AdminEvent';
-// import AdminEvent from '@/components/admin/events/AdminEvent';
+import AdminEventsList from '@/components/admin/events/AdminEventsList';
 
 const AdminFirstTimerPage = () => {
   return (
@@ -16,8 +14,7 @@ const AdminFirstTimerPage = () => {
         }
       />
       <ComponentCard>
-        <EventsManagement />
-        <AdminEvent />
+        <AdminEventsList />
       </ComponentCard>
     </>
   );

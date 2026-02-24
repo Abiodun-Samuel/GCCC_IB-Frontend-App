@@ -1,171 +1,172 @@
+import { useEffect } from "react";
 import { CheckIcon } from "@/icons";
+import AOS from "aos";
+import "aos/dist/aos.css";
+
+/* ─────────────────────────────────────────────────────────────
+   Brand tokens
+────────────────────────────────────────────────────────────── */
+const B = "#0998d5";   // primary brand blue
+const B_D = "#0778aa";   // 15% darker — for gradient tails
+const B_RGB = "9,152,213";
 
 export const ProgressIndicator = ({ currentStep, totalSteps }) => {
     const steps = Array.from({ length: totalSteps }, (_, i) => i + 1);
+    const pct = Math.round(((currentStep - 1) / (totalSteps - 1)) * 100);
+
+    useEffect(() => {
+        AOS.init({ duration: 500, easing: "ease-out-cubic", once: true, offset: 10 });
+    }, []);
 
     return (
-        <div className="w-full mb-8">
-            <div className="block sm:hidden">
-                <div className="flex items-center justify-between mb-4">
-                    <div>
-                        <div className="text-xs font-bold text-[#24244e] dark:text-blue-400">
-                            Step {currentStep} of {totalSteps}
-                        </div>
-                    </div>
-                    <div className="text-right">
-                        <div className="text-xs font-bold ">
+        <div className="w-full select-none">
 
-                        </div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                            <span className="text-[#24244e] dark:text-blue-400">{Math.round((currentStep / totalSteps) * 100)}% </span>
-                            Complete</span>
-                    </div>
-                </div>
+            {/* ── Top meta row ───────────────────────────────────── */}
+            <div
+                className="flex items-center justify-between mb-6"
+                data-aos="fade-down"
+                data-aos-duration="380"
+            >
+                <span className="text-[11px] font-semibold uppercase tracking-widest
+                    text-slate-500 dark:text-slate-400">
+                    Your progress
+                </span>
 
-                {/* Dot Progress Indicator */}
-                <div className="relative flex items-center justify-between px-1">
-                    {/* Background line */}
-                    <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-full -translate-y-1/2" />
-
-                    {/* Active progress line */}
-                    <div
-                        className="absolute top-1/2 left-0 h-1 bg-gradient-to-r from-[#24244e] to-[#3a3a6e] dark:from-blue-500 dark:to-blue-600 rounded-full -translate-y-1/2 transition-all duration-500 ease-out overflow-hidden"
-                        style={{ width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%` }}
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer" />
-                    </div>
-
-                    {/* Step dots */}
-                    {steps.map((step) => {
-                        const isCompleted = step < currentStep;
-                        const isCurrent = step === currentStep;
-
-                        return (
-                            <div key={step} className="relative z-10">
-                                <div
-                                    className={`
-                    w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs
-                    transition-all duration-300 transform
-                    ${isCompleted
-                                            ? 'bg-gradient-to-br from-[#24244e] to-[#3a3a6e] dark:from-blue-500 dark:to-blue-600 text-white shadow-lg shadow-[#24244e]/30 dark:shadow-blue-500/30 scale-100'
-                                            : isCurrent
-                                                ? 'bg-white dark:bg-gray-800 border-3 border-[#24244e] dark:border-blue-500 text-[#24244e] dark:text-blue-500 scale-110 shadow-xl ring-4 ring-[#24244e]/20 dark:ring-blue-500/30'
-                                                : 'bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 scale-90'
-                                        }
-                  `}
-                                >
-                                    {isCompleted ? (
-                                        <CheckIcon className="w-4 h-4" strokeWidth={3} />
-                                    ) : (
-                                        <span>{step}</span>
-                                    )}
-
-                                    {isCurrent && (
-                                        <>
-                                            <span className="absolute -inset-1 rounded-full bg-[#24244e]/20 dark:bg-blue-500/20 animate-ping" />
-                                            <span className="absolute -inset-0.5 rounded-full bg-[#24244e]/10 dark:bg-blue-500/10 animate-pulse" />
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+                {/* Step chip */}
+                <span
+                    className="inline-flex items-center gap-0.5 px-3 py-1 rounded-full
+                        text-[11px] font-black border"
+                    style={{
+                        color: B,
+                        borderColor: `rgba(${B_RGB},0.25)`,
+                        backgroundColor: `rgba(${B_RGB},0.07)`,
+                    }}
+                >
+                    <span>{currentStep}</span>
+                    <span className="text-slate-400 dark:text-slate-500 font-medium mx-0.5">/</span>
+                    <span className="text-slate-400 dark:text-slate-500 font-medium">{totalSteps}</span>
+                </span>
             </div>
 
-            <div className="hidden sm:block">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                        Your Progress
-                    </h3>
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
-                        {currentStep}/{totalSteps} Steps
+            {/* ── Track + nodes ──────────────────────────────────── */}
+            <div
+                className="relative flex items-center justify-between"
+                data-aos="fade-up"
+                data-aos-duration="480"
+                data-aos-delay="40"
+            >
+                {/* BG track */}
+                <div className="absolute top-[18px] left-0 w-full h-[2px] -translate-y-1/2 rounded-full
+                    bg-slate-200 dark:bg-slate-700" />
+
+                {/* Active fill */}
+                <div
+                    className="absolute top-[18px] left-0 h-[2px] -translate-y-1/2 rounded-full
+                        transition-all duration-700 ease-out"
+                    style={{
+                        width: `${pct}%`,
+                        background: `linear-gradient(90deg, ${B} 0%, ${B_D} 100%)`,
+                    }}
+                />
+
+                {steps.map((s, idx) => {
+                    const done = s < currentStep;
+                    const current = s === currentStep;
+                    const pending = s > currentStep;
+
+                    return (
+                        <div
+                            key={s}
+                            className="relative z-10 flex flex-col items-center gap-2"
+                            data-aos="zoom-in"
+                            data-aos-delay={60 + idx * 55}
+                            data-aos-duration="350"
+                        >
+                            {/* Circle */}
+                            <div
+                                className={`
+                                    relative flex items-center justify-center
+                                    w-9 h-9 rounded-full text-[11px] font-black
+                                    transition-all duration-300
+                                    ${pending
+                                        ? "bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-600 text-slate-400 dark:text-slate-500"
+                                        : ""
+                                    }
+                                `}
+                                style={
+                                    done
+                                        ? {
+                                            background: B,
+                                            color: "#fff",
+                                            boxShadow: `0 2px 12px rgba(${B_RGB},0.40)`,
+                                        }
+                                        : current
+                                            ? {
+                                                background: "#fff",
+                                                border: `2.5px solid ${B}`,
+                                                color: B,
+                                                boxShadow: `0 0 0 5px rgba(${B_RGB},0.14), 0 2px 12px rgba(${B_RGB},0.22)`,
+                                            }
+                                            : {}
+                                }
+                            >
+                                {done
+                                    ? <CheckIcon className="w-3.5 h-3.5" strokeWidth={3} />
+                                    : <span>{s}</span>
+                                }
+
+                                {/* Active pulse */}
+                                {current && (
+                                    <span
+                                        className="absolute inset-0 rounded-full animate-ping"
+                                        style={{ background: B, opacity: 0.18 }}
+                                    />
+                                )}
+                            </div>
+
+                            {/* Step label (sm+) */}
+                            <span
+                                className={`
+                                    hidden sm:block text-[10px] font-semibold uppercase tracking-wider
+                                    whitespace-nowrap transition-colors duration-200
+                                    ${current ? "text-slate-900 dark:text-white"
+                                        : done ? "text-slate-400 dark:text-slate-500"
+                                            : "text-slate-300 dark:text-slate-600"}
+                                `}
+                            >
+                                Step {s}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* ── Mobile bar (hidden sm+) ─────────────────────────── */}
+            <div
+                className="mt-5 sm:hidden"
+                data-aos="fade-up"
+                data-aos-delay="180"
+                data-aos-duration="380"
+            >
+                <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                        Step <strong className="text-slate-800 dark:text-white">{currentStep}</strong> of {totalSteps}
+                    </span>
+                    <span className="text-[11px] font-black" style={{ color: B }}>
+                        {pct}% complete
                     </span>
                 </div>
-
-                <div className="relative">
-                    {/* Progress Line */}
-                    <div className="absolute top-4 left-0 w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-full -z-0">
-                        <div
-                            className="h-full bg-gradient-to-r from-[#24244e] to-[#3a3a6e] dark:from-blue-500 dark:to-blue-600 rounded-full transition-all duration-500 ease-out relative overflow-hidden"
-                            style={{ width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%` }}
-                        >
-                            <div
-                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-                                style={{
-                                    animation: 'shimmer 2s infinite',
-                                    backgroundSize: '200% 100%'
-                                }}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Step Circles */}
-                    <div className="relative flex justify-between">
-                        {steps.map((step) => {
-                            const isCompleted = step < currentStep;
-                            const isCurrent = step === currentStep;
-
-                            return (
-                                <div key={step} className="flex flex-col items-center">
-                                    <div
-                                        className={`
-                      w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm
-                      transition-all duration-300 transform relative
-                      ${isCompleted
-                                                ? 'bg-gradient-to-br from-[#24244e] to-[#3a3a6e] dark:from-blue-500 dark:to-blue-600 text-white scale-100 shadow-lg shadow-[#24244e]/30 dark:shadow-blue-500/30'
-                                                : isCurrent
-                                                    ? 'bg-white dark:bg-gray-800 border-2 border-[#24244e] dark:border-blue-500 text-[#24244e] dark:text-blue-500 scale-110 shadow-xl ring-4 ring-[#24244e]/10 dark:ring-blue-500/20'
-                                                    : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 scale-90'
-                                            }
-                    `}
-                                    >
-                                        {isCompleted ? (
-                                            <CheckIcon className="w-5 h-5" />
-                                        ) : (
-                                            <span>{step}</span>
-                                        )}
-
-                                        {isCurrent && (
-                                            <span className="absolute -inset-1 rounded-full bg-[#24244e]/20 dark:bg-blue-500/20 animate-ping" />
-                                        )}
-                                    </div>
-
-                                    <span
-                                        className={`
-                      mt-2 text-xs font-medium transition-all duration-300
-                      ${isCurrent
-                                                ? 'text-[#24244e] dark:text-blue-400 font-semibold'
-                                                : isCompleted
-                                                    ? 'text-gray-600 dark:text-gray-400'
-                                                    : 'text-gray-400 dark:text-gray-500'
-                                            }
-                    `}
-                                    >
-                                        Step {step}
-                                    </span>
-                                </div>
-                            );
-                        })}
-                    </div>
+                <div className="w-full h-1.5 rounded-full overflow-hidden
+                    bg-slate-200 dark:bg-slate-700">
+                    <div
+                        className="h-full rounded-full transition-all duration-700 ease-out"
+                        style={{
+                            width: `${pct}%`,
+                            background: `linear-gradient(90deg, ${B} 0%, ${B_D} 100%)`,
+                        }}
+                    />
                 </div>
             </div>
-
-            <style>{`
-        @keyframes shimmer {
-          0% {
-            background-position: -200% 0;
-          }
-          100% {
-            background-position: 200% 0;
-          }
-        }
-        .animate-shimmer {
-          background-size: 200% 100%;
-          animation: shimmer 2s infinite linear;
-        }
-      `}
-            </style>
         </div>
     );
 };
