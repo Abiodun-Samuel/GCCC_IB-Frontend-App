@@ -377,7 +377,7 @@ ValuesGrid.displayName = 'About.ValuesGrid';
 
 const AboutSection = () => (
     <section id="about" className={`relative w-full bg-white dark:bg-gray-950 overflow-hidden ${SECTION_SPACING}`}>
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <div className="relative z-10 container mx-auto px-2 overflow-hidden">
             <SectionLabel />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center mb-14 sm:mb-16">
                 <ImagePanel />

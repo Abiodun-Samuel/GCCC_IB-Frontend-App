@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { Toast } from '../../lib/toastify';
 
 function ProtectedRoute() {
+
     const { isAuthenticated, resetAuthenticatedUser } = useAuthStore();
     const location = useLocation();
     const navigate = useNavigate()

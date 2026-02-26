@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from "react";
+import { useMemo } from "react";
 import QuestionForm from "../../components/Formpage/QuestionForm";
 import PrayerForm from "../../components/Formpage/PrayerForm";
 import TestimonyForm from "../../components/Formpage/TestimonyForm";
@@ -9,8 +9,6 @@ import { PrayerIcon, QuestionIcon, TestimonyIcon } from "@/icons";
 import HomepageComponentCard from "@/components/common/HomepageComponentCard";
 import PageHeader from "@/components/common/PageHeader";
 import { MapPin } from "lucide-react";
-import AOS from "aos";
-import "aos/dist/aos.css";
 
 /* ─────────────────────────────────────────────────────────────
    Brand tokens
@@ -209,11 +207,6 @@ export default function FormPage() {
     () => FORM_COMPONENTS[validatedTab] || FORM_COMPONENTS[DEFAULT_TAB],
     [validatedTab]
   );
-
-  /* AOS init */
-  useEffect(() => {
-    AOS.init({ duration: 520, easing: "ease-out-cubic", once: true, offset: 20 });
-  }, []);
 
   return (
     <HomepageComponentCard>

@@ -1,7 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { CloseIcon, HorizontaLDotsIcon, MenuIcon } from "@/icons";
-import { useMe } from "@/queries/auth.query";
 import { useSidebar } from "@/context/SidebarContext";
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
 import UserDropdown from "@/components/header/UserDropdown";
@@ -83,7 +82,6 @@ const ApplicationMenuButton = ({ onClick }) => (
 );
 
 const AppHeader = () => {
-  useMe();
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
 

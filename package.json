@@ -4,6 +4,7 @@
   "version": "2.0.2",
   "type": "module",
   "scripts": {
+    "predev": "rimraf node_modules/.vite",
     "dev": "vite --force",
     "clean": "rm -rf node_modules/.vite",
     "build": "vite build",
@@ -65,11 +66,15 @@
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
     "postcss": "^8.5.2",
+    "rimraf": "^6.1.3",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4.0.8",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.22.0",
     "vite": "^6.1.0",
-    "vite-plugin-svgr": "^4.3.0"
+    "vite-plugin-pwa": "^1.2.0",
+    "vite-plugin-svgr": "^4.3.0",
+    "workbox-window": "^7.4.0"
   },
   "overrides": {
     "react-helmet-async": {

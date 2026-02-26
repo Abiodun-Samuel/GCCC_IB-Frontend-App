@@ -5,10 +5,12 @@ import { SidebarProvider, useSidebar } from "@/context/SidebarContext";
 import AppHeader from "@/layout/app/AppHeader";
 import AppSidebar from "@/layout/app/AppSidebar";
 import Backdrop from "@/layout/app/Backdrop";
+import { useMe } from "@/queries/auth.query";
 import { useAuthStore } from "@/store/auth.store";
 import { Outlet } from "react-router-dom";
 
 const AppLayout = () => {
+  useMe()
   return (
     <>
       <ProgressBar />

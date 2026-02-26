@@ -1,7 +1,5 @@
-import { memo, useEffect } from 'react';
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
 import { MessageCircleQuestion, Sparkles, ArrowUpRight } from 'lucide-react';
 import { HandIcon } from '@/icons';
 
@@ -235,7 +233,7 @@ const QuoteStrip = memo(() => (
         className="relative rounded overflow-hidden px-8 py-10 sm:px-12 sm:py-12"
         style={{ backgroundColor: PAGE_BG }}
     >
-        <AnimatedBackground withBaseBg={false} />
+        <AnimatedBackground withBaseBg />
 
         <div
             className="absolute left-1/2 top-1/2 w-96 h-96 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none animate-glow-pulse"
@@ -270,17 +268,6 @@ QuoteStrip.displayName = 'QA.QuoteStrip';
    ROOT
 ───────────────────────────────────────────── */
 const QuickActionsSection = () => {
-    useEffect(() => {
-        document.documentElement.classList.add('aos-running');
-        AOS.init({
-            once: true,
-            duration: 440,
-            easing: 'ease-out-cubic',
-            offset: 40,
-            disableMutationObserver: false,
-        });
-    }, []);
-
     return (
         <section
             className={`relative overflow-hidden w-full bg-white dark:bg-gray-950 ${SECTION_SPACING}`}
@@ -294,7 +281,7 @@ const QuickActionsSection = () => {
                 }}
             />
 
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col">
+            <div className="container mx-auto px-2 relative z-10 flex flex-col">
                 <SectionHeader
                     eyebrow="Get Involved"
                     titleBlack="Ask, Pray,"
@@ -303,7 +290,7 @@ const QuickActionsSection = () => {
                 />
             </div>
 
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col gap-10 sm:gap-12">
+            <div className="container mx-auto px-2 relative z-10 flex flex-col gap-10 sm:gap-12">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
                     {QUICK_ACTION_LINKS.map((link, index) => (
                         <ActionCard

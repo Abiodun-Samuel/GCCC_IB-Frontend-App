@@ -8,12 +8,8 @@ import LeadersProtectedRoute from '../layout/route/LeadersProtectedRoute';
 import PublicRoute from '../layout/route/PublicRoute';
 import PageLoader from '@/components/ui/PageLoader';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
-import AdminEventRegistrationPage from '@/pages/Admin/AdminEventRegistrationPage';
-import FirstTimerPage from '@/pages/Dashboard/FirstTimerPage';
-import ServiceAttendancePage from '@/pages/Dashboard/ServiceAttendancePage';
 
 // ─── Lazy imports — every page code-split ─────────────────────────────────────
-
 // Public / Home
 const HomePage = lazy(() => import('@/components/Home/HomePage'));
 const LoginPage = lazy(() => import('../pages/Home/Auth/LoginPage'));
@@ -31,6 +27,9 @@ const EventsPage = lazy(() => import('@/pages/Dashboard/EventsPage'));
 const MessagesPage = lazy(() => import('@/pages/Dashboard/MessagesPage'));
 const FirstTimerDetailsPage = lazy(() => import('../pages/Dashboard/FirstTimerDetailsPage'));
 const MemberDetailsPage = lazy(() => import('../pages/Dashboard/MemberDetailsPage'));
+const ServiceAttendancePage = lazy(() => import('@/pages/Dashboard/ServiceAttendancePage')); // ← was eager
+const FirstTimerPage = lazy(() => import('@/pages/Dashboard/FirstTimerPage'));               // ← was eager
+const UserRedeemPage = lazy(() => import('@/pages/Dashboard/UserRedeemPage'));               // ← was eager
 
 // Admin
 const AdminDashboardPage = lazy(() => import('../pages/Admin/AdminDashboardPage'));
@@ -43,6 +42,8 @@ const AdminFormsPage = lazy(() => import('../pages/Admin/AdminFormsPage'));
 const AdminFollowupFeedbacksPage = lazy(() => import('../pages/Admin/AdminFollowupFeedbacksPage'));
 const AdminSettingsPage = lazy(() => import('../pages/Admin/AdminSettingsPage'));
 const AdminEventsPage = lazy(() => import('@/pages/Admin/AdminEventsPage'));
+const AdminEventRegistrationPage = lazy(() => import('@/pages/Admin/AdminEventRegistrationPage')); // ← was eager
+const AdminRedeemableItemsPage = lazy(() => import('@/pages/Admin/AdminRedeemableItemsPage'));     // ← was eager
 
 // Leaders
 const LeadersDashboardPage = lazy(() => import('../pages/Leaders/LeadersDashboardPage'));
@@ -50,7 +51,6 @@ const LeadersUnitPage = lazy(() => import('../pages/Leaders/LeadersUnitPage'));
 
 // Errors
 const NotFoundPage = lazy(() => import('../pages/Error/NotfoundPage'));
-
 // ─── Suspense + ErrorBoundary wrapper ─────────────────────────────────────────
 const withSuspense = (Component) => (
   <ErrorBoundary>
@@ -82,7 +82,6 @@ const AppRoutes = [
         element: <ProtectedRoute />,
         children: [
           { path: 'forms', element: withSuspense(FormPage) },
-
         ],
       },
 
@@ -111,6 +110,7 @@ const AppRoutes = [
           { path: 'members/:memberId', element: withSuspense(MemberDetailsPage) },
           { path: 'service-attendance', element: withSuspense(ServiceAttendancePage) },
           { path: 'first-timers', element: withSuspense(FirstTimerPage) },
+          { path: 'reward-store', element: withSuspense(UserRedeemPage) },
 
           // Admin routes
           {
@@ -127,6 +127,7 @@ const AppRoutes = [
               { path: 'forms', element: withSuspense(AdminFormsPage) },
               { path: 'followup-feedbacks', element: withSuspense(AdminFollowupFeedbacksPage) },
               { path: 'settings', element: withSuspense(AdminSettingsPage) },
+              { path: 'redeemable-items', element: withSuspense(AdminRedeemableItemsPage) },
             ],
           },
 

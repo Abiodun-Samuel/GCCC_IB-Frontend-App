@@ -68,3 +68,16 @@ export const useGetAssignedMembers = (options = {}) => {
     ...options,
   });
 };
+
+export const useAwardPoints = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: UserService.sendAwardPoints,
+    retry: false,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AUTH.ME });
+    },
+    onError: () => { },
+  });
+};

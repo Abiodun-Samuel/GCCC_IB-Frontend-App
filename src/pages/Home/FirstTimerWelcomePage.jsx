@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { firstTimerSchema } from "../../schema/index";
@@ -19,8 +19,6 @@ import SuccessCompletion from "@/components/firstTimer/SuccessCompletion";
 import HomepageComponentCard from "@/components/common/HomepageComponentCard";
 import PageHeader from "@/components/common/PageHeader";
 import { CheckCircle2, MapPin } from "lucide-react";
-import AOS from "aos";
-import "aos/dist/aos.css";
 
 /* ─────────────────────────────────────────────────────────────
    Brand tokens
@@ -288,11 +286,6 @@ const FirstTimerWelcomePage = () => {
 
   const isCompleteStep = useMemo(() => step === "complete", [step]);
   const isLastStep = useMemo(() => step === TOTAL_STEPS, [step]);
-
-  /* AOS init */
-  useEffect(() => {
-    AOS.init({ duration: 520, easing: "ease-out-cubic", once: true, offset: 20 });
-  }, []);
 
   /* ── Validation (untouched) ───────────────────────────── */
   const getValidationFields = useCallback((s) => {

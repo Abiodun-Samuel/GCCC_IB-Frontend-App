@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { yupResolver } from "@hookform/resolvers/yup";
 import HomepageComponentCard from "@/components/common/HomepageComponentCard";
 import Message from "@/components/common/Message";
@@ -15,6 +15,9 @@ const B = "#0998d5";
 
 const LoginPage = () => {
   const { mutate, isPending, isError, error } = useLogin();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get('redirect') || '/';
 
   const {
     register,
@@ -24,7 +27,13 @@ const LoginPage = () => {
   } = useForm({ resolver: yupResolver(loginSchema) });
 
   const email = watch("email");
-  const handleLogin = (data) => mutate(data);
+  const handleLogin = (data) => {
+    mutate(data, {
+      onSuccess: () => {
+        navigate(redirect, { replace: true });
+      }
+    });
+  };
 
   return (
     <HomepageComponentCard>

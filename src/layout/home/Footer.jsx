@@ -318,7 +318,7 @@ const Footer = () => {
             <div className="relative z-10 w-full">
 
                 {/* ── Location section ── */}
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-16 sm:pb-20">
+                <div className="container mx-auto px-2 pt-16 sm:pt-24 pb-16 sm:pb-20">
 
                     {/* Section header */}
                     <motion.div
@@ -449,14 +449,14 @@ const Footer = () => {
                 </div>
 
                 {/* ── Subtle divider — no hard background break ── */}
-                {/* <div
-                    className="mx-auto w-full container px-4 sm:px-6 lg:px-8"
+                <div
+                    className="mx-auto w-full container px-2"
                     style={{ height: '1px', background: `linear-gradient(90deg, transparent, rgba(${BRAND_RGB},0.12) 30%, rgba(${BRAND_RGB},0.12) 70%, transparent)` }}
                     aria-hidden
-                /> */}
+                />
 
                 {/* ── Footer links ── */}
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="container mx-auto px-2">
                     <div className="pt-14 pb-16 lg:pb-20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-14">
 
                         {/* Brand + social */}

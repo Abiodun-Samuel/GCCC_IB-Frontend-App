@@ -1,8 +1,5 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Shield, Users } from "lucide-react";
-import AOS from "aos";
-import "aos/dist/aos.css";
+import { Shield, Users } from "lucide-react";
 
 /* ─────────────────────────────────────────────────────────────
    Brand tokens — deep ocean system

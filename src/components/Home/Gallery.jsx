@@ -12,7 +12,7 @@ import { SECTION_SPACING_BOTTOM } from '@/utils/constant';
 const BRAND = '#0998d5';
 const BRAND_DARK = '#076fa3';
 const LETTERS = ['G', 'C', 'C', 'C', 'I', 'B'];
-const PILL_GAP = 10; // px between pills
+const TILE_GAP = 6; // tighter gap → frames feel like a continuous frieze
 
 const IMAGE_POOL = [
     '/images/gallery/gallery1.jpg',
@@ -27,7 +27,6 @@ const IMAGE_POOL = [
    UTILITIES
 ───────────────────────────────────────────────────────────── */
 
-/** Fisher-Yates partial shuffle — pick n unique items */
 function pickN(arr, n) {
     const copy = [...arr];
     for (let i = 0; i < Math.min(n, copy.length); i++) {
@@ -37,19 +36,12 @@ function pickN(arr, n) {
     return copy.slice(0, n);
 }
 
-/**
- * Compute pixel widths for all tiles.
- * Active tile gets `activeW`; remaining tiles share the leftover evenly.
- * When nothing is active every tile gets an equal share.
- */
 function computeWidths(containerW, count, gap, activeIdx, activeW) {
     const available = containerW - gap * (count - 1);
-
     if (activeIdx === null) {
         const equal = available / count;
         return Array(count).fill(equal);
     }
-
     const siblingW = Math.max((available - activeW) / (count - 1), 8);
     return Array.from({ length: count }, (_, i) =>
         i === activeIdx ? activeW : siblingW
@@ -60,26 +52,29 @@ function computeWidths(containerW, count, gap, activeIdx, activeW) {
    ANIMATION CONFIG
 ───────────────────────────────────────────────────────────── */
 
-const WIDTH_SPRING = { type: 'spring', stiffness: 280, damping: 40, mass: 1 };
-const EASE_STD = { duration: 0.35, ease: [0.4, 0, 0.2, 1] };
-const EASE_SLOW = { duration: 0.6, ease: [0.4, 0, 0.2, 1] };
+// Slightly heavier spring — rectangular frames should feel architectural
+const WIDTH_SPRING = { type: 'spring', stiffness: 240, damping: 38, mass: 1.1 };
+const EASE_STD = { duration: 0.32, ease: [0.4, 0, 0.2, 1] };
+const EASE_SLOW = { duration: 0.55, ease: [0.4, 0, 0.2, 1] };
+const EASE_ENTER = { duration: 0.45, ease: [0.16, 1, 0.3, 1] };
 
 /* ─────────────────────────────────────────────────────────────
    CORNER BRACKETS
+   Fine-line brackets: precise, architectural, 20×20px.
 ───────────────────────────────────────────────────────────── */
 
 const BRACKETS = [
-    { pos: 'tl', style: { top: 12, left: 12 } },
-    { pos: 'tr', style: { top: 12, right: 12 } },
-    { pos: 'bl', style: { bottom: 12, left: 12 } },
-    { pos: 'br', style: { bottom: 12, right: 12 } },
+    { pos: 'tl', style: { top: 14, left: 14 } },
+    { pos: 'tr', style: { top: 14, right: 14 } },
+    { pos: 'bl', style: { bottom: 14, left: 14 } },
+    { pos: 'br', style: { bottom: 14, right: 14 } },
 ];
 
 const BRACKET_BORDERS = {
-    tl: { borderTop: `1.5px solid ${BRAND}`, borderLeft: `1.5px solid ${BRAND}` },
-    tr: { borderTop: `1.5px solid ${BRAND}`, borderRight: `1.5px solid ${BRAND}` },
-    bl: { borderBottom: `1.5px solid ${BRAND}`, borderLeft: `1.5px solid ${BRAND}` },
-    br: { borderBottom: `1.5px solid ${BRAND}`, borderRight: `1.5px solid ${BRAND}` },
+    tl: { borderTop: `1px solid rgba(9,152,213,0.90)`, borderLeft: `1px solid rgba(9,152,213,0.90)` },
+    tr: { borderTop: `1px solid rgba(9,152,213,0.90)`, borderRight: `1px solid rgba(9,152,213,0.90)` },
+    bl: { borderBottom: `1px solid rgba(9,152,213,0.90)`, borderLeft: `1px solid rgba(9,152,213,0.90)` },
+    br: { borderBottom: `1px solid rgba(9,152,213,0.90)`, borderRight: `1px solid rgba(9,152,213,0.90)` },
 };
 
 function CornerBrackets() {
@@ -90,20 +85,16 @@ function CornerBrackets() {
                     key={pos}
                     style={{
                         position: 'absolute',
-                        width: 18, height: 18,
+                        width: 20, height: 20,
                         pointerEvents: 'none',
                         zIndex: 10,
                         ...style,
                         ...BRACKET_BORDERS[pos],
                     }}
-                    initial={{ opacity: 0, scale: 0.1 }}
+                    initial={{ opacity: 0, scale: 0.4 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.1 }}
-                    transition={{
-                        duration: 0.16,
-                        ease: [0.2, 1, 0.4, 1],
-                        delay: i * 0.04,
-                    }}
+                    exit={{ opacity: 0, scale: 0.4 }}
+                    transition={{ duration: 0.18, ease: [0.2, 1, 0.4, 1], delay: i * 0.03 }}
                 />
             ))}
         </>
@@ -111,47 +102,72 @@ function CornerBrackets() {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   LETTER BADGE
+   INDEX BADGE  — top-right ordinal (01, 02 …)
+   Replaces nothing from original; purely additive editorial detail.
+───────────────────────────────────────────────────────────── */
+
+function IndexBadge({ index, isActive }) {
+    return (
+        <motion.div
+            animate={{ opacity: isActive ? 0 : 0.32 }}
+            transition={EASE_STD}
+            style={{
+                position: 'absolute',
+                top: 16, right: 18,
+                zIndex: 10,
+                pointerEvents: 'none',
+                fontFamily: "'DM Mono', 'Courier New', monospace",
+                fontSize: 10,
+                fontWeight: 500,
+                letterSpacing: '0.12em',
+                color: '#fff',
+                lineHeight: 1,
+            }}
+        >
+            {String(index + 1).padStart(2, '0')}
+        </motion.div>
+    );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   LETTER BADGE  — bottom centre, Cormorant Garamond
 ───────────────────────────────────────────────────────────── */
 
 function LetterBadge({ letter, isActive, entranceDelay, fontSize }) {
     return (
         <motion.div
-            initial={{ y: 26, opacity: 0 }}
+            initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{
-                type: 'spring', stiffness: 200, damping: 26,
-                delay: entranceDelay,
-            }}
+            transition={{ type: 'spring', stiffness: 190, damping: 24, delay: entranceDelay }}
             style={{
                 position: 'absolute',
                 bottom: 0, left: 0, right: 0,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                paddingBottom: 20,
+                paddingBottom: 22,
                 zIndex: 10,
                 pointerEvents: 'none',
             }}
         >
-            {/* Accent rule */}
+            {/* Accent rule — expands on active */}
             <motion.div
                 animate={{
-                    width: isActive ? 28 : 10,
-                    opacity: isActive ? 1 : 0.55,
-                    backgroundColor: isActive ? BRAND : 'rgba(255,255,255,0.7)',
+                    width: isActive ? 32 : 12,
+                    opacity: isActive ? 1 : 0.50,
+                    backgroundColor: isActive ? BRAND : 'rgba(255,255,255,0.65)',
                 }}
                 transition={EASE_STD}
-                style={{ height: 2, borderRadius: 2, marginBottom: 7 }}
+                style={{ height: 1.5, borderRadius: 1, marginBottom: 8 }}
             />
 
             {/* Letter */}
             <motion.span
                 animate={{
-                    scale: isActive ? 1.18 : 1,
+                    scale: isActive ? 1.16 : 1,
                     textShadow: isActive
-                        ? `0 0 24px ${BRAND}, 0 0 48px rgba(9,152,213,0.45), 0 2px 8px rgba(0,0,0,0.4)`
-                        : '0 1px 12px rgba(0,0,0,0.55)',
+                        ? `0 0 28px ${BRAND}, 0 0 56px rgba(9,152,213,0.40), 0 2px 10px rgba(0,0,0,0.50)`
+                        : '0 1px 14px rgba(0,0,0,0.60)',
                 }}
                 transition={EASE_STD}
                 style={{
@@ -159,7 +175,7 @@ function LetterBadge({ letter, isActive, entranceDelay, fontSize }) {
                     fontWeight: 700,
                     fontSize,
                     lineHeight: 1,
-                    letterSpacing: '0.07em',
+                    letterSpacing: '0.06em',
                     color: '#fff',
                     display: 'block',
                     transformOrigin: 'center bottom',
@@ -172,11 +188,35 @@ function LetterBadge({ letter, isActive, entranceDelay, fontSize }) {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   PILL TILE — desktop & tablet row layout
-   borderRadius is ALWAYS 9999px — only width animates.
+   SCANLINE TEXTURE
+   Thin horizontal rules applied as a CSS gradient — gives
+   collapsed tiles a subtle engraved quality without any image
+   asset. Fades out on active state.
 ───────────────────────────────────────────────────────────── */
 
-const PillTile = React.memo(function PillTile({
+function ScanlineOverlay({ isActive }) {
+    return (
+        <motion.div
+            animate={{ opacity: isActive ? 0 : 0.18 }}
+            transition={EASE_STD}
+            style={{
+                position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none',
+                backgroundImage: 'repeating-linear-gradient(180deg, transparent 0px, transparent 3px, rgba(0,0,0,0.55) 3px, rgba(0,0,0,0.55) 4px)',
+            }}
+        />
+    );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RECT TILE — desktop + tablet row layout
+   Key differences from the pill version:
+     • borderRadius: 10px (subtle, never rounds to pill)
+     • width animates via WIDTH_SPRING (identical logic)
+     • left edge accent line instead of bottom — reads "door frame"
+     • ScanlineOverlay on inactive tiles
+───────────────────────────────────────────────────────────── */
+
+const RectTile = React.memo(function RectTile({
     tile, targetWidth, height, isActive, isDimmed, onEnter, onLeave,
 }) {
     return (
@@ -185,7 +225,7 @@ const PillTile = React.memo(function PillTile({
             onMouseLeave={onLeave}
             animate={{
                 width: targetWidth,
-                opacity: isDimmed ? 0.52 : 1,
+                opacity: isDimmed ? 0.46 : 1,
             }}
             transition={{
                 width: WIDTH_SPRING,
@@ -193,25 +233,22 @@ const PillTile = React.memo(function PillTile({
             }}
             style={{
                 height,
-                borderRadius: 9999,   // ← locked, never changes
+                borderRadius: 10,
                 flexShrink: 0,
                 position: 'relative',
                 overflow: 'hidden',
                 cursor: 'pointer',
                 willChange: 'width',
-                boxShadow: isActive
-                    ? `0 20px 56px rgba(9,152,213,0.2), 0 8px 24px rgba(0,0,0,0.14)`
-                    : '0 4px 18px rgba(0,0,0,0.1)',
-                transition: 'box-shadow 0.35s ease',
+                transition: 'box-shadow 0.38s ease',
             }}
         >
-            {/* Image */}
+            {/* ── Image ── */}
             <motion.img
                 src={tile.src}
-                alt={`${tile.letter} gallery image`}
+                alt={`${tile.letter} gallery`}
                 loading="lazy"
                 draggable={false}
-                animate={{ scale: isActive ? 1.09 : 1 }}
+                animate={{ scale: isActive ? 1.07 : 1.0 }}
                 transition={EASE_SLOW}
                 style={{
                     position: 'absolute', inset: 0,
@@ -222,25 +259,53 @@ const PillTile = React.memo(function PillTile({
                 }}
             />
 
-            {/* Bottom gradient for letter legibility */}
+            {/* ── Gradient scrim — heavier at bottom for letter legibility ── */}
             <div style={{
                 position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
                 background: `linear-gradient(
                     to top,
-                    rgba(0,0,0,0.75) 0%,
-                    rgba(0,0,0,0.28) 30%,
-                    transparent      58%
+                    rgba(${isActive ? '2,12,22' : '0,0,0'},0.80) 0%,
+                    rgba(0,0,0,0.20) 35%,
+                    transparent 60%
                 )`,
+                transition: 'background 0.38s ease',
             }} />
 
-            {/* Brand accent line — slides in from left on active */}
+            {/* ── Scanline texture — fades on hover ── */}
+            <ScanlineOverlay isActive={isActive} />
+
+            {/* ── Left edge accent line — slides up from 0 height ── */}
             <motion.div
-                animate={{ scaleX: isActive ? 1 : 0, opacity: isActive ? 1 : 0 }}
+                animate={{ scaleY: isActive ? 1 : 0, opacity: isActive ? 1 : 0 }}
                 transition={EASE_STD}
                 style={{
+                    position: 'absolute', top: 0, left: 0, bottom: 0,
+                    width: 2.5, zIndex: 8, pointerEvents: 'none',
+                    background: `linear-gradient(180deg, transparent 0%, ${BRAND} 25%, ${BRAND} 75%, transparent 100%)`,
+                    transformOrigin: 'top',
+                }}
+            />
+
+            {/* ── Bottom rule — secondary brand marker ── */}
+            <motion.div
+                animate={{ scaleX: isActive ? 1 : 0, opacity: isActive ? 1 : 0 }}
+                transition={{ ...EASE_STD, delay: isActive ? 0.06 : 0 }}
+                style={{
                     position: 'absolute', bottom: 0, left: 0, right: 0,
-                    height: 3, zIndex: 8, pointerEvents: 'none',
-                    background: `linear-gradient(90deg, transparent, ${BRAND} 35%, ${BRAND_DARK})`,
+                    height: 2, zIndex: 8, pointerEvents: 'none',
+                    background: `linear-gradient(90deg, ${BRAND} 0%, ${BRAND_DARK} 60%, transparent 100%)`,
+                    transformOrigin: 'left',
+                }}
+            />
+
+            {/* ── Top edge line — closes the frame ── */}
+            <motion.div
+                animate={{ scaleX: isActive ? 1 : 0, opacity: isActive ? 0.40 : 0 }}
+                transition={{ ...EASE_STD, delay: isActive ? 0.06 : 0 }}
+                style={{
+                    position: 'absolute', top: 0, left: 0, right: 0,
+                    height: 1, zIndex: 8, pointerEvents: 'none',
+                    background: `linear-gradient(90deg, ${BRAND}, ${BRAND_DARK} 60%, transparent 100%)`,
                     transformOrigin: 'left',
                 }}
             />
@@ -249,102 +314,125 @@ const PillTile = React.memo(function PillTile({
                 {isActive && <CornerBrackets />}
             </AnimatePresence>
 
+            <IndexBadge index={tile.index} isActive={isActive} />
+
             <LetterBadge
                 letter={tile.letter}
                 isActive={isActive}
-                entranceDelay={tile.index * 0.06}
-                fontSize="clamp(1.75rem, 2.8vw, 2.5rem)"
+                entranceDelay={tile.index * 0.055}
+                fontSize="clamp(1.8rem, 2.6vw, 2.4rem)"
             />
         </motion.div>
     );
 });
 
 /* ─────────────────────────────────────────────────────────────
-   MOBILE CARD — 2-col grid, tap-to-activate
-   Full pill shape; no width change — scale + glow instead.
+   MOBILE CARD  — 2-col grid, tap-to-activate
+   Pattern: plain div owns the aspect-ratio (paddingTop trick —
+   reliable across all browsers and Framer Motion versions).
+   motion.div fills it with position:absolute so Framer's
+   injected inline styles never fight the container height.
 ───────────────────────────────────────────────────────────── */
 
 const MobileCard = React.memo(function MobileCard({
-    tile, height, isActive, isDimmed, onToggle,
+    tile, isActive, isDimmed, onToggle,
 }) {
     return (
-        <motion.div
-            onClick={onToggle}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{
-                opacity: isDimmed ? 0.48 : 1,
-                y: 0,
-                scale: isActive ? 1.025 : 1,
-            }}
-            transition={{
-                opacity: { duration: 0.4, delay: tile.index * 0.07 },
-                y: { type: 'spring', stiffness: 220, damping: 28, delay: tile.index * 0.07 },
-                scale: EASE_STD,
-            }}
+        /*
+         * Outer shell — owns the 3:4 portrait ratio via paddingTop.
+         * paddingTop: '133.33%' = (4/3) × 100% → height always = 4/3 × width.
+         * Framer never touches this div so aspect ratio is never overridden.
+         */
+        <div
             style={{
-                height,
-                borderRadius: 9999,
                 position: 'relative',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                willChange: 'transform',
-                zIndex: isActive ? 2 : 1,
-                boxShadow: isActive
-                    ? `0 16px 44px rgba(9,152,213,0.22), 0 6px 18px rgba(0,0,0,0.14)`
-                    : '0 4px 14px rgba(0,0,0,0.1)',
-                transition: 'box-shadow 0.35s ease',
+                width: '100%',
+                paddingTop: '133.33%',  /* 3:4 portrait */
             }}
         >
-            {/* Image */}
-            <motion.img
-                src={tile.src}
-                alt={`${tile.letter} gallery image`}
-                loading="lazy"
-                draggable={false}
-                animate={{ scale: isActive ? 1.1 : 1 }}
-                transition={EASE_SLOW}
-                style={{
-                    position: 'absolute', inset: 0,
-                    width: '100%', height: '100%',
-                    objectFit: 'cover', display: 'block',
-                    pointerEvents: 'none', userSelect: 'none',
-                }}
-            />
-
-            {/* Gradient */}
-            <div style={{
-                position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
-                background: `linear-gradient(
-                    to top,
-                    rgba(0,0,0,0.75) 0%,
-                    rgba(0,0,0,0.25) 30%,
-                    transparent      58%
-                )`,
-            }} />
-
-            {/* Brand line */}
             <motion.div
-                animate={{ scaleX: isActive ? 1 : 0, opacity: isActive ? 1 : 0 }}
-                transition={EASE_STD}
-                style={{
-                    position: 'absolute', bottom: 0, left: 0, right: 0,
-                    height: 3, zIndex: 8, pointerEvents: 'none',
-                    background: `linear-gradient(90deg, transparent, ${BRAND} 35%, ${BRAND_DARK})`,
-                    transformOrigin: 'left',
+                onClick={onToggle}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: isDimmed ? 0.42 : 1, y: 0 }}
+                transition={{
+                    opacity: { duration: 0.36, delay: tile.index * 0.06 },
+                    y: EASE_ENTER,
                 }}
-            />
+                style={{
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: 10,
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                    zIndex: isActive ? 2 : 1,
+                    boxShadow: isActive
+                        ? `0 14px 44px rgba(9,152,213,0.22), 0 6px 20px rgba(0,0,0,0.16), inset 0 0 0 1px rgba(9,152,213,0.22)`
+                        : `0 3px 14px rgba(0,0,0,0.10), inset 0 0 0 1px rgba(0,0,0,0.07)`,
+                    transition: 'box-shadow 0.32s ease',
+                }}
+            >
+                {/* Image — fills the absolute container completely */}
+                <motion.img
+                    src={tile.src}
+                    alt={`${tile.letter} gallery`}
+                    loading="lazy"
+                    draggable={false}
+                    animate={{ scale: isActive ? 1.06 : 1.0 }}
+                    transition={EASE_SLOW}
+                    style={{
+                        position: 'absolute', inset: 0,
+                        width: '100%', height: '100%',
+                        objectFit: 'cover', display: 'block',
+                        pointerEvents: 'none', userSelect: 'none',
+                    }}
+                />
 
-            <AnimatePresence>
-                {isActive && <CornerBrackets />}
-            </AnimatePresence>
+                {/* Scrim */}
+                <div style={{
+                    position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
+                    background: `linear-gradient(to top, rgba(2,12,22,0.80) 0%, rgba(0,0,0,0.16) 40%, transparent 65%)`,
+                }} />
 
-            <LetterBadge
-                letter={tile.letter}
-                isActive={isActive}
-                entranceDelay={tile.index * 0.07}
-                fontSize="clamp(1.6rem, 6.5vw, 2.1rem)"
-            />
-        </motion.div>
+                <ScanlineOverlay isActive={isActive} />
+
+                {/* Left accent */}
+                <motion.div
+                    animate={{ scaleY: isActive ? 1 : 0, opacity: isActive ? 1 : 0 }}
+                    transition={EASE_STD}
+                    style={{
+                        position: 'absolute', top: 0, left: 0, bottom: 0,
+                        width: 2.5, zIndex: 8, pointerEvents: 'none',
+                        background: `linear-gradient(180deg, transparent 0%, ${BRAND} 25%, ${BRAND} 75%, transparent 100%)`,
+                        transformOrigin: 'top',
+                    }}
+                />
+
+                {/* Bottom rule */}
+                <motion.div
+                    animate={{ scaleX: isActive ? 1 : 0, opacity: isActive ? 1 : 0 }}
+                    transition={{ ...EASE_STD, delay: isActive ? 0.06 : 0 }}
+                    style={{
+                        position: 'absolute', bottom: 0, left: 0, right: 0,
+                        height: 2, zIndex: 8, pointerEvents: 'none',
+                        background: `linear-gradient(90deg, ${BRAND} 0%, ${BRAND_DARK} 60%, transparent 100%)`,
+                        transformOrigin: 'left',
+                    }}
+                />
+
+                <AnimatePresence>
+                    {isActive && <CornerBrackets />}
+                </AnimatePresence>
+
+                <IndexBadge index={tile.index} isActive={isActive} />
+
+                <LetterBadge
+                    letter={tile.letter}
+                    isActive={isActive}
+                    entranceDelay={tile.index * 0.06}
+                    fontSize="clamp(1.6rem, 7vw, 2.1rem)"
+                />
+            </motion.div>
+        </div>
     );
 });
 
@@ -355,18 +443,19 @@ const MobileCard = React.memo(function MobileCard({
 export default function GCCCIBGallery() {
     const sectionRef = useRef(null);
 
-    /* ── Load Cormorant Garamond once ── */
+    /* ── Load fonts once ── */
     useEffect(() => {
-        const FONT_ID = 'gcccib-cormorant';
+        const FONT_ID = 'gcccib-fonts';
         if (document.getElementById(FONT_ID)) return;
         const link = document.createElement('link');
         link.id = FONT_ID;
         link.rel = 'stylesheet';
-        link.href = 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&display=swap';
+        // Cormorant Garamond (letters) + DM Mono (index badge)
+        link.href = 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Mono:wght@400;500&display=swap';
         document.head.appendChild(link);
     }, []);
 
-    /* ── 6 random tiles, stable per mount ── */
+    /* ── Stable tiles ── */
     const [tiles] = useState(() =>
         pickN(IMAGE_POOL, 6).map((src, i) => ({
             id: `gccc-${i}`,
@@ -378,7 +467,7 @@ export default function GCCCIBGallery() {
 
     const [activeId, setActiveId] = useState(null);
 
-    /* ── Container width via ResizeObserver on the inner div ── */
+    /* ── Container width ── */
     const innerRef = useRef(null);
     const [cW, setCW] = useState(0);
 
@@ -391,70 +480,86 @@ export default function GCCCIBGallery() {
         return () => ro.disconnect();
     }, []);
 
-    /* ── Breakpoints ── */
-    const isRow = cW >= 640;   // desktop + tablet → single pill row
+    const isRow = cW >= 640;
     const isMobile = cW > 0 && cW < 640;
 
-    /* ── Tile height (fixed, width is what animates) ── */
+    /* ── Tile height — portrait standing ratio ── */
     const tileH = useMemo(() => {
-        if (cW >= 1280) return 540;
-        if (cW >= 1024) return 500;
-        if (cW >= 768) return 440;
-        if (cW >= 640) return 380;
-        return 230; // mobile card height
+        if (cW >= 1280) return 560;
+        if (cW >= 1024) return 520;
+        if (cW >= 768) return 460;
+        if (cW >= 640) return 400;
+        return 185; // mobile: landscape strip
     }, [cW]);
 
-    /*
-     * Active expanded width:
-     * Just 3× the default resting width — feels natural, not too wide.
-     * Capped at 38% of container so all 5 siblings stay legible.
-     */
+    /* ── Active width — 3.2× resting, max 40% of container ── */
     const defaultW = useMemo(
-        () => (cW - PILL_GAP * (tiles.length - 1)) / tiles.length,
+        () => (cW - TILE_GAP * (tiles.length - 1)) / tiles.length,
         [cW, tiles.length]
     );
     const activeW = useMemo(
-        () => Math.min(defaultW * 3, cW * 0.38),
+        () => Math.min(defaultW * 3.2, cW * 0.40),
         [defaultW, cW]
     );
 
     const activeIdx = useMemo(
-        () => activeId ? tiles.findIndex(t => t.id === activeId) : null,
+        () => (activeId ? tiles.findIndex(t => t.id === activeId) : null),
         [activeId, tiles]
     );
 
     const widths = useMemo(
-        () => computeWidths(cW, tiles.length, PILL_GAP, activeIdx, activeW),
+        () => computeWidths(cW, tiles.length, TILE_GAP, activeIdx, activeW),
         [cW, tiles.length, activeIdx, activeW]
     );
 
     /* ── Stable handlers ── */
     const handleEnter = useCallback((id) => setActiveId(id), []);
     const handleLeave = useCallback(() => setActiveId(null), []);
-    const handleToggle = useCallback((id) =>
-        setActiveId(prev => prev === id ? null : id), []);
+    const handleToggle = useCallback(
+        (id) => setActiveId(prev => prev === id ? null : id),
+        []
+    );
 
     /* ─────────────────────────────────────────────────────────
-       RENDER — the outer shell matches the pattern the user
-       provided; ref goes on the inner container so ResizeObserver
-       tracks the actual available content width.
+       RENDER
     ──────────────────────────────────────────────────────────── */
     return (
         <section
             ref={sectionRef}
-            className={`relative w-full bg-white dark:bg-gray-950 overflow-hidden ${SECTION_SPACING_BOTTOM}`}
+            className={`relative w-full overflow-hidden ${SECTION_SPACING_BOTTOM}`}
             aria-label="GCCCIB Gallery"
         >
+            {/* Subtle ambient glow — soft on white */}
+            <div
+                aria-hidden="true"
+                style={{
+                    position: 'absolute',
+                    top: '10%', left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: '80%', height: '70%',
+                    borderRadius: '50%',
+                    background: `radial-gradient(ellipse, rgba(9,152,213,0.04) 0%, transparent 68%)`,
+                    pointerEvents: 'none',
+                    zIndex: 0,
+                }}
+            />
+
             <div
                 ref={innerRef}
-                className="relative z-10 py-5 container mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden"
+                className="relative z-10 py-6 container mx-auto px-2 overflow-hidden"
             >
-
-                {/* ── ROW: desktop + tablet (≥ 640px) ── */}
+                {/* ── ROW: desktop + tablet ── */}
                 {isRow && cW > 0 && (
-                    <div style={{ display: 'flex', gap: PILL_GAP, height: tileH, alignItems: 'stretch' }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            gap: TILE_GAP,
+                            height: tileH,
+                            alignItems: 'stretch',
+                        }}
+                    >
                         {tiles.map((tile, i) => (
-                            <PillTile
+                            <RectTile
                                 key={tile.id}
                                 tile={tile}
                                 targetWidth={widths[i]}
@@ -468,14 +573,19 @@ export default function GCCCIBGallery() {
                     </div>
                 )}
 
-                {/* ── GRID: mobile (< 640px) ── */}
+                {/* ── GRID: mobile — 2 columns of portrait standing rectangles ── */}
                 {isMobile && (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr',
+                            gap: 10,
+                        }}
+                    >
                         {tiles.map(tile => (
                             <MobileCard
                                 key={tile.id}
                                 tile={tile}
-                                height={tileH}
                                 isActive={activeId === tile.id}
                                 isDimmed={activeId !== null && activeId !== tile.id}
                                 onToggle={() => handleToggle(tile.id)}
@@ -483,7 +593,6 @@ export default function GCCCIBGallery() {
                         ))}
                     </div>
                 )}
-
             </div>
         </section>
     );

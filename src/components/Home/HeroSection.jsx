@@ -228,7 +228,7 @@ const HeroSection = () => {
 
             <HeroBackground />
 
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="container mx-auto px-2">
                 <div className="relative z-10 flex flex-col min-h-screen lg:h-screen lg:min-h-0">
 
                     {/* <div className={SPACING.navbarHeight} /> */}

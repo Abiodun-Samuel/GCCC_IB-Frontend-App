@@ -39,8 +39,15 @@ const ResetPasswordPage = () => {
 
     const handleResetPassword = useCallback((data) => {
         if (!email || !token) { Toast.error("Cannot reset password without email and token"); return; }
-        mutate({ ...data, email, token }, { onSuccess: () => reset() });
-    }, [email, token, mutate, reset]);
+        navigate('/login');
+        mutate({ ...data, email, token },
+            {
+                onSuccess: () => {
+                    navigate('/login');
+                    reset()
+                }
+            });
+    }, [email, token, mutate, reset, navigate]);
 
     const tagline = useMemo(() =>
         email ? `Setting a new password for ${email}` : "Enter your new password below."

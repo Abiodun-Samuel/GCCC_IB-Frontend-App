@@ -1,4 +1,10 @@
 export const QUERY_KEYS = {
+  REDEEMABLE_ITEMS: {
+    ALL: ['redeemable-items'],
+    LIST: (params = {}) => ['redeemable-items', 'list', params],
+    ADMIN_LIST: (params = {}) => ['redeemable-items', 'admin-list', params],
+    DETAIL: (id) => ['redeemable-items', 'detail', id],
+  },
   // ═══════════════════════════════════════════════════════════════════════
   // EVENTS
   // ═══════════════════════════════════════════════════════════════════════

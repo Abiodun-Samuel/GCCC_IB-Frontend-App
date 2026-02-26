@@ -1,8 +1,9 @@
 import AppRoutes from "@/router";
-import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import AOS from 'aos';
-import { useEffect } from "react";
-
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { useEffect } from 'react';
+import PWAUpdateHandler from "@/components/common/PWAUpdateHandler";
+import PWAInstallBanner from "@/components/common/PWAInstallBanner";
 
 const router = createBrowserRouter(AppRoutes);
 
@@ -16,5 +17,11 @@ export default function App() {
     });
   }, []);
 
-  return <RouterProvider router={router} />
+  return (
+    <>
+      <PWAUpdateHandler />
+      <PWAInstallBanner />
+      <RouterProvider router={router} />
+    </>
+  )
 }

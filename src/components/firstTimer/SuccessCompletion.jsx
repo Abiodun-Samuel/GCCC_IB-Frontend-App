@@ -1,8 +1,6 @@
-import { useEffect, memo } from "react";
+import { memo } from "react";
 import { TelegramIcon } from "@/icons";
 import { ArrowRight, CheckCircle2, Shield } from "lucide-react";
-import AOS from "aos";
-import "aos/dist/aos.css";
 
 /* ─────────────────────────────────────────────────────────────
    Brand tokens
@@ -36,9 +34,6 @@ const STYLES = `
 `;
 
 const SuccessCompletion = memo(() => {
-  useEffect(() => {
-    AOS.init({ duration: 580, easing: "ease-out-cubic", once: true, offset: 0 });
-  }, []);
 
   return (
     <div className="w-full py-8 sm:py-10">

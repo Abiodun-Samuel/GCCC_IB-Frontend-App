@@ -37,6 +37,11 @@ export const navItems = [
     path: '/dashboard/messages',
   },
   {
+    icon: 'GiftIcon',
+    name: 'Reward Store',
+    path: '/dashboard/reward-store',
+  },
+  {
     icon: 'AttendanceIcon2',
     name: 'Attendance Records (Usher)',
     path: '/dashboard/service-attendance',
@@ -70,6 +75,11 @@ export const adminNavItems = [
       {
         name: 'Follow-Up Feedbacks',
         path: '/dashboard/admin/followup-feedbacks',
+        pro: true,
+      },
+      {
+        name: 'Redeemable Items',
+        path: '/dashboard/admin/redeemable-items',
         pro: true,
       },
       {

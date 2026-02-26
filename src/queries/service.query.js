@@ -48,8 +48,9 @@ export const useTodaysService = (options = {}) => {
       };
     },
     enabled: isAuthenticated,
-    staleTime: 0 * 60 * 1000,
-    cacheTime: 0 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+    refetchOnMount: true,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
     refetchInterval: false,

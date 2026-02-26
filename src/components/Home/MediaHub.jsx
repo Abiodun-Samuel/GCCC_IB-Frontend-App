@@ -1,6 +1,4 @@
-import { memo, useState, useEffect, useCallback, useMemo } from 'react';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+import { memo, useState, useCallback, useMemo } from 'react';
 import {
     Youtube, Send, Music2, Play, ExternalLink,
     Tv2, BookOpen, Mic2, Star, ChevronRight,
@@ -10,6 +8,10 @@ import {
 import AnimatedBackground, { BRAND, BRAND_RGB, PAGE_BG } from '@/components/common/AnimatedBackground';
 import { SECTION_SPACING } from '@/utils/constant';
 import { useVideos } from '@/queries/media.query';
+import { useAwardPoints } from '@/queries/user.query';
+import { useSpotifyCompletion } from '@/hooks/useSpotifyCompletion';
+import { useModal } from '@/hooks/useModal';
+import YouTubeModal from '@/components/Home/YoutubeModal';
 
 /* ─────────────────────────────────────────────
    DESIGN TOKENS
@@ -57,9 +59,30 @@ const CATEGORY_META = {
 };
 
 /* ─────────────────────────────────────────────
+   CUSTOM BRAND ICONS  (Lucide doesn't ship these)
+───────────────────────────────────────────── */
+const FacebookIcon = ({ size = 16 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+);
+
+const InstagramIcon = ({ size = 16 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+        <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+    </svg>
+);
+
+const TikTokIcon = ({ size = 16 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z" />
+    </svg>
+);
+
+/* ─────────────────────────────────────────────
    SKELETON
-   ShimmerBlock now forwards the style prop so
-   callers can pass inline overrides (e.g. height).
 ───────────────────────────────────────────── */
 const ShimmerBlock = memo(({ className = '', style }) => (
     <div
@@ -73,28 +96,14 @@ const ShimmerBlock = memo(({ className = '', style }) => (
 ));
 ShimmerBlock.displayName = 'MediaHub.ShimmerBlock';
 
-/*
-  VideoCardSkeleton mirrors the real VideoCard layout exactly:
-  • Thumbnail  → 16:9 aspect ratio wrapper  (paddingBottom 56.25%)
-  • Body       → p-4, title (2 lines ~42 px), date row (~20 px)
-  Total height matches the rendered card so the grid never jumps.
-*/
 const VideoCardSkeleton = memo(() => (
     <div className="rounded-2xl overflow-hidden" style={cardShell}>
-        {/* 16:9 thumbnail — wrapper holds the ratio, shimmer fills it */}
         <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-            <ShimmerBlock
-                className="absolute inset-0 w-full h-full rounded-none"
-            />
+            <ShimmerBlock className="absolute inset-0 w-full h-full rounded-none" />
         </div>
-
-        {/* Body — matches VideoCard's p-4 content */}
         <div className="p-4 space-y-2.5">
-            {/* Title line 1 */}
             <ShimmerBlock className="h-[14px] w-full" />
-            {/* Title line 2 */}
             <ShimmerBlock className="h-[14px] w-4/5" />
-            {/* Date / Watch row */}
             <div className="flex items-center justify-between pt-1">
                 <ShimmerBlock className="h-[11px] w-20" />
                 <ShimmerBlock className="h-[11px] w-14" />
@@ -115,11 +124,7 @@ VideoGridSkeleton.displayName = 'MediaHub.VideoGridSkeleton';
    SECTION HEADER
 ───────────────────────────────────────────── */
 const SectionHeader = memo(({ eyebrow, titleWhite, titleBlue, subtitle, action, colorRGB = BRAND_RGB }) => (
-    <div
-        data-aos="fade"
-        data-aos-duration="380"
-        className="flex flex-col gap-2 mb-8"
-    >
+    <div data-aos="fade" data-aos-duration="350" className="flex flex-col gap-2 mb-8">
         <div className="flex items-start justify-between gap-4">
             <div className="flex flex-col gap-2 min-w-0">
                 {eyebrow && (
@@ -170,31 +175,31 @@ const ViewAllLink = memo(({ href, label, colorRGB = BRAND_RGB }) => (
 ViewAllLink.displayName = 'MediaHub.ViewAllLink';
 
 /* ─────────────────────────────────────────────
-   SOCIAL CHIP
+   SOCIAL CHIP — icon only, no label
 ───────────────────────────────────────────── */
-const SocialChip = memo(({ href, icon: Icon, label, colorRGB }) => (
+const SocialChip = memo(({ href, icon: Icon, colorRGB, title }) => (
     <a
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="group flex items-center justify-center gap-2 px-2 py-2 sm:px-4 rounded-full transition-transform duration-150 hover:scale-105 active:scale-95"
+        title={title}
+        aria-label={title}
+        className="flex items-center justify-center w-9 h-9 rounded-full transition-all duration-150 hover:scale-110 active:scale-95 focus:outline-none"
         style={{
             background: `rgba(${colorRGB},0.10)`,
             border: `1px solid rgba(${colorRGB},0.22)`,
             color: `rgba(${colorRGB},1)`,
         }}
         onMouseEnter={e => {
-            e.currentTarget.style.background = `rgba(${colorRGB},0.18)`;
-            e.currentTarget.style.boxShadow = `0 4px 18px rgba(${colorRGB},0.26)`;
+            e.currentTarget.style.background = `rgba(${colorRGB},0.20)`;
+            e.currentTarget.style.boxShadow = `0 4px 16px rgba(${colorRGB},0.30)`;
         }}
         onMouseLeave={e => {
             e.currentTarget.style.background = `rgba(${colorRGB},0.10)`;
             e.currentTarget.style.boxShadow = 'none';
         }}
     >
-        <Icon size={14} strokeWidth={2} />
-        <span className="text-xs sm:text-sm font-semibold tracking-wide">{label}</span>
-        <ExternalLink size={11} className="opacity-100 group-hover:opacity-70 transition-opacity duration-200" />
+        <Icon size={15} />
     </a>
 ));
 SocialChip.displayName = 'MediaHub.SocialChip';
@@ -252,33 +257,39 @@ CategoryBadge.displayName = 'MediaHub.CategoryBadge';
 /* ─────────────────────────────────────────────
    VIDEO CARD
 ───────────────────────────────────────────── */
-const VideoCard = memo(({ video, index }) => {
+const VideoCard = memo(({ video, index, isAuthenticated, user }) => {
+    const { isOpen, openModal, closeModal } = useModal(false);
+
     const cat = useMemo(() => getCategory(video.title), [video.title]);
     const cleanTitle = useMemo(
         () => video.title.replace(/#\w+/g, '').replace(/\|/g, '·').trim(),
         [video.title]
     );
     const dateStr = useMemo(() => formatDate(video.published_at), [video.published_at]);
-    const href = `https://www.youtube.com/watch?v=${video.video_id}`;
 
     return (
-        <div
-            className="group rounded-2xl overflow-hidden transition-transform duration-[260ms] ease-[cubic-bezier(.22,1,.36,1)] hover:-translate-y-1"
-            data-aos="fade"
-            data-aos-duration="380"
-            data-aos-delay={Math.min((index % 8) * 45, 280)}
-            style={cardShell}
-            onMouseEnter={e => {
-                e.currentTarget.style.borderColor = `rgba(${BRAND_RGB},.32)`;
-                e.currentTarget.style.boxShadow = `0 20px 56px rgba(0,0,0,.45), 0 0 0 1px rgba(${BRAND_RGB},.14)`;
-            }}
-            onMouseLeave={e => {
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)';
-                e.currentTarget.style.boxShadow = 'none';
-            }}
-        >
-            <a href={href} target="_blank" rel="noopener noreferrer" className="block">
-                <div className="relative overflow-hidden" style={{ paddingBottom: '56.25%' }}>
+        <>
+            <div
+                className="group rounded-2xl overflow-hidden transition-transform duration-[260ms] ease-[cubic-bezier(.22,1,.36,1)] hover:-translate-y-1"
+                data-aos="fade"
+                data-aos-duration="350"
+                data-aos-delay={Math.min((index % 8) * 45, 280)}
+                style={cardShell}
+                onMouseEnter={e => {
+                    e.currentTarget.style.borderColor = `rgba(${BRAND_RGB},.32)`;
+                    e.currentTarget.style.boxShadow = `0 20px 56px rgba(0,0,0,.45), 0 0 0 1px rgba(${BRAND_RGB},.14)`;
+                }}
+                onMouseLeave={e => {
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)';
+                    e.currentTarget.style.boxShadow = 'none';
+                }}
+            >
+                <button
+                    onClick={openModal}
+                    className="relative block w-full overflow-hidden focus:outline-none"
+                    style={{ paddingBottom: '56.25%' }}
+                    aria-label={`Watch ${cleanTitle}`}
+                >
                     <img
                         src={video.thumbnail_high}
                         alt={cleanTitle}
@@ -301,7 +312,8 @@ const VideoCard = memo(({ video, index }) => {
                         </div>
                     </div>
                     <CategoryBadge catKey={cat} />
-                </div>
+                </button>
+
                 <div className="p-4">
                     <p className="text-sm font-semibold leading-snug mb-3 line-clamp-2 text-white/85 transition-colors duration-200 group-hover:text-white">
                         {cleanTitle}
@@ -310,13 +322,26 @@ const VideoCard = memo(({ video, index }) => {
                         <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.28)' }}>
                             {dateStr}
                         </span>
-                        <span className="flex items-center gap-0.5 text-xs font-bold" style={{ color: BRAND }}>
+                        <button
+                            onClick={openModal}
+                            className="flex items-center gap-0.5 text-xs font-bold focus:outline-none"
+                            style={{ color: BRAND }}
+                        >
                             Watch <ChevronRight size={11} />
-                        </span>
+                        </button>
                     </div>
                 </div>
-            </a>
-        </div>
+            </div>
+
+            <YouTubeModal
+                title={cleanTitle}
+                user={user}
+                video={video}
+                isOpen={isOpen}
+                onClose={closeModal}
+                isAuthenticated={isAuthenticated}
+            />
+        </>
     );
 });
 VideoCard.displayName = 'MediaHub.VideoCard';
@@ -327,8 +352,8 @@ VideoCard.displayName = 'MediaHub.VideoCard';
 const PageHeader = memo(() => (
     <div
         data-aos="fade"
-        data-aos-duration="440"
-        className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col mb-16 sm:mb-24 justify-between gap-3"
+        data-aos-duration="450"
+        className="container mx-auto px-2 flex flex-col mb-16 sm:mb-24 justify-between gap-3"
     >
         <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2.5">
@@ -348,10 +373,45 @@ const PageHeader = memo(() => (
                 Watch services, dive into teachings, and listen to our podcast wherever you are.
             </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 sm:pb-1 shrink-0">
-            <SocialChip href="https://www.youtube.com/@GcccIbadan" icon={Youtube} label="YouTube" colorRGB="220,38,38" />
-            <SocialChip href="https://t.me/Pastoropeyemipeter" icon={Send} label="Telegram" colorRGB="0,136,204" />
-            <SocialChip href="https://open.spotify.com/show/5yc39lH1EtNRoUQb1mG7SY" icon={Music2} label="Podcast" colorRGB="29,185,84" />
+
+        {/* Social icon row — icon only, each with its own brand color */}
+        <div className="flex items-center gap-2 flex-wrap">
+            <SocialChip
+                href="https://www.youtube.com/@GcccIbadan"
+                icon={Youtube}
+                colorRGB="220,38,38"
+                title="YouTube"
+            />
+            <SocialChip
+                href="https://www.facebook.com/share/1K8ura74Dc/"
+                icon={FacebookIcon}
+                colorRGB="24,119,242"
+                title="Facebook"
+            />
+            <SocialChip
+                href="https://www.instagram.com/gcccibadan"
+                icon={InstagramIcon}
+                colorRGB="225,48,108"
+                title="Instagram"
+            />
+            <SocialChip
+                href="https://www.tiktok.com/@gcccibadan"
+                icon={TikTokIcon}
+                colorRGB="255,255,255"
+                title="TikTok"
+            />
+            <SocialChip
+                href="https://t.me/Pastoropeyemipeter"
+                icon={Send}
+                colorRGB="0,136,204"
+                title="Telegram"
+            />
+            <SocialChip
+                href="https://open.spotify.com/show/5yc39lH1EtNRoUQb1mG7SY"
+                icon={Music2}
+                colorRGB="29,185,84"
+                title="Spotify"
+            />
         </div>
     </div>
 ));
@@ -360,7 +420,7 @@ PageHeader.displayName = 'MediaHub.PageHeader';
 /* ─────────────────────────────────────────────
    VIDEO SECTION
 ───────────────────────────────────────────── */
-const VideoSection = memo(() => {
+const VideoSection = memo(({ isAuthenticated, user }) => {
     const { data, isLoading, isError } = useVideos();
     const [activeFilter, setActiveFilter] = useState('all');
     const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
@@ -391,7 +451,11 @@ const VideoSection = memo(() => {
         [uniqueVideos, activeFilter]
     );
 
-    const handleFilter = useCallback((cat) => { setActiveFilter(cat); setVisibleCount(INITIAL_COUNT); }, []);
+    const handleFilter = useCallback((cat) => {
+        setActiveFilter(cat);
+        setVisibleCount(INITIAL_COUNT);
+    }, []);
+
     const handleLoadMore = useCallback(() => setVisibleCount((c) => c + PAGE_SIZE), []);
     const handleCollapse = useCallback(() => setVisibleCount(INITIAL_COUNT), []);
 
@@ -411,7 +475,6 @@ const VideoSection = memo(() => {
                 action={<ViewAllLink href="https://www.youtube.com/@GcccIbadan" label="View all on YouTube" />}
             />
 
-            {/* Filter bar */}
             {!isLoading && !isError && (
                 <div className="relative mb-8">
                     <div className="mh-filter-scroll flex items-center gap-2 pb-1 overflow-x-auto">
@@ -452,17 +515,22 @@ const VideoSection = memo(() => {
                 <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                         {filtered.slice(0, visibleCount).map((video, i) => (
-                            <VideoCard key={video.video_id} video={video} index={i} />
+                            <VideoCard
+                                user={user}
+                                key={video.video_id}
+                                video={video}
+                                index={i}
+                                isAuthenticated={isAuthenticated}
+                            />
                         ))}
                     </div>
 
-                    {/* ── Load more / collapse row ── */}
                     {(showLoadMore || showCollapse) && (
                         <div className="flex items-center justify-center gap-2 mt-8">
                             {showLoadMore && (
                                 <button
                                     onClick={handleLoadMore}
-                                    className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-white transition-all duration-200 hover:opacity-85 focus:outline-none active:scale-95"
+                                    className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200 hover:opacity-85 focus:outline-none active:scale-95"
                                     style={{
                                         background: `rgba(${BRAND_RGB},0.15)`,
                                         border: `1px solid rgba(${BRAND_RGB},0.28)`,
@@ -510,72 +578,78 @@ VideoSection.displayName = 'MediaHub.VideoSection';
 /* ─────────────────────────────────────────────
    SPOTIFY SECTION
 ───────────────────────────────────────────── */
-const SpotifySection = memo(() => (
-    <div data-aos="fade" data-aos-duration="420">
-        <SectionHeader
-            eyebrow="Audio"
-            titleWhite="Listen on"
-            titleBlue="Podcast"
-            subtitle="Stream our latest sermon episode"
-            colorRGB="29,185,84"
-            action={
-                <ViewAllLink
-                    href="https://open.spotify.com/show/5yc39lH1EtNRoUQb1mG7SY"
-                    label="View all episodes"
-                    colorRGB="29,185,84"
-                />
-            }
-        />
-        <div
-            className="rounded-2xl overflow-hidden"
-            style={{
-                background: 'rgba(29,185,84,0.05)',
-                border: '1px solid rgba(29,185,84,0.18)',
-                boxShadow: '0 8px 40px rgba(29,185,84,0.07)',
-            }}
-        >
-            <iframe
-                title="GCCC Ibadan Podcast"
-                style={{ borderRadius: '12px', display: 'block' }}
-                src="https://open.spotify.com/embed/show/5yc39lH1EtNRoUQb1mG7SY?utm_source=generator&theme=0"
-                width="100%"
-                height="352"
-                frameBorder="0"
-                allowFullScreen
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                loading="lazy"
+const SpotifySection = memo(({ isAuthenticated, user }) => {
+    const { mutate: awardPoints } = useAwardPoints();
+
+    const handleComplete = useCallback(() => {
+        if (isAuthenticated) {
+            awardPoints({ userId: user?.id, action: 'media.audio_listened' });
+        }
+    }, [isAuthenticated, awardPoints, user]);
+
+    useSpotifyCompletion({
+        onComplete: handleComplete,
+        enabled: isAuthenticated,
+    });
+
+    return (
+        <div data-aos="fade" data-aos-duration="400">
+            <SectionHeader
+                eyebrow="Audio"
+                titleWhite="Listen on"
+                titleBlue="Podcast"
+                subtitle="Stream our latest sermon episode"
+                colorRGB="29,185,84"
+                action={
+                    <ViewAllLink
+                        href="https://open.spotify.com/show/5yc39lH1EtNRoUQb1mG7SY"
+                        label="View all episodes"
+                        colorRGB="29,185,84"
+                    />
+                }
             />
+            <div
+                className="rounded-2xl overflow-hidden"
+                style={{
+                    background: 'rgba(29,185,84,0.05)',
+                    border: '1px solid rgba(29,185,84,0.18)',
+                    boxShadow: '0 8px 40px rgba(29,185,84,0.07)',
+                }}
+            >
+                <iframe
+                    title="GCCC Ibadan Podcast"
+                    style={{ borderRadius: '12px', display: 'block' }}
+                    src="https://open.spotify.com/embed/show/5yc39lH1EtNRoUQb1mG7SY?utm_source=generator&theme=0"
+                    width="100%"
+                    height="352"
+                    frameBorder="0"
+                    allowFullScreen
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    loading="lazy"
+                />
+            </div>
         </div>
-    </div>
-));
+    );
+});
 SpotifySection.displayName = 'MediaHub.SpotifySection';
 
 /* ─────────────────────────────────────────────
    ROOT
 ───────────────────────────────────────────── */
-const MediaHub = () => {
-    useEffect(() => {
-        document.documentElement.classList.add('aos-running');
-        AOS.init({
-            once: true,
-            duration: 380,
-            easing: 'ease-out-cubic',
-            offset: 36,
-            disableMutationObserver: false,
-        });
-    }, []);
-
+const MediaHub = ({ isAuthenticated = false, user }) => {
     return (
         <section
-            id='media'
+            id="media"
             className={`relative overflow-hidden w-full ${SECTION_SPACING}`}
             style={{ backgroundColor: PAGE_BG }}
         >
-            <AnimatedBackground withBaseBg={true} />
+            <div className="relative">
+                <AnimatedBackground withBaseBg />
+            </div>
             <PageHeader />
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col gap-16 sm:gap-20">
-                <VideoSection />
-                <SpotifySection />
+            <div className="container mx-auto px-2 relative z-10 flex flex-col gap-16 sm:gap-20">
+                <VideoSection user={user} isAuthenticated={isAuthenticated} />
+                <SpotifySection user={user} isAuthenticated={isAuthenticated} />
             </div>
         </section>
     );

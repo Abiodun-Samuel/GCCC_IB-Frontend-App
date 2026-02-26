@@ -1,7 +1,4 @@
-import { useEffect } from "react";
 import { CheckIcon } from "@/icons";
-import AOS from "aos";
-import "aos/dist/aos.css";
 
 /* ─────────────────────────────────────────────────────────────
    Brand tokens
@@ -13,10 +10,6 @@ const B_RGB = "9,152,213";
 export const ProgressIndicator = ({ currentStep, totalSteps }) => {
     const steps = Array.from({ length: totalSteps }, (_, i) => i + 1);
     const pct = Math.round(((currentStep - 1) / (totalSteps - 1)) * 100);
-
-    useEffect(() => {
-        AOS.init({ duration: 500, easing: "ease-out-cubic", once: true, offset: 10 });
-    }, []);
 
     return (
         <div className="w-full select-none">

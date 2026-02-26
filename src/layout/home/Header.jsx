@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
     Home, Calendar, Users, LogIn, User, LayoutDashboard,
     ChevronDown, Menu, X, Clock, Star, FileText, LogOut, Video,
     MapPin,
+    Package2,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
-import { useLogout, useMe } from '@/queries/auth.query';
+import { useLogout } from '@/queries/auth.query';
 import Avatar from '@/components/ui/Avatar';
 import RoleBadge from '@/components/userProfile/RoleBadge';
 import { useScrollState } from '@/hooks/useScrollState';
@@ -38,24 +39,27 @@ const DROPDOWN_ICON_CLS = `
     transition-colors duration-150
 `;
 
-// ─── StarsBadge ───────────────────────────────────────────────────────────────
 
-const StarsBadge = ({ totalStars }) => (
+const PointsBadge = ({ totalPoints }) => (
     <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm bg-amber-500/10 border border-amber-400/20">
         <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
         <span className="text-xs font-bold text-amber-600 dark:text-amber-400 tabular-nums">
-            {totalStars || 0}
+            {totalPoints || 0}
         </span>
     </div>
 );
 
+
 // ─── Header ───────────────────────────────────────────────────────────────────
 
 const Header = () => {
-    useMe();
+
     const { scrolled } = useScrollState();
     const { isAuthenticated, user, isAdmin, isLeader } = useAuthStore();
     const { mutateAsync: logout, isPending: isLoggingOut } = useLogout();
+
+    const navigate = useNavigate();
+    const { pathname } = useLocation();
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [mobileUserMenuOpen, setMobileUserMenuOpen] = useState(false);
@@ -94,13 +98,22 @@ const Header = () => {
     }, [logout]);
 
     const scrollToSection = useCallback((id, delay = 0) => {
+        if (pathname !== '/') {
+            navigate(`/#${id}`);
+            return;
+        }
+
         const run = () => {
             const el = document.getElementById(id);
             if (!el) return;
-            window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset - 80, behavior: 'smooth' });
+            window.scrollTo({
+                top: el.getBoundingClientRect().top + window.pageYOffset - 80,
+                behavior: 'smooth',
+            });
         };
+
         delay > 0 ? setTimeout(run, delay) : run();
-    }, []);
+    }, [pathname, navigate]);
 
     const formatTime = useCallback((date) =>
         date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
@@ -121,11 +134,12 @@ const Header = () => {
     ], []);
 
     const authNavItems = useMemo(() => [
+        { label: 'Admin', icon: Users, to: '/dashboard/admin', show: isAdmin },
         { label: 'Dashboard', icon: LayoutDashboard, to: '/dashboard', show: true },
         { label: 'Profile', icon: User, to: '/dashboard/profile', show: true },
         { label: 'Events', icon: EventIcon, to: '/dashboard/events', show: true },
-        { label: 'Admin', icon: Users, to: '/dashboard/admin', show: isAdmin },
-        { label: 'Leader', icon: Star, to: '/dashboard/leaders', show: isLeader },
+        { label: 'Reward Store', icon: Package2, to: '/dashboard/reward-store', show: true },
+        // { label: 'Leader', icon: Star, to: '/dashboard/leaders', show: isLeader },
     ], [isAdmin, isLeader]);
 
     // ── Desktop nav item ──────────────────────────────────────────────────────
@@ -154,7 +168,11 @@ const Header = () => {
         if (isHash) {
             return (
                 <div key={item.label} className="relative group" style={staggerStyle}>
-                    <a href={item.href} onClick={(e) => { e.preventDefault(); scrollToSection(item.href.slice(1)); }} className={NAV_LINK_CLS}>
+                    <a
+                        href={item.href}
+                        onClick={(e) => { e.preventDefault(); scrollToSection(item.href.slice(1)); }}
+                        className={NAV_LINK_CLS}
+                    >
                         {inner}
                     </a>
                 </div>
@@ -225,6 +243,7 @@ const Header = () => {
 
     return (
         <>
+            {/* <button onClick={mut}>Click</button> */}
             {/* Overlay */}
             <div
                 className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-200
@@ -240,7 +259,7 @@ const Header = () => {
                     transition-shadow duration-300
                     ${scrolled ? 'shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08)]' : 'shadow-[0_1px_3px_0_rgba(0,0,0,0.06)]'}`}
             >
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="container mx-auto px-2">
 
                     {/* ── Desktop ── */}
                     <div className="hidden lg:grid lg:grid-cols-3 lg:gap-8 items-center h-20">
@@ -298,7 +317,7 @@ const Header = () => {
                                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 mb-2.5 truncate">{user?.email}</p>
                                             <div className="flex items-center gap-2 flex-wrap">
                                                 <RoleBadge showIcon />
-                                                <StarsBadge totalStars={user?.total_stars} />
+                                                <PointsBadge totalPoints={user?.reward_points} />
                                             </div>
                                         </div>
                                         <div className="py-1">
@@ -394,7 +413,7 @@ const Header = () => {
                                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 mb-2.5 truncate">{user?.email}</p>
                                             <div className="flex items-center gap-2 flex-wrap">
                                                 <RoleBadge showIcon />
-                                                <StarsBadge totalStars={user?.total_stars} />
+                                                <PointsBadge totalPoints={user?.reward_points} />
                                             </div>
                                         </div>
                                         <div className="py-1">

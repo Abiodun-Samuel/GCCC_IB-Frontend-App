@@ -82,3 +82,52 @@ export const LeaderUnitsBadge = () => (
         <rect x="10" y="10" width="3" height="3" rx="0.5" className="fill-blue-600 dark:fill-blue-400" />
     </svg>
 );
+
+export const AdminRedeemableItemsBadge = () => (
+    <svg
+        width="24"
+        height="24"
+        viewBox="0 0 18 18"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="shrink-0"
+    >
+        {/* Background */}
+        <rect
+            width="24"
+            height="24"
+            rx="4"
+            className="fill-blue-100 dark:fill-blue-900/30"
+        />
+
+        {/* Box Top */}
+        <path
+            d="M5 7.5L9 5.5L13 7.5"
+            className="stroke-blue-600 dark:stroke-blue-400"
+            strokeWidth="1.2"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        />
+
+        {/* Box Body */}
+        <rect
+            x="5"
+            y="7.5"
+            width="8"
+            height="5"
+            rx="0.6"
+            className="stroke-blue-600 dark:stroke-blue-400"
+            strokeWidth="1.2"
+            fill="none"
+        />
+
+        {/* Center Divider */}
+        <path
+            d="M9 7.5V12.5"
+            className="stroke-blue-600 dark:stroke-blue-400"
+            strokeWidth="1"
+            strokeLinecap="round"
+        />
+    </svg>
+);

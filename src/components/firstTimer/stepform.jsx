@@ -1,11 +1,8 @@
-import { useEffect } from "react";
 import Animated from "@/components/common/Animated";
 import RadioSelectForm from "@/components/form/useForm/RadioSelectForm";
 import TextAreaForm from "@/components/form/TextAreaForm";
 import InputForm from "@/components/form/useForm/InputForm";
 import RadioForm from "@/components/form/useForm/RadioForm";
-import AOS from "aos";
-import "aos/dist/aos.css";
 
 /* ─────────────────────────────────────────────────────────────
    Brand tokens
@@ -13,12 +10,6 @@ import "aos/dist/aos.css";
 const B = "#0998d5";
 const B_RGB = "9,152,213";
 
-const useAOS = () => {
-  useEffect(() => {
-    AOS.init({ duration: 520, easing: "ease-out-cubic", once: true, offset: 8 });
-    AOS.refresh();
-  }, []);
-};
 
 /* ─────────────────────────────────────────────────────────────
    StepSection — shared heading block
@@ -93,7 +84,6 @@ const StepSection = ({ eyebrow, title, subtitle, children }) => (
    Step 1 — Personal Information
 ────────────────────────────────────────────────────────────── */
 export const Step1PersonalInfo = ({ register, errors }) => {
-  useAOS();
   return (
     <Animated animation="fade-up">
       <StepSection
@@ -160,7 +150,6 @@ export const Step1PersonalInfo = ({ register, errors }) => {
    Step 2 — Discovery
 ────────────────────────────────────────────────────────────── */
 export const Step2FriendFamilyLocation = ({ watch, register, errors, setValue }) => {
-  useAOS();
   const howDidYouLearn = watch("how_did_you_learn");
 
   return (
@@ -213,7 +202,6 @@ export const Step2FriendFamilyLocation = ({ watch, register, errors, setValue })
    Step 3 — Interest
 ────────────────────────────────────────────────────────────── */
 export const Step3Interest = ({ register, errors }) => {
-  useAOS();
   return (
     <Animated animation="fade-up">
       <StepSection
@@ -256,7 +244,6 @@ export const Step3Interest = ({ register, errors }) => {
    Step 4 — More Details
 ────────────────────────────────────────────────────────────── */
 export const Step4Details = ({ register, errors }) => {
-  useAOS();
   return (
     <Animated animation="fade-up">
       <StepSection
@@ -314,7 +301,6 @@ export const Step4Details = ({ register, errors }) => {
    Step 5 — Service Experience
 ────────────────────────────────────────────────────────────── */
 export const Step5Experience = ({ register, errors }) => {
-  useAOS();
   return (
     <Animated animation="fade-up">
       <StepSection

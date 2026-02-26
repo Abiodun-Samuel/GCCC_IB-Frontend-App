@@ -1,10 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AttendanceService } from '../services/attendance.service';
 import { QUERY_KEYS } from '../utils/queryKeys';
-import { useNavigate } from 'react-router-dom';
 import { Toast } from '../lib/toastify';
 import { handleApiError } from '../utils/helper';
-import { useAuthStore } from '@/store/auth.store';
 
 export const useAllAttendance = (params = {}, options = {}) => {
   return useQuery({
@@ -42,19 +40,13 @@ export const useUserAttendance = (params = {}, options = {}) => {
 
 // Mark attendance mutation
 export const useMarkAttendance = (options = {}) => {
-  const navigate = useNavigate();
-  const { setAuthenticatedUser } = useAuthStore();
-
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: AttendanceService.markAttendance,
     onSuccess: ({ data, message }, variables) => {
-      const { user } = data
-      setAuthenticatedUser({ user })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AUTH.ME });
       Toast.success(message || 'Attendance submitted successfully');
-      setTimeout(() => {
-        navigate(`/dashboard`);
-      }, 3000);
       options.onSuccess?.(data, variables);
     },
     onError: (error) => {

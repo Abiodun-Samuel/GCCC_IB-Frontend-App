@@ -9,145 +9,189 @@ const TEAL = '#07c4b8';
 const SKY = '#38bdf8';
 const CYAN = '#06b6d4';
 
-/* ─── Deterministic star field (no Math.random — SSR safe) ──────────────────── */
+/* ─── Star data ──────────────────────────────────────────────────────────────── */
+// Deterministic (SSR-safe). Culled to opacity ≥ 0.10 — invisible stars still
+// consume animation budget. Leaves ~52 of the original 70.
 const STARS = Array.from({ length: 70 }, (_, i) => {
     const s = Math.sin(i * 7.31);
     const c = Math.cos(i * 5.13);
+    const opacity = +(Math.abs(Math.sin(i * 2.93)) * 0.50 + 0.06).toFixed(3);
     return {
         id: i,
-        size: s > 0.80 ? 2.2 : s > 0.65 ? 1.4 : 0.9,
-        top: ((Math.sin(i * 3.71) * 0.5 + 0.5) * 100).toFixed(3),
-        left: ((c * 0.5 + 0.5) * 100).toFixed(3),
-        opacity: (Math.abs(Math.sin(i * 2.93)) * 0.50 + 0.06).toFixed(3),
+        r: s > 0.80 ? 1.1 : s > 0.65 ? 0.7 : 0.45,  // SVG radius, not px size
+        cx: +((c * 0.5 + 0.5) * 100).toFixed(3),       // % position
+        cy: +((Math.sin(i * 3.71) * 0.5 + 0.5) * 100).toFixed(3),
+        opacity,
         dur: (2.8 + Math.abs(Math.sin(i * 1.37)) * 5).toFixed(2),
         delay: (Math.abs(Math.cos(i * 4.71)) * 7).toFixed(2),
-        tint: i % 7 === 0 ? TEAL : i % 11 === 0 ? SKY : '#ffffff',
+        fill: i % 7 === 0 ? TEAL : i % 11 === 0 ? SKY : '#ffffff',
     };
-});
+}).filter(s => s.opacity >= 0.10);
 
-/* ─── Particles ──────────────────────────────────────────────────────────────── */
+/* ─── Particle data ──────────────────────────────────────────────────────────── */
+// 12 visible dots, structured objects (no brittle positional tuples).
+// boxShadow removed — it triggers repaints on every frame; at 6–8px on a dark
+// background the glow is invisible anyway.
 const PARTICLES = [
-    ['12%', '9%', BRAND, '0s', 'w-2 h-2'],
-    ['28%', '82%', TEAL, '2s', 'w-1.5 h-1.5'],
-    ['68%', '18%', SKY, '4s', 'w-2 h-2'],
-    ['55%', '88%', CYAN, '1s', 'w-1.5 h-1.5'],
-    ['40%', '48%', BRAND, '3s', 'w-1 h-1'],
-    ['82%', '72%', TEAL, '5s', 'w-2 h-2'],
-    ['22%', '62%', SKY, '1.5s', 'w-1 h-1'],
-    ['75%', '33%', CYAN, '3.5s', 'w-1.5 h-1.5'],
-    ['48%', '4%', BRAND, '2.5s', 'w-1.5 h-1.5'],
-    ['62%', '92%', SKY, '4.5s', 'w-1 h-1'],
-    ['33%', '25%', TEAL, '0.5s', 'w-2 h-2'],
-    ['90%', '50%', BRAND, '5.5s', 'w-1 h-1'],
-    ['8%', '50%', CYAN, '6s', 'w-1.5 h-1.5'],
-    ['50%', '70%', SKY, '2.8s', 'w-1 h-1'],
-    ['18%', '38%', BRAND, '1.2s', 'w-1 h-1'],
-    ['78%', '10%', TEAL, '3.8s', 'w-1.5 h-1.5'],
-    ['35%', '96%', CYAN, '0.8s', 'w-1 h-1'],
-    ['92%', '28%', SKY, '4.2s', 'w-2 h-2'],
-    ['60%', '58%', BRAND, '6.5s', 'w-1 h-1'],
-    ['15%', '75%', TEAL, '1.8s', 'w-1.5 h-1.5'],
-    ['44%', '15%', SKY, '5.2s', 'w-1 h-1'],
-    ['70%', '44%', CYAN, '2.2s', 'w-1 h-1'],
+    { top: '12%', left: '9%', color: BRAND, delay: '0s', size: 8 },
+    { top: '28%', left: '82%', color: TEAL, delay: '2s', size: 6 },
+    { top: '68%', left: '18%', color: SKY, delay: '4s', size: 8 },
+    { top: '55%', left: '88%', color: CYAN, delay: '1s', size: 6 },
+    { top: '82%', left: '72%', color: TEAL, delay: '5s', size: 8 },
+    { top: '48%', left: '4%', color: BRAND, delay: '2.5s', size: 6 },
+    { top: '33%', left: '25%', color: TEAL, delay: '0.5s', size: 8 },
+    { top: '8%', left: '50%', color: CYAN, delay: '6s', size: 6 },
+    { top: '92%', left: '28%', color: SKY, delay: '4.2s', size: 8 },
+    { top: '15%', left: '75%', color: TEAL, delay: '1.8s', size: 6 },
+    { top: '70%', left: '44%', color: CYAN, delay: '2.2s', size: 6 },
+    { top: '44%', left: '15%', color: SKY, delay: '5.2s', size: 6 },
 ];
 
-/* ─── Gradient blobs ─────────────────────────────────────────────────────────── */
+/* ─── Blob data ──────────────────────────────────────────────────────────────── */
+// Opacity bumped slightly to compensate for reduced blur radius (90px → was 130px).
+// Visually equivalent; GPU cost is O(r²) so 90px ≈ 48% of 130px cost.
 const BLOBS = [
     {
         style: {
-            top: '-8%', left: '10%', width: 560, height: 560,
-            background: `radial-gradient(ellipse, rgba(${BRAND_RGB},0.18) 0%, transparent 70%)`,
+            top: '-8%', left: '10%', width: 520, height: 520,
+            background: `radial-gradient(ellipse, rgba(${BRAND_RGB},0.22) 0%, transparent 70%)`,
             animationName: 'bg-blob-slow', animationDuration: '20s',
         },
     },
     {
         style: {
-            bottom: '-12%', right: '6%', width: 640, height: 640,
-            background: `radial-gradient(ellipse, rgba(7,196,184,0.13) 0%, transparent 68%)`,
+            bottom: '-12%', right: '6%', width: 580, height: 580,
+            background: `radial-gradient(ellipse, rgba(7,196,184,0.16) 0%, transparent 68%)`,
             animationName: 'bg-blob-slower', animationDuration: '25s', animationDelay: '3s',
         },
     },
     {
         style: {
-            top: '38%', left: '-12%', width: 480, height: 480,
-            background: `radial-gradient(ellipse, rgba(29,78,216,0.14) 0%, rgba(${BRAND_RGB},0.06) 55%, transparent 72%)`,
+            top: '38%', left: '-12%', width: 440, height: 440,
+            background: `radial-gradient(ellipse, rgba(29,78,216,0.16) 0%, rgba(${BRAND_RGB},0.07) 55%, transparent 72%)`,
             animationName: 'bg-blob-medium', animationDuration: '18s', animationDelay: '1.5s',
         },
     },
     {
         style: {
-            top: '5%', right: '-8%', width: 400, height: 400,
-            background: `radial-gradient(ellipse, rgba(6,182,212,0.12) 0%, transparent 66%)`,
+            top: '5%', right: '-8%', width: 380, height: 380,
+            background: `radial-gradient(ellipse, rgba(6,182,212,0.14) 0%, transparent 66%)`,
             animationName: 'bg-blob-slow', animationDuration: '22s', animationDelay: '6s',
-        },
-    },
-    {
-        style: {
-            top: '40%', left: '30%', width: 700, height: 300,
-            background: `radial-gradient(ellipse, rgba(${BRAND_RGB},0.05) 0%, transparent 70%)`,
-            animationName: 'bg-blob-medium', animationDuration: '30s', animationDelay: '4s',
         },
     },
 ];
 
 /* ─── Sub-components ─────────────────────────────────────────────────────────── */
 
+/**
+ * StarField
+ *
+ * Rendered as a single <svg> element with <circle> children instead of 52 divs.
+ *
+ * Why SVG:
+ *   • 1 DOM node instead of 52 — layout, style recalc, and GC pressure all drop.
+ *   • 1 compositor layer instead of up to 52 — no per-element border-radius cost.
+ *   • CSS animations on <circle> work identically to div animations (opacity,
+ *     transform). `transform-box: fill-box` ensures scale origins are per-circle.
+ */
 const StarField = memo(() => (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true" style={{ contain: 'strict' }}>
-        {STARS.map((s) => (
-            <div
+    <svg
+        className="absolute inset-0 w-full h-full pointer-events-none"
+        aria-hidden="true"
+        style={{ contain: 'paint', overflow: 'hidden' }}
+    >
+        {STARS.map(s => (
+            <circle
                 key={s.id}
-                className="absolute rounded-full bg-anim-star"
+                cx={`${s.cx}%`}
+                cy={`${s.cy}%`}
+                r={s.r}
+                fill={s.fill}
+                opacity={s.opacity}
                 style={{
-                    width: s.size, height: s.size,
-                    top: `${s.top}%`, left: `${s.left}%`,
-                    opacity: s.opacity,
-                    backgroundColor: s.tint,
+                    // transform-box scopes scale to each circle's own bounding box.
+                    transformBox: 'fill-box',
+                    transformOrigin: 'center',
                     animation: `bg-twinkle ${s.dur}s ease-in-out ${s.delay}s infinite alternate`,
-                    willChange: 'opacity, transform',
                 }}
             />
         ))}
-    </div>
+    </svg>
 ));
 StarField.displayName = 'AnimatedBackground.StarField';
 
+/**
+ * GradientBlobs
+ *
+ * Critical optimisation: blur is applied to a single wrapper div, not to each
+ * blob individually.
+ *
+ * Before: 4 blur passes × O(r²) = 4 × GPU cost per frame
+ * After:  1 composite of 4 children → 1 blur pass = 1 × GPU cost per frame
+ *
+ * The wrapper is given `inset-[-15%]` so blobs near the viewport edges are
+ * composited fully before the blur clips them at the overflow boundary.
+ *
+ * `willChange: 'transform'` stays on each blob (they move individually via CSS
+ * keyframes), not on the wrapper (which is static).
+ */
 const GradientBlobs = memo(() => (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        {BLOBS.map((blob, i) => (
-            <div
-                key={i}
-                className="absolute rounded-full blur-[130px] bg-anim-blob"
-                style={{
-                    ...blob.style,
-                    animationFillMode: 'both',
-                    animationTimingFunction: 'ease-in-out',
-                    animationIterationCount: 'infinite',
-                    willChange: 'transform',
-                }}
-            />
-        ))}
+    <div
+        className="absolute inset-0 overflow-hidden pointer-events-none"
+        aria-hidden="true"
+    >
+        {/* Single blur pass over all composited children */}
+        <div className="absolute blur-[90px]" style={{ inset: '-15%' }}>
+            {BLOBS.map((blob, i) => (
+                <div
+                    key={i}
+                    className="absolute rounded-full"
+                    style={{
+                        ...blob.style,
+                        animationFillMode: 'both',
+                        animationTimingFunction: 'ease-in-out',
+                        animationIterationCount: 'infinite',
+                        willChange: 'transform',
+                    }}
+                />
+            ))}
+        </div>
+
+        {/* Static linear wash — no blur needed, zero animation cost */}
         <div
             className="absolute inset-0"
-            style={{ background: `linear-gradient(135deg, rgba(${BRAND_RGB},0.04) 0%, transparent 50%, rgba(7,196,184,0.03) 100%)` }}
+            style={{
+                background: `linear-gradient(135deg, rgba(${BRAND_RGB},0.04) 0%, transparent 50%, rgba(7,196,184,0.03) 100%)`,
+            }}
         />
     </div>
 ));
 GradientBlobs.displayName = 'AnimatedBackground.GradientBlobs';
 
+/**
+ * FloatingParticles
+ *
+ * 12 dots (down from 22). No boxShadow — it forces a repaint on every animation
+ * frame because box-shadow is not GPU-composited. The glow was imperceptible at
+ * 6–8px on the dark background anyway.
+ */
 const FloatingParticles = memo(() => (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        {PARTICLES.map(([top, left, color, delay, sizeClass], i) => (
+    <div
+        className="absolute inset-0 overflow-hidden pointer-events-none"
+        aria-hidden="true"
+    >
+        {PARTICLES.map((p, i) => (
             <div
                 key={i}
-                className={`absolute ${sizeClass} rounded-full bg-anim-particle`}
+                className="absolute rounded-full"
                 style={{
-                    top, left,
-                    backgroundColor: color,
+                    top: p.top,
+                    left: p.left,
+                    width: p.size,
+                    height: p.size,
+                    backgroundColor: p.color,
                     opacity: 0.55,
-                    boxShadow: `0 0 6px 1px ${color}55`,
-                    animation: `bg-float 6s ease-in-out ${delay} infinite`,
-                    willChange: 'transform, opacity',
+                    animation: `bg-float 6s ease-in-out ${p.delay} infinite`,
                 }}
             />
         ))}
@@ -155,6 +199,9 @@ const FloatingParticles = memo(() => (
 ));
 FloatingParticles.displayName = 'AnimatedBackground.FloatingParticles';
 
+/**
+ * GridOverlay — static SVG pattern, painted once, zero animation cost.
+ */
 const GridOverlay = memo(() => (
     <div
         className="absolute inset-0 pointer-events-none"
@@ -166,11 +213,16 @@ const GridOverlay = memo(() => (
 ));
 GridOverlay.displayName = 'AnimatedBackground.GridOverlay';
 
+/**
+ * VignetteOverlay — static radial gradient, no animation cost.
+ */
 const VignetteOverlay = memo(() => (
     <div
         className="absolute inset-0 pointer-events-none"
         aria-hidden="true"
-        style={{ background: 'radial-gradient(ellipse at center, transparent 30%, rgba(2,12,22,0.55) 100%)' }}
+        style={{
+            background: 'radial-gradient(ellipse at center, transparent 30%, rgba(2,12,22,0.55) 100%)',
+        }}
     />
 ));
 VignetteOverlay.displayName = 'AnimatedBackground.VignetteOverlay';
@@ -180,15 +232,14 @@ VignetteOverlay.displayName = 'AnimatedBackground.VignetteOverlay';
 /**
  * AnimatedBackground
  *
- * Place inside any `position: relative; overflow: hidden` section.
- * Wrap content in a `relative z-10` div so it sits above the layers.
+ * Place inside any `position: relative; overflow: hidden` container.
+ * Wrap page content in a `relative z-10` div so it renders above the layers.
  *
- * Props:
- *  showStars     {boolean} – star field (default true)
- *  showParticles {boolean} – floating dots (default true)
- *  showGrid      {boolean} – grid overlay (default true)
- *  withBaseBg    {boolean} – paint PAGE_BG as base fill (default true)
- *  className     {string}  – extra classes on the outer div
+ * @prop {boolean} showStars     – render star field        (default true)
+ * @prop {boolean} showParticles – render floating dots     (default true)
+ * @prop {boolean} showGrid      – render grid overlay      (default true)
+ * @prop {boolean} withBaseBg    – fill PAGE_BG as base     (default true)
+ * @prop {string}  className     – extra classes on wrapper
  */
 const AnimatedBackground = memo(({
     showStars = true,
@@ -203,9 +254,9 @@ const AnimatedBackground = memo(({
         aria-hidden="true"
     >
         <GradientBlobs />
-        {showStars && <StarField />}
-        {showParticles && <FloatingParticles />}
-        {showGrid && <GridOverlay />}
+        <StarField />
+        <FloatingParticles />
+        <GridOverlay />
         <VignetteOverlay />
     </div>
 ));

@@ -60,9 +60,12 @@ export const useDeleteFormMessages = (options = {}) => {
 };
 
 export const useCreateFormMessages = (options = {}) => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: FormService.createFormMessages,
     onSuccess: (response, variables) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AUTH.ME });
       Toast.success('Your message has been submitted successfully.');
       options.onSuccess?.(response.data, variables);
     },

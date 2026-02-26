@@ -41,6 +41,7 @@ export const useCreateAttendanceRecord = (options = {}) => {
       return await AttendanceRecords.createAttendanceRecord(payload);
     },
     onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AUTH.ME });
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.ATTENDANCE_RECORDS.ALL,
       });

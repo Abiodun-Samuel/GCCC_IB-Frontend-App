@@ -23,10 +23,12 @@ import {
   AdminFollowUpBadge,
   AdminFormsBadge,
   AdminMembersBadge,
+  AdminRedeemableItemsBadge,
   AdminSettingsBadge,
   LeaderDashboardBadge,
   LeaderUnitsBadge,
 } from '@/icons/sidebarIcons';
+import { GiftIcon } from 'lucide-react';
 
 // ─── Paths gated by unit membership ──────────────────────────────────────────
 const FIRST_TIMERS_PATH = '/dashboard/first-timers';
@@ -96,6 +98,7 @@ const AppSidebar = () => {
     UserIcon,
     LeaderIcon,
     MessageIcon,
+    GiftIcon
   };
 
   const adminBadgeMap = {
@@ -108,6 +111,7 @@ const AppSidebar = () => {
     Forms: AdminFormsBadge,
     'Follow-Up Feedbacks': AdminFollowUpBadge,
     Settings: AdminSettingsBadge,
+    'Redeemable Items': AdminRedeemableItemsBadge
   };
 
   const leaderBadgeMap = {

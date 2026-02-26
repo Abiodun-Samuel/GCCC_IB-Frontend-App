@@ -203,7 +203,7 @@ const GallerySection = () => {
             className={`relative w-full bg-white dark:bg-gray-950 overflow-hidden ${SECTION_SPACING}`}
             aria-label="GCCCIB Gallery"
         >
-            <div className="relative z-10 py-5 container mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
+            <div className="relative z-10 py-5 container mx-auto px-2 overflow-hidden">
                 {/* Top fade */}
                 <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-white dark:from-gray-950 to-transparent pointer-events-none z-10" />
                 {/* Bottom fade */}

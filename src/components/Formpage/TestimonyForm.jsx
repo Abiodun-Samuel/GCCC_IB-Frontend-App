@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import InputForm from "../form/useForm/InputForm";
 import Button from "../ui/Button";
@@ -7,8 +6,6 @@ import TextAreaForm from "@/components/form/TextAreaForm";
 import { testimonyFormSchema } from "@/schema";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useAuthStore } from "@/store/auth.store";
-import AOS from "aos";
-import "aos/dist/aos.css";
 
 /* ─── Brand ─────────────────────────────────────────────── */
 const B = "#0998d5";
@@ -88,11 +85,6 @@ export default function TestimonyForm() {
   const { mutate, isPending } = useCreateFormMessages({
     onSuccess: () => reset(),
   });
-
-  useEffect(() => {
-    AOS.init({ duration: 500, easing: "ease-out-cubic", once: true, offset: 8 });
-    AOS.refresh();
-  }, []);
 
   const sharePhysically = watch("sharePhysically");
 

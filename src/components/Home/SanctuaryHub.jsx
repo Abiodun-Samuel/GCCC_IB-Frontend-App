@@ -1,11 +1,9 @@
-import { memo, useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import { memo, useCallback, useRef, useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import Lottie from 'lottie-react';
 import dayjs from 'dayjs';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
 
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
@@ -26,11 +24,11 @@ import animationData from '../../../src/utils/animation.json';
 
 import {
     Calendar, Clock, Send, Mail,
-    Cake, Gift,
-    Timer, CheckCircle2, Youtube, Radio,
+    Cake, Gift, Heart, Star, Sparkles, Anchor, Award, BookOpen,
+    Timer, CheckCircle2, Check, Youtube, Radio,
     LogIn, MapPin, Share2, Wifi, UserCheck, AlertCircle, Zap,
-    Mic, Video, CalendarClock, UserPlus,
-    ArrowRight,
+    Mic, Video, CalendarClock, UserPlus, ArrowRight,
+    CalendarHeart,
 } from 'lucide-react';
 import AnimatedBackground, { BRAND, BRAND_RGB, PAGE_BG } from '@/components/common/AnimatedBackground';
 import { SECTION_SPACING } from '@/utils/constant';
@@ -42,6 +40,16 @@ const TEAL = '#07c4b8';
 const SKY = '#38bdf8';
 const TEAL_RGB = '7,196,184';
 const SKY_RGB = '56,189,248';
+const EMERALD = '#34d399';
+const EMERALD_RGB = '52,211,153';
+
+// Celebration palette — red + brand-complementary blues/cyans
+const RED = '#e84545';
+const RED_RGB = '232,69,69';
+const CYAN = '#06b6d4';
+const CYAN_RGB = '6,182,212';
+const INDIGO = '#818cf8';
+const INDIGO_RGB = '129,140,248';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -50,21 +58,25 @@ const SERVICE_STATUS = { UPCOMING: 'upcoming', ONGOING: 'ongoing', ENDED: 'ended
 const CELEBRATION_TABS = { BIRTHDAYS: 'birthdays', ANNIVERSARIES: 'anniversaries' };
 
 const EVENT_STATUS_CFG = {
-    ongoing: { label: 'Live Now', colorRGB: '52,211,153', color: '#34d399', pulse: true },
+    ongoing: { label: 'Live Now', colorRGB: EMERALD_RGB, color: EMERALD, pulse: true },
     upcoming: { label: 'Upcoming', colorRGB: SKY_RGB, color: SKY, pulse: false },
     past: { label: 'Ended', colorRGB: '148,163,184', color: '#94a3b8', pulse: false },
-};
-
-const ANNIVERSARY_LABELS = {
-    wedding: 'Wedding Anniversary', work: 'Work Anniversary',
-    salvation: 'Salvation Date', baptism: 'Baptism Date',
-    membership: 'Membership Date', ordination: 'Ordination Anniversary', custom: 'Special Date',
 };
 
 const STATUS_META = {
     [SERVICE_STATUS.ONGOING]: { label: 'Live Now', color: BRAND, Icon: null },
     [SERVICE_STATUS.UPCOMING]: { label: 'Upcoming', color: SKY, Icon: Timer },
     [SERVICE_STATUS.ENDED]: { label: 'Ended', color: '#94a3b8', Icon: null },
+};
+
+const ANN_TYPE_CFG = {
+    wedding: { color: RED, colorRGB: RED_RGB, Icon: Heart, label: 'Wedding Anniversary' },
+    work: { color: SKY, colorRGB: SKY_RGB, Icon: Award, label: 'Work Anniversary' },
+    salvation: { color: BRAND, colorRGB: BRAND_RGB, Icon: Sparkles, label: 'Salvation Date' },
+    baptism: { color: TEAL, colorRGB: TEAL_RGB, Icon: Anchor, label: 'Baptism Date' },
+    membership: { color: CYAN, colorRGB: CYAN_RGB, Icon: BookOpen, label: 'Membership Date' },
+    ordination: { color: INDIGO, colorRGB: INDIGO_RGB, Icon: Star, label: 'Ordination Anniversary' },
+    custom: { color: BRAND, colorRGB: BRAND_RGB, Icon: Gift, label: 'Special Date' },
 };
 
 // ─── Style helpers ────────────────────────────────────────────────────────────
@@ -92,50 +104,39 @@ const fmtTime24 = (t) => {
     const [hRaw, mRaw] = t.split(':');
     const h = parseInt(hRaw, 10);
     const m = mRaw ?? '00';
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    const h12 = h % 12 || 12;
-    return `${h12}:${m} ${ampm}`;
+    return `${h % 12 || 12}:${m} ${h >= 12 ? 'PM' : 'AM'}`;
 };
 
 const doShare = async (event) => {
     const url = `${window.location.origin}/events/${event.id}`;
     const richText = buildShareText(event, url);
-
     if (typeof navigator.share === 'function') {
         const imageFile = await fetchEventImageFile(event.image);
         if (imageFile) {
-            const payloadWithFile = { title: event.title, text: richText, files: [imageFile] };
-            if (navigator.canShare?.(payloadWithFile)) {
-                try { await navigator.share(payloadWithFile); return; }
-                catch (err) { if (err?.name === 'AbortError') return; }
+            const p = { title: event.title, text: richText, files: [imageFile] };
+            if (navigator.canShare?.(p)) {
+                try { await navigator.share(p); return; } catch (e) { if (e?.name === 'AbortError') return; }
             }
         }
-        const payloadTextOnly = { title: event.title, text: richText, url };
-        if (navigator.canShare?.(payloadTextOnly) ?? true) {
-            try { await navigator.share(payloadTextOnly); return; }
-            catch (err) { if (err?.name === 'AbortError') return; }
+        const p2 = { title: event.title, text: richText, url };
+        if (navigator.canShare?.(p2) ?? true) {
+            try { await navigator.share(p2); return; } catch (e) { if (e?.name === 'AbortError') return; }
         }
     }
-
     try {
         await navigator.clipboard.writeText(richText);
         Toast.success('Event details copied!');
-    } catch {
-        Toast.error('Could not share event');
-    }
+    } catch { Toast.error('Could not share event'); }
 };
 
-// ─── SectionHeader ────────────────────────────────────────────────────────────
+// ─── Shared atoms ─────────────────────────────────────────────────────────────
 
 const SectionHeader = memo(({ eyebrow, titleWhite, titleBlue, subtitle }) => (
     <div data-aos="fade" data-aos-duration="380" className="flex flex-col gap-3 mb-16 sm:mb-24">
         {eyebrow && (
             <div className="flex items-center gap-2.5">
                 <div className="w-5 h-0.5 rounded-full shrink-0" style={{ background: BRAND }} />
-                <span
-                    className="text-[10px] font-black uppercase tracking-[0.24em]"
-                    style={{ color: BRAND }}
-                >
+                <span className="text-[10px] font-black uppercase tracking-[0.24em]" style={{ color: BRAND }}>
                     {eyebrow}
                 </span>
             </div>
@@ -144,16 +145,10 @@ const SectionHeader = memo(({ eyebrow, titleWhite, titleBlue, subtitle }) => (
             {titleWhite && <span>{titleWhite} </span>}
             {titleBlue && <span style={{ color: BRAND }}>{titleBlue}</span>}
         </h2>
-        {subtitle && (
-            <p className="text-base text-white/40 leading-relaxed max-w-lg">
-                {subtitle}
-            </p>
-        )}
+        {subtitle && <p className="text-base text-white/40 leading-relaxed max-w-lg">{subtitle}</p>}
     </div>
 ));
 SectionHeader.displayName = 'Hub.SectionHeader';
-
-// ─── Shared atoms ─────────────────────────────────────────────────────────────
 
 const LiveDot = memo(({ color = BRAND }) => (
     <span className="relative inline-flex shrink-0 w-2 h-2">
@@ -171,14 +166,9 @@ const ServiceStatusPill = memo(({ status }) => {
         <span
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full shrink-0"
             style={{
-                background: 'rgba(255,255,255,0.07)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                color: meta.color,
-                fontSize: 9,
-                fontWeight: 700,
-                letterSpacing: '0.15em',
-                textTransform: 'uppercase',
-                whiteSpace: 'nowrap',
+                background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
+                color: meta.color, fontSize: 9, fontWeight: 700,
+                letterSpacing: '0.15em', textTransform: 'uppercase', whiteSpace: 'nowrap',
             }}
         >
             {Icon ? <Icon size={9} /> : <LiveDot color={meta.color} />}
@@ -211,8 +201,7 @@ const SendMessageModal = memo(({ isOpen, onClose, recipient }) => {
                 subject: data.subject?.trim() || 'Birthday / Anniversary Wishes',
                 body: data.body.trim(),
             });
-            onClose();
-            reset();
+            onClose(); reset();
             Toast.success(`Message sent to ${recipient?.first_name}!`);
         } catch { }
     }, [recipient, mutateAsync, reset, onClose]);
@@ -227,11 +216,11 @@ const SendMessageModal = memo(({ isOpen, onClose, recipient }) => {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-1" noValidate>
                 <InputForm
                     label="Subject" name="subject" register={register}
-                    placeholder="e.g. Happy Birthday! 🎉" error={errors.subject?.message}
+                    placeholder="e.g. Happy Birthday!" error={errors.subject?.message}
                 />
                 <TextAreaForm
                     label="Message" name="body" required register={register}
-                    placeholder="Type your wishes here…" rows={5} error={errors.body?.message}
+                    placeholder="Type your wishes here..." rows={5} error={errors.body?.message}
                 />
                 <div className="flex justify-end gap-3 pt-2">
                     <Button variant="outline-light" type="button" onClick={onClose}>Cancel</Button>
@@ -247,157 +236,428 @@ SendMessageModal.displayName = 'Hub.SendMessageModal';
 
 // ─── Celebrations ─────────────────────────────────────────────────────────────
 
-const CelebRow = memo(({ person, type, anniversary, onWish }) => {
+/**
+ * Horizontal "sitting rectangle" card.
+ * Layout: left accent stripe | avatar (centre-aligned) | flex-col [name · meta · wish btn]
+ */
+const BirthdayCard = memo(({ person, index }) => {
+    const { isOpen, openModal, closeModal } = useModal();
     const name = `${person.first_name} ${person.last_name}`;
-    const isBday = type === 'birthday';
-    const subLine = isBday
-        ? dayjs(person.date_of_birth).format('MMMM D')
-        : [
-            anniversary?.title || ANNIVERSARY_LABELS[anniversary?.type] || anniversary?.type,
-            fmtShortDate(anniversary?.date),
-        ].filter(Boolean).join(' · ');
+    const dateStr = dayjs(person.date_of_birth).format('MMM D');
 
     return (
-        <div className="flex items-center gap-3 px-1 py-3">
-            <Avatar src={person.avatar} name={generateInitials(name)} size="md" />
-            <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate leading-snug">{name}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{subLine}</p>
-            </div>
-            <button
-                onClick={onWish}
-                className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-800/40"
+        <>
+            <motion.div
+                initial={{ opacity: 0, x: 12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.30, delay: index * 0.05, ease: 'easeOut' }}
+                className="relative flex items-center rounded-2xl overflow-hidden shrink-0"
+                style={{
+                    width: 'clamp(220px, 24vw, 296px)',
+                    height: 96,
+                    background: `linear-gradient(130deg, rgba(${RED_RGB},0.10) 0%, rgba(255,255,255,0.03) 100%)`,
+                    border: `1px solid rgba(${RED_RGB},0.16)`,
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                }}
             >
-                <Mail size={11} />Wish
-            </button>
+                {/* Left accent stripe */}
+                <div
+                    className="absolute left-0 inset-y-0 w-[3px]"
+                    style={{ background: `linear-gradient(180deg, ${RED} 0%, rgba(${RED_RGB},0.20) 100%)` }}
+                />
+                {/* Corner ambient glow */}
+                <div
+                    className="absolute -top-6 -right-6 w-16 h-16 rounded-full pointer-events-none blur-2xl opacity-50"
+                    style={{ background: `rgba(${RED_RGB},0.20)` }}
+                />
+
+                {/* Avatar — vertically centred */}
+                <div className="relative z-10 pl-5 pr-4 shrink-0 self-center">
+                    <div className="relative">
+                        <Avatar src={person.avatar} name={generateInitials(name)} size="sm" />
+                        <span
+                            className="absolute -bottom-1 -right-1 flex items-center justify-center w-[15px] h-[15px] rounded-full"
+                            style={{ background: `rgba(${RED_RGB},0.22)`, border: `1px solid rgba(${RED_RGB},0.40)` }}
+                        >
+                            <Cake size={7} style={{ color: RED }} />
+                        </span>
+                    </div>
+                </div>
+
+                {/* Text stack + wish button */}
+                <div className="relative z-10 flex-1 min-w-0 flex flex-col justify-center gap-[5px] pr-4">
+                    <p className="text-[13px] font-bold text-white truncate leading-tight">{name}</p>
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-semibold" style={{ color: RED }}>Birthday</span>
+                        <span className="text-white/20 text-[10px]">·</span>
+                        <Calendar size={9} className="shrink-0" style={{ color: 'rgba(255,255,255,0.28)' }} />
+                        <span className="text-[10px] text-white/38">{dateStr}</span>
+                    </div>
+                    {/* Wish button — below text, small */}
+                    <button
+                        onClick={openModal}
+                        className="self-start flex items-center gap-1 px-2 py-[4px] rounded-lg
+                                   text-[10px] font-bold transition-all duration-150
+                                   hover:opacity-90 active:scale-[0.95]"
+                        style={{
+                            background: `rgba(${RED_RGB},0.14)`,
+                            border: `1px solid rgba(${RED_RGB},0.26)`,
+                            color: RED,
+                        }}
+                    >
+                        <Mail size={9} />Wish
+                    </button>
+                </div>
+            </motion.div>
+
+            <SendMessageModal isOpen={isOpen} onClose={closeModal} recipient={person} />
+        </>
+    );
+});
+BirthdayCard.displayName = 'Hub.BirthdayCard';
+
+const AnniversaryCard = memo(({ anniversary, person, index }) => {
+    const { isOpen, openModal, closeModal } = useModal();
+    const name = `${person.first_name} ${person.last_name}`;
+    const typeKey = anniversary?.type ?? 'custom';
+    const cfg = ANN_TYPE_CFG[typeKey] || ANN_TYPE_CFG.custom;
+    const AnnIcon = cfg.Icon;
+    const label = anniversary?.title || cfg.label;
+    const dateStr = fmtShortDate(anniversary?.date);
+
+    return (
+        <>
+            <motion.div
+                initial={{ opacity: 0, x: 12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.30, delay: index * 0.05, ease: 'easeOut' }}
+                className="relative flex items-center rounded-2xl overflow-hidden shrink-0"
+                style={{
+                    width: 'clamp(220px, 24vw, 296px)',
+                    height: 96,
+                    background: `linear-gradient(130deg, rgba(${cfg.colorRGB},0.10) 0%, rgba(255,255,255,0.03) 100%)`,
+                    border: `1px solid rgba(${cfg.colorRGB},0.16)`,
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                }}
+            >
+                {/* Left accent stripe */}
+                <div
+                    className="absolute left-0 inset-y-0 w-[3px]"
+                    style={{ background: `linear-gradient(180deg, ${cfg.color} 0%, rgba(${cfg.colorRGB},0.20) 100%)` }}
+                />
+                {/* Corner ambient glow */}
+                <div
+                    className="absolute -top-6 -right-6 w-16 h-16 rounded-full pointer-events-none blur-2xl opacity-50"
+                    style={{ background: `rgba(${cfg.colorRGB},0.20)` }}
+                />
+
+                {/* Avatar — vertically centred */}
+                <div className="relative z-10 pl-5 pr-4 shrink-0 self-center">
+                    <div className="relative">
+                        <Avatar src={person.avatar} name={generateInitials(name)} size="sm" />
+                        <span
+                            className="absolute -bottom-1 -right-1 flex items-center justify-center w-[15px] h-[15px] rounded-full"
+                            style={{ background: `rgba(${cfg.colorRGB},0.22)`, border: `1px solid rgba(${cfg.colorRGB},0.40)` }}
+                        >
+                            <AnnIcon size={7} style={{ color: cfg.color }} />
+                        </span>
+                    </div>
+                </div>
+
+                {/* Text stack + wish button */}
+                <div className="relative z-10 flex-1 min-w-0 flex flex-col justify-center gap-[5px] pr-4">
+                    <p className="text-[13px] font-bold text-white truncate leading-tight">{name}</p>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-[10px] font-semibold truncate" style={{ color: cfg.color }}>
+                            {label}
+                        </span>
+                        {dateStr && (
+                            <>
+                                <span className="text-white/20 text-[10px] shrink-0">·</span>
+                                <Calendar size={9} className="shrink-0" style={{ color: 'rgba(255,255,255,0.28)' }} />
+                                <span className="text-[10px] text-white/38 shrink-0">{dateStr}</span>
+                            </>
+                        )}
+                    </div>
+                    {/* Wish button — below text, small */}
+                    <button
+                        onClick={openModal}
+                        className="self-start flex items-center gap-1 px-2 py-[4px] rounded-lg
+                                   text-[10px] font-bold transition-all duration-150
+                                   hover:opacity-90 active:scale-[0.95]"
+                        style={{
+                            background: `rgba(${cfg.colorRGB},0.14)`,
+                            border: `1px solid rgba(${cfg.colorRGB},0.26)`,
+                            color: cfg.color,
+                        }}
+                    >
+                        <Mail size={9} />Wish
+                    </button>
+                </div>
+            </motion.div>
+
+            <SendMessageModal isOpen={isOpen} onClose={closeModal} recipient={person} />
+        </>
+    );
+});
+AnniversaryCard.displayName = 'Hub.AnniversaryCard';
+
+/** Tab pill */
+const CelebTab = memo(({ id, Icon, label, count, active, onClick, accentRGB }) => (
+    <button
+        onClick={() => onClick(id)}
+        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[11px] font-bold transition-all duration-200"
+        style={
+            active
+                ? {
+                    background: `linear-gradient(135deg, rgba(${accentRGB},0.22) 0%, rgba(${accentRGB},0.10) 100%)`,
+                    border: `1px solid rgba(${accentRGB},0.32)`,
+                    color: '#fff',
+                    boxShadow: `0 0 14px rgba(${accentRGB},0.18)`,
+                }
+                : {
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    color: 'rgba(255,255,255,0.36)',
+                }
+        }
+    >
+        <Icon size={11} />
+        {label}
+        <span
+            className="flex items-center justify-center min-w-[17px] h-[17px] px-1 rounded-full text-[9px] font-black"
+            style={
+                active
+                    ? { background: `rgba(${accentRGB},0.26)`, color: '#fff' }
+                    : { background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.28)' }
+            }
+        >
+            {count}
+        </span>
+    </button>
+));
+CelebTab.displayName = 'Hub.CelebTab';
+
+/**
+ * Single horizontal scroll track — no duplicate grid rendering.
+ * Right-edge fade hints at overflow content.
+ */
+const ScrollTrack = memo(({ children }) => (
+    <div className="relative">
+        {/* Right edge fade */}
+        <div
+            className="absolute right-0 top-0 bottom-0 w-14 pointer-events-none z-10"
+            style={{ background: `linear-gradient(to right, transparent, ${PAGE_BG}cc)` }}
+        />
+        <div
+            className="flex gap-3 overflow-x-auto"
+            style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                scrollSnapType: 'x mandatory',
+                WebkitOverflowScrolling: 'touch',
+            }}
+        >
+            {children}
+            {/* Spacer so last card isn't swallowed by fade */}
+            <div className="shrink-0 w-8" aria-hidden />
         </div>
-    );
-});
-CelebRow.displayName = 'Hub.CelebRow';
-
-const BirthdayEntry = memo(({ person }) => {
-    const { isOpen, openModal, closeModal } = useModal();
-    return (
-        <>
-            <CelebRow person={person} type="birthday" onWish={openModal} />
-            <SendMessageModal isOpen={isOpen} onClose={closeModal} recipient={person} />
-        </>
-    );
-});
-BirthdayEntry.displayName = 'Hub.BirthdayEntry';
-
-const AnniversaryEntry = memo(({ anniversary, person }) => {
-    const { isOpen, openModal, closeModal } = useModal();
-    return (
-        <>
-            <CelebRow person={person} type="anniversary" anniversary={anniversary} onWish={openModal} />
-            <SendMessageModal isOpen={isOpen} onClose={closeModal} recipient={person} />
-        </>
-    );
-});
-AnniversaryEntry.displayName = 'Hub.AnniversaryEntry';
-
-const PersonAnniversaryEntries = memo(({ person, startIdx }) =>
-    (person.anniversaries ?? []).map((ann, i) => (
-        <AnniversaryEntry key={`${person.id}-${i}`} anniversary={ann} person={person} index={startIdx + i} />
-    ))
-);
-PersonAnniversaryEntries.displayName = 'Hub.PersonAnniversaryEntries';
-
-const TabPanel = memo(({ tabKey, children }) => (
-    <div key={tabKey} className="hub-tab-in divide-y divide-gray-100 dark:divide-gray-700/60 max-h-[55vh] overflow-y-auto hub-scroll">
-        {children}
     </div>
 ));
-TabPanel.displayName = 'Hub.TabPanel';
+ScrollTrack.displayName = 'Hub.ScrollTrack';
 
-const CelebrationsModal = memo(({ isOpen, onClose, birthdayList, anniversaryList, hasBirthdays, hasAnniversaries }) => {
+/**
+ * CelebrationsSection
+ * Inline section below the main grid — no modal trigger, no page-header button.
+ * Scope: current month's birthdays and anniversaries.
+ */
+const CelebrationsSection = memo(({ birthdayList, anniversaryList, hasBirthdays, hasAnniversaries }) => {
     const totalB = birthdayList.length;
     const totalA = anniversaryList.reduce((s, p) => s + (p.anniversaries?.length || 0), 0);
     const grand = totalB + totalA;
 
-    const [tab, setTab] = useState(hasBirthdays ? CELEBRATION_TABS.BIRTHDAYS : CELEBRATION_TABS.ANNIVERSARIES);
+    const [tab, setTab] = useState(
+        hasBirthdays ? CELEBRATION_TABS.BIRTHDAYS : CELEBRATION_TABS.ANNIVERSARIES
+    );
 
-    useEffect(() => {
-        if (isOpen) setTab(hasBirthdays ? CELEBRATION_TABS.BIRTHDAYS : CELEBRATION_TABS.ANNIVERSARIES);
-    }, [isOpen, hasBirthdays]);
+    // Flatten anniversary entries into a single list
+    const annEntries = anniversaryList.flatMap((person) =>
+        (person.anniversaries ?? []).map((ann) => ({ ann, person }))
+    );
 
     const TABS = [
-        hasBirthdays && { id: CELEBRATION_TABS.BIRTHDAYS, Icon: Cake, label: 'Birthdays', count: totalB },
-        hasAnniversaries && { id: CELEBRATION_TABS.ANNIVERSARIES, Icon: Gift, label: 'Anniversaries', count: totalA },
+        hasBirthdays && { id: CELEBRATION_TABS.BIRTHDAYS, Icon: Cake, label: 'Birthdays', count: totalB, accentRGB: RED_RGB },
+        hasAnniversaries && { id: CELEBRATION_TABS.ANNIVERSARIES, Icon: Gift, label: 'Anniversaries', count: totalA, accentRGB: BRAND_RGB },
     ].filter(Boolean);
 
-    return (
-        <Modal
-            isOpen={isOpen} onClose={onClose}
-            title="Today's Celebrations 🎉"
-            description={`${grand} milestone${grand !== 1 ? 's' : ''} to celebrate today`}
-            maxWidth="max-w-md"
-        >
-            {TABS.length > 1 && (
-                <div className="flex gap-1 p-1 mb-4 rounded-xl bg-gray-100 dark:bg-gray-800">
-                    {TABS.map((t) => {
-                        const active = tab === t.id;
-                        return (
-                            <button
-                                key={t.id}
-                                onClick={() => setTab(t.id)}
-                                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${active
-                                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-                                    }`}
-                            >
-                                <t.Icon size={12} />
-                                {t.label}
-                                <span className={`flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-black leading-none ${active
-                                    ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300'
-                                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-                                    }`}>
-                                    {t.count}
-                                </span>
-                            </button>
-                        );
-                    })}
-                </div>
-            )}
+    const monthLabel = dayjs().format('MMMM YYYY');
 
-            {tab === CELEBRATION_TABS.BIRTHDAYS ? (
-                <TabPanel key="birthdays" tabKey="birthdays">
-                    {birthdayList.map((p, i) => <BirthdayEntry key={p.id} person={p} index={i} />)}
-                </TabPanel>
-            ) : (
-                <TabPanel key="anniversaries" tabKey="anniversaries">
-                    {(() => {
-                        let idx = 0;
-                        return anniversaryList.map((p) => {
-                            const el = <PersonAnniversaryEntries key={p.id} person={p} startIdx={idx} />;
-                            idx += p.anniversaries?.length || 0;
-                            return el;
-                        });
-                    })()}
-                </TabPanel>
-            )}
-        </Modal>
+    return (
+        <section data-aos="fade" data-aos-duration="500" className="relative w-full">
+            <div
+                className="relative rounded-3xl overflow-hidden"
+                style={{
+                    background: 'rgba(255,255,255,0.028)',
+                    border: '1px solid rgba(255,255,255,0.07)',
+                    backdropFilter: 'blur(22px)',
+                    WebkitBackdropFilter: 'blur(22px)',
+                }}
+            >
+                {/* Inner mesh — sits on top of AnimatedBackground without fighting it */}
+                <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                        background: `
+                            radial-gradient(ellipse 55% 55% at 2% 0%,    rgba(${RED_RGB},0.050)   0%, transparent 55%),
+                            radial-gradient(ellipse 45% 55% at 100% 100%, rgba(${BRAND_RGB},0.055) 0%, transparent 55%)
+                        `,
+                    }}
+                />
+
+                {/* Multicolor top accent line */}
+                <div
+                    className="h-[2px] w-full shrink-0"
+                    style={{
+                        background: `linear-gradient(90deg,
+                            transparent 0%,
+                            rgba(${RED_RGB},0.60) 20%,
+                            rgba(${BRAND_RGB},0.55) 50%,
+                            rgba(${CYAN_RGB},0.48) 80%,
+                            transparent 100%
+                        )`,
+                    }}
+                />
+
+                <div className="relative z-10 p-5 sm:p-6 lg:p-7">
+
+                    {/* ── Header ── */}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+
+                        {/* Left */}
+                        <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                                <div className="w-3.5 h-[2px] rounded-full" style={{ background: RED }} />
+                                <span
+                                    className="text-[9px] font-black uppercase tracking-[0.22em]"
+                                    style={{ color: `rgba(${RED_RGB},0.75)` }}
+                                >
+                                    {monthLabel}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center gap-2.5 flex-wrap">
+                                <h2 className="text-lg sm:text-xl font-black text-white tracking-tight leading-tight">
+                                    Celebrations
+                                </h2>
+                                {/* Total badge */}
+                                <span
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-[5px] rounded-full
+                                               text-[10px] font-black text-white/75"
+                                    style={{
+                                        background: `linear-gradient(135deg, rgba(${RED_RGB},0.14), rgba(${BRAND_RGB},0.10))`,
+                                        border: `1px solid rgba(${RED_RGB},0.18)`,
+                                    }}
+                                >
+                                    <CalendarHeart size={9} style={{ color: RED }} />
+                                    {grand} milestone{grand !== 1 ? 's' : ''} this month
+                                </span>
+                            </div>
+
+                            <p className="text-[11px] text-white/26 mt-0.5">
+                                Send heartfelt wishes to members celebrating this month
+                            </p>
+                        </div>
+
+                        {/* Tabs — only shown when both categories have entries */}
+                        {TABS.length > 1 && (
+                            <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
+                                {TABS.map((t) => (
+                                    <CelebTab
+                                        key={t.id}
+                                        id={t.id}
+                                        Icon={t.Icon}
+                                        label={t.label}
+                                        count={t.count}
+                                        active={tab === t.id}
+                                        onClick={setTab}
+                                        accentRGB={t.accentRGB}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Divider */}
+                    <div
+                        className="h-px w-full mb-5"
+                        style={{
+                            background: `linear-gradient(90deg,
+                                transparent,
+                                rgba(${RED_RGB},0.18),
+                                rgba(${BRAND_RGB},0.14),
+                                transparent
+                            )`,
+                        }}
+                    />
+
+                    {/* ── Card scroll — single render, no hidden duplicate ── */}
+                    <AnimatePresence mode="wait">
+                        {tab === CELEBRATION_TABS.BIRTHDAYS ? (
+                            <motion.div
+                                key="birthdays"
+                                initial={{ opacity: 0, x: -8 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 8 }}
+                                transition={{ duration: 0.18 }}
+                            >
+                                <ScrollTrack>
+                                    {birthdayList.map((p, i) => (
+                                        <div key={p.id} style={{ scrollSnapAlign: 'start' }}>
+                                            <BirthdayCard person={p} index={i} />
+                                        </div>
+                                    ))}
+                                </ScrollTrack>
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="anniversaries"
+                                initial={{ opacity: 0, x: 8 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -8 }}
+                                transition={{ duration: 0.18 }}
+                            >
+                                <ScrollTrack>
+                                    {annEntries.map(({ ann, person }, i) => (
+                                        <div key={`${person.id}-${i}`} style={{ scrollSnapAlign: 'start' }}>
+                                            <AnniversaryCard anniversary={ann} person={person} index={i} />
+                                        </div>
+                                    ))}
+                                </ScrollTrack>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                </div>
+            </div>
+        </section>
     );
 });
-CelebrationsModal.displayName = 'Hub.CelebrationsModal';
+CelebrationsSection.displayName = 'Hub.CelebrationsSection';
 
-// ─── PageHeader ───────────────────────────────────────────────────────────────
+// ─── PageHeader (celebrations button removed) ─────────────────────────────────
 
-const PageHeader = memo(({ user, isAuthenticated, totalCelebrations, isCoreLoading, onCelebrations }) => {
+const PageHeader = memo(({ user, isAuthenticated }) => {
     const today = dayjs();
-
     return (
         <div className="flex flex-col gap-6">
-            {/* Section title */}
             <SectionHeader
                 eyebrow="GCCCC · Ibadan"
                 titleWhite="Services &"
                 titleBlue="Events"
                 subtitle="Mark attendance, view upcoming events, and celebrate milestones together."
             />
-
-            {/* Date bar + actions */}
             <header data-aos="fade" data-aos-duration="380" className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                     <div
@@ -414,41 +674,13 @@ const PageHeader = memo(({ user, isAuthenticated, totalCelebrations, isCoreLoadi
                         <p className="text-[10px] sm:text-xs text-white/35">{today.format('MMMM D, YYYY')}</p>
                     </div>
                 </div>
-
-                <div className="flex items-center gap-2 sm:gap-3">
-                    {isAuthenticated && (
-                        <button
-                            onClick={onCelebrations}
-                            aria-label="View today's celebrations"
-                            className="hub-celeb-btn flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-white"
-                            style={{
-                                background: `linear-gradient(135deg, rgba(${BRAND_RGB},0.24), rgba(${TEAL_RGB},0.16))`,
-                                border: `1px solid rgba(${BRAND_RGB},0.28)`,
-                            }}
-                        >
-                            {isCoreLoading
-                                ? <div className="w-3.5 h-3.5 rounded-full border-2 border-white/25 border-t-white/80 animate-spin" />
-                                : <Cake className="hidden sm:block" size={13} style={{ color: '#93c5fd' }} />
-                            }
-                            <span style={{ color: '#93c5fd' }}>Celebrations</span>
-                            {!isCoreLoading && totalCelebrations > 0 && (
-                                <span
-                                    className="flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-black shrink-0"
-                                    style={{ background: BRAND, color: '#fff' }}
-                                >
-                                    {totalCelebrations > 9 ? '9+' : totalCelebrations}
-                                </span>
-                            )}
-                        </button>
-                    )}
-                    {user && (
-                        <Avatar
-                            src={user.avatar}
-                            name={generateInitials(`${user.first_name || ''} ${user.last_name || ''}`)}
-                            size="sm"
-                        />
-                    )}
-                </div>
+                {user && (
+                    <Avatar
+                        src={user.avatar}
+                        name={generateInitials(`${user.first_name || ''} ${user.last_name || ''}`)}
+                        size="sm"
+                    />
+                )}
             </header>
         </div>
     );
@@ -516,7 +748,7 @@ const CountdownTimer = memo(({ secondsUntilStart, onRefresh }) => {
             {left <= 0 && (
                 <div className="flex items-center gap-1.5">
                     <LiveDot />
-                    <span className="text-[10px] font-semibold" style={{ color: BRAND }}>Checking status…</span>
+                    <span className="text-[10px] font-semibold" style={{ color: BRAND }}>Checking status...</span>
                 </div>
             )}
         </div>
@@ -577,8 +809,8 @@ const ClockInButton = memo(({ onClockIn, isPending }) => (
             </div>
         )}
         <div className="text-center space-y-1">
-            <p className="text-sm font-bold text-white">{isPending ? 'Submitting…' : 'Tap to Clock In'}</p>
-            <p className="text-xs text-white/32">{isPending ? 'Recording your attendance…' : 'Mark your attendance for today'}</p>
+            <p className="text-sm font-bold text-white">{isPending ? 'Submitting...' : 'Tap to Clock In'}</p>
+            <p className="text-xs text-white/32">{isPending ? 'Recording your attendance...' : 'Mark your attendance for today'}</p>
         </div>
     </div>
 ));
@@ -622,7 +854,9 @@ const ServiceEndedState = memo(({ serviceName, attendance }) => (
             </p>
             {attendance ? (
                 <div className="inline-block px-4 py-2.5 rounded-xl text-xs text-left" style={glassInner(0.08)}>
-                    <p className="font-semibold" style={{ color: BRAND }}>✓ You marked your attendance</p>
+                    <p className="flex items-center gap-1.5 font-semibold" style={{ color: BRAND }}>
+                        <Check size={11} />You marked your attendance
+                    </p>
                     <p className="text-white/32 mt-0.5">{attendance.marked_at}</p>
                 </div>
             ) : (
@@ -686,8 +920,7 @@ const UnauthContent = memo(() => (
             </p>
         </div>
         <Button
-            href="/login"
-            startIcon={<LogIn />}
+            href="/login" startIcon={<LogIn />}
             style={{
                 background: `linear-gradient(135deg, ${BRAND} 0%, ${TEAL} 100%)`,
                 boxShadow: `0 0 26px rgba(${BRAND_RGB},0.30), 0 4px 14px rgba(0,0,0,0.28)`,
@@ -705,7 +938,7 @@ const ServiceLoadingContent = memo(() => (
             <div className="absolute inset-0 blur-3xl rounded-full pointer-events-none" style={{ background: `rgba(${BRAND_RGB},0.14)` }} />
             <Lottie animationData={animationData} loop style={{ width: 190, height: 190 }} className="relative z-10" />
         </div>
-        <p className="text-xs text-white/40">Loading service…</p>
+        <p className="text-xs text-white/40">Loading service...</p>
     </div>
 ));
 ServiceLoadingContent.displayName = 'Hub.ServiceLoadingContent';
@@ -720,7 +953,6 @@ const ServiceRail = memo(({
         if (!isAuthenticated) return <UnauthContent />;
         if (isLoading) return <ServiceLoadingContent />;
         if (isError || !status) return <NoServiceContent />;
-
         switch (status) {
             case SERVICE_STATUS.UPCOMING:
                 return <CountdownTimer secondsUntilStart={secondsUntilStart || 0} onRefresh={onRefresh} />;
@@ -735,8 +967,7 @@ const ServiceRail = memo(({
                         <RecapLinks />
                     </div>
                 );
-            default:
-                return <NoServiceContent />;
+            default: return <NoServiceContent />;
         }
     };
 
@@ -815,7 +1046,6 @@ const EventCardInner = memo(({ event }) => {
                     </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/15 to-transparent" />
-
                 <div className="absolute top-4 left-4">
                     <span
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold backdrop-blur-sm"
@@ -825,7 +1055,6 @@ const EventCardInner = memo(({ event }) => {
                         {cfg.label}
                     </span>
                 </div>
-
                 <div className="absolute top-4 right-4">
                     <span
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-white"
@@ -834,12 +1063,10 @@ const EventCardInner = memo(({ event }) => {
                         <Clock size={10} />{timeRange}
                     </span>
                 </div>
-
                 <div className="absolute bottom-0 left-0 right-0 px-5 pb-4">
                     <h3 className="text-white font-bold text-lg sm:text-xl leading-tight line-clamp-2 drop-shadow">{event.title}</h3>
                 </div>
             </div>
-
             <div className="flex flex-col gap-3.5 p-5">
                 <div className="flex flex-col gap-3">
                     <div className="flex items-center gap-2">
@@ -851,11 +1078,9 @@ const EventCardInner = memo(({ event }) => {
                         <span className="text-sm text-white/45 truncate">{event.location}</span>
                     </div>
                 </div>
-
                 {event.description && (
                     <p className="text-sm text-white/32 line-clamp-3 leading-relaxed">{event.description}</p>
                 )}
-
                 {(hasVideo || hasAudio || hasRegistration) && (
                     <div className="flex flex-wrap gap-2 pt-1 pb-1">
                         {hasVideo && (
@@ -881,7 +1106,6 @@ const EventCardInner = memo(({ event }) => {
                         )}
                     </div>
                 )}
-
                 <div className="flex items-center justify-between gap-3 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
                     <div className="flex items-center gap-2 flex-wrap">
                         {event.has_streaming && (
@@ -923,7 +1147,6 @@ EventCardInner.displayName = 'Hub.EventCardInner';
 
 const EventPanel = memo(({ event, isLoading, isError }) => {
     const isLive = event?.status === 'ongoing';
-
     return (
         <section data-aos="fade" data-aos-duration="480" data-aos-delay="100" className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-3">
@@ -943,23 +1166,20 @@ const EventPanel = memo(({ event, isLoading, isError }) => {
                 </div>
                 {isLive && !isLoading && (
                     <div className="flex items-center gap-1.5 shrink-0">
-                        <LiveDot color="#34d399" />
+                        <LiveDot color={EMERALD} />
                         <span className="text-[10px] font-semibold text-emerald-400">Live Now</span>
                     </div>
                 )}
             </div>
-
             <div className="ev-card hub-event-card-shell rounded-2xl overflow-hidden" style={cardShell()}>
                 {isLoading ? (
                     <div className="animate-pulse">
                         <div style={{ height: 180, background: 'rgba(255,255,255,0.05)' }} />
                         <div className="p-5 space-y-3">
-                            <SkeletonBlock className="h-3.5 w-3/4" />
-                            <SkeletonBlock className="h-3 w-1/2" />
+                            <SkeletonBlock className="h-3.5 w-3/4" /><SkeletonBlock className="h-3 w-1/2" />
                             <SkeletonBlock className="h-3 w-full" />
                             <div className="flex justify-between pt-1">
-                                <SkeletonBlock className="h-6 w-20" />
-                                <SkeletonBlock className="h-7 w-20" />
+                                <SkeletonBlock className="h-6 w-20" /><SkeletonBlock className="h-7 w-20" />
                             </div>
                         </div>
                     </div>
@@ -994,13 +1214,7 @@ EventPanel.displayName = 'Hub.EventPanel';
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 const SanctuaryHub = () => {
-    useEffect(() => {
-        document.documentElement.classList.add('aos-running');
-        AOS.init({ once: true, duration: 400, easing: 'ease-out-cubic', offset: 40, disableMutationObserver: false });
-    }, []);
-
     const [searchParams] = useSearchParams();
-    const [celebOpen, setCelebOpen] = useState(false);
     const { user, isAuthenticated } = useAuthStore();
 
     const { data: serviceData, isLoading: svcLoading, isFetching: svcFetching, isError: svcError, refetch } = useTodaysService();
@@ -1015,14 +1229,10 @@ const SanctuaryHub = () => {
     const hasAnniversaries = anniversary_list.some((p) => p.anniversaries?.length);
     const hasCelebrations = hasBirthdays || hasAnniversaries;
 
-    const totalCelebrations = birthday_list.length
-        + anniversary_list.reduce((s, p) => s + (p.anniversaries?.length || 0), 0);
-
     const todayEvent = eventsData?.data ?? null;
     const showMarkedAttendance = isSuccess || (serviceData && !can_mark && attendance);
     const isSvcLoading = isAuthenticated && (svcLoading || svcFetching || isPending);
     const isSvcError = isAuthenticated && svcError;
-    const isCoreLoading = coreLoading || coreFetching;
 
     const source = searchParams.get('source') === ATTENDANCE_SOURCES.ONLINE
         ? ATTENDANCE_SOURCES.ONLINE
@@ -1041,17 +1251,12 @@ const SanctuaryHub = () => {
             className={`relative overflow-hidden w-full min-h-screen ${SECTION_SPACING}`}
             style={{ backgroundColor: PAGE_BG }}
         >
-            <AnimatedBackground withBaseBg={false} />
-            {isAuthenticated && hasCelebrations && <ConfettiShower duration={10} />}
+            <AnimatedBackground withBaseBg />
+            {isAuthenticated && hasCelebrations && <ConfettiShower duration={15} />}
 
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col gap-8 sm:gap-10">
-                <PageHeader
-                    user={user}
-                    isAuthenticated={isAuthenticated}
-                    totalCelebrations={totalCelebrations}
-                    isCoreLoading={isCoreLoading}
-                    onCelebrations={() => setCelebOpen(true)}
-                />
+            <div className="container mx-auto px-2 relative z-10 flex flex-col gap-16 sm:gap-20">
+
+                <PageHeader user={user} isAuthenticated={isAuthenticated} />
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-28 items-stretch">
                     <ServiceRail
@@ -1069,16 +1274,18 @@ const SanctuaryHub = () => {
                     />
                     <EventPanel event={todayEvent} isLoading={eventsLoading} isError={eventsError} />
                 </div>
-            </div>
 
-            <CelebrationsModal
-                isOpen={celebOpen}
-                onClose={() => setCelebOpen(false)}
-                birthdayList={birthday_list}
-                anniversaryList={anniversary_list}
-                hasBirthdays={hasBirthdays}
-                hasAnniversaries={hasAnniversaries}
-            />
+                {/* Inline celebrations — auth-gated, month-scoped */}
+                {isAuthenticated && hasCelebrations && (
+                    <CelebrationsSection
+                        birthdayList={birthday_list}
+                        anniversaryList={anniversary_list}
+                        hasBirthdays={hasBirthdays}
+                        hasAnniversaries={hasAnniversaries}
+                    />
+                )}
+
+            </div>
         </section>
     );
 };
