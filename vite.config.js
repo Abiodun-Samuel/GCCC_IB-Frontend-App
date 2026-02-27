@@ -88,9 +88,16 @@ export default defineConfig({
       },
 
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        // Pre-cache ONLY the app shell — not every asset
+        globPatterns: [
+          '**/*.{css,html}',
+          '**/react-vendor.*.js',
+          '**/animation-vendor.*.js',
+        ],
+
         runtimeCaching: [
           {
+            // Laravel API — network first, fall back to cache
             urlPattern: /^https:\/\/api\.gcccibadan\.org\/api\/.*/i,
             handler: 'NetworkFirst',
             options: {
@@ -98,7 +105,7 @@ export default defineConfig({
               networkTimeoutSeconds: 10,
               expiration: {
                 maxEntries: 60,
-                maxAgeSeconds: 60 * 60 * 24,
+                maxAgeSeconds: 60 * 60 * 24, // 24 hours
               },
               cacheableResponse: {
                 statuses: [0, 200],
@@ -106,36 +113,77 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
+            // JS chunks — cached on first route visit, not upfront
+            urlPattern: /\/assets\/.*\.js$/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'gccc-images-cache',
+              cacheName: 'gccc-js-chunks',
               expiration: {
-                maxEntries: 80,
+                maxEntries: 60,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            // CSS — cached on first load
+            urlPattern: /\/assets\/.*\.css$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'gccc-css-cache',
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+              },
+            },
+          },
+          {
+            // Images — lazy cached, capped to prevent unbounded growth
+            urlPattern: /\.(?:png|jpg|jpeg|gif|webp|ico)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'gccc-images',
+              expiration: {
+                maxEntries: 40,               // evicts oldest beyond this
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            // SVGs — separate bucket, lighter cap
+            urlPattern: /\.svg$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'gccc-svg-cache',
+              expiration: {
+                maxEntries: 20,
                 maxAgeSeconds: 60 * 60 * 24 * 30,
               },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
             },
           },
           {
-            urlPattern: /\.(?:js|css)$/i,
+            // Fonts — long TTL, rarely change
+            urlPattern: /\.(?:woff|woff2|ttf|eot)$/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'gccc-static-cache',
+              cacheName: 'gccc-fonts',
               expiration: {
-                maxEntries: 40,
-                maxAgeSeconds: 60 * 60 * 24 * 7,
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 90, // 90 days
               },
             },
           },
         ],
       },
 
+      // Never enable in dev — causes module cache corruption
       devOptions: {
-        enabled: true,
-        type: 'module',
+        enabled: false,
       },
     }),
   ],

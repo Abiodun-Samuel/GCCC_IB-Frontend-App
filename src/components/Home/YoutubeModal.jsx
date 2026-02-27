@@ -77,18 +77,20 @@ CompletionBadge.displayName = 'YouTubeModal.CompletionBadge';
 ───────────────────────────────────────────── */
 const YouTubeModalContent = memo(({ video, title, isAuthenticated, user, onClose }) => {
     const containerRef = useRef(null);
-    const { mutate: awardPoints } = useAwardPoints();
+    const { mutateAsync: awardPoints } = useAwardPoints();
     const [isPlayerReady, setIsPlayerReady] = useState(false);
     const [hasCompleted, setHasCompleted] = useState(false);
 
     const videoId = video?.video_id;
     const dateStr = formatDate(video?.published_at);
 
-    const handleComplete = useCallback(() => {
-        setHasCompleted(true);
-        if (isAuthenticated) {
-            awardPoints({ userId: user?.id, action: 'media.video_watched' });
-        }
+    const handleComplete = useCallback(async () => {
+        try {
+            if (isAuthenticated) {
+                await awardPoints({ userId: user?.id, action: 'media.video_watched' });
+                setHasCompleted(true);
+            }
+        } catch (error) { }
     }, [isAuthenticated, awardPoints, user]);
 
     const handleReady = useCallback(() => setIsPlayerReady(true), []);
@@ -207,7 +209,7 @@ const YouTubeModalContent = memo(({ video, title, isAuthenticated, user, onClose
                 {!isPlayerReady && <PlayerSkeleton />}
 
                 {/* Points badge: z-20, shown once video completes */}
-                {hasCompleted && isAuthenticated && <CompletionBadge />}
+                {/* {hasCompleted && isAuthenticated && <CompletionBadge />} */}
             </div>
 
             {/* ── Footer ────────────────────────────────────────────── */}
