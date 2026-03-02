@@ -40,7 +40,7 @@ const VALUES = [
     },
 ];
 
-const ABOUT_IMAGES = Array.from({ length: 18 }, (_, i) => ({
+const ABOUT_IMAGES = Array.from({ length: 15 }, (_, i) => ({
     id: i + 1,
     src: `/images/home/about/about${i + 1}.jpg`,
     alt: `GCCC Ibadan Community — photo ${i + 1}`,

@@ -91,8 +91,8 @@ export default defineConfig({
         // Pre-cache ONLY the app shell — not every asset
         globPatterns: [
           '**/*.{css,html}',
-          '**/react-vendor.*.js',
-          '**/animation-vendor.*.js',
+          '**/react-vendor-*.js',      // ← dash not dot
+          '**/animation-vendor-*.js',  // ← dash not dot
         ],
 
         runtimeCaching: [

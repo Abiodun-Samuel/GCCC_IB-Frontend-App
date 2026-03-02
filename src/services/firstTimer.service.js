@@ -81,7 +81,7 @@ export const FirstTimerService = {
     });
 
     const query = queryParams.toString();
-    const endpoint = `/admin/first-timers/report${query ? `?${query}` : ''}`;
+    const endpoint = `/first-timers/report${query ? `?${query}` : ''}`;
 
     const { data } = await $api.get(endpoint);
     return data;

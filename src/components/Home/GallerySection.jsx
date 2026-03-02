@@ -1,236 +1,239 @@
-import { memo, useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { memo, useState, useMemo } from "react";
 import { SECTION_SPACING } from "@/utils/constant";
 
-const cssUrl = (path) => `url("${encodeURI(path)}")`;
+/* ─────────────────────────────────────────────────────────────
+   DATA
+───────────────────────────────────────────────────────────── */
 
 const LETTERS = [
     { char: "G", src: "/images/home/about1.jpg" },
     { char: "C", src: "/images/home/about3.jpg" },
     { char: "C", src: "/images/home/about6.jpg" },
-    { char: "C", src: "/images/home/about2.jpg" },
     { char: "I", src: "/images/home/about4.jpg" },
+    { char: "C", src: "/images/home/about2.jpg" },
     { char: "B", src: "/images/home/about5.jpg" },
 ];
 
-// ─── Shared animation variants ────────────────────────────────────────────────
+/* ─────────────────────────────────────────────────────────────
+   DESKTOP TILE
+   Expand/collapse driven entirely by CSS flex + transition.
+   No JS width computation — no blank frames.
+───────────────────────────────────────────────────────────── */
 
-const containerVariants = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.07 } },
-};
-
-const letterVariants = {
-    hidden: { opacity: 0, y: 90, scaleY: 0.6 },
-    visible: {
-        opacity: 1, y: 0, scaleY: 1,
-        transition: { duration: 0.85, ease: [0.22, 1, 0.36, 1] },
-    },
-};
-
-const mobileCardVariants = {
-    hidden: { opacity: 0, y: 48, scale: 0.93 },
-    visible: {
-        opacity: 1, y: 0, scale: 1,
-        transition: { duration: 0.72, ease: [0.22, 1, 0.36, 1] },
-    },
-};
-
-const FONT_SIZE = "clamp(7rem, 24vw, 32rem)";
-
-// ─── Desktop / Tablet letter (unchanged) ─────────────────────────────────────
-
-const Letter = memo(({ char, src }) => (
-    <motion.div
-        variants={letterVariants}
-        whileHover={{ y: -8, scale: 1.03, transition: { duration: 0.22, ease: "easeOut" } }}
-        style={{
-            willChange: "transform",
-            transformOrigin: "bottom center",
-            width: "fit-content",
-            padding: "30px 0px",
-        }}
-    >
-        <span
-            aria-hidden="true"
-            style={{
-                display: "block",
-                fontFamily: "'Impact', 'Arial Black', 'Franklin Gothic Heavy', sans-serif",
-                fontSize: FONT_SIZE,
-                fontWeight: 900,
-                lineHeight: 0.85,
-                letterSpacing: 0,
-                backgroundImage: cssUrl(src),
-                backgroundSize: "160% 160%",
-                backgroundPosition: "center",
-                WebkitBackgroundClip: "text",
-                backgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                color: "transparent",
-                userSelect: "none",
-            }}
-        >
-            {char}
-        </span>
-    </motion.div>
-));
-Letter.displayName = "GallerySection.Letter";
-
-// ─── Mobile card ──────────────────────────────────────────────────────────────
-//
-// Each letter gets its own portrait photo card.
-// The photo fills the card; the letter is a huge clipped-image watermark on top.
-// A subtle dark gradient sits beneath the letter for legibility.
-
-const MobileCard = memo(({ char, src, index }) => {
-    // Alternate slight rotation for a collage / editorial feel
-    const rotate = index % 2 === 0 ? "-1.2deg" : "1.2deg";
-
+const DesktopTile = memo(function DesktopTile({ item, isActive, isDimmed, onEnter, onLeave }) {
     return (
-        <motion.div
-            variants={mobileCardVariants}
-            whileTap={{ scale: 0.97, transition: { duration: 0.15 } }}
+        <div
+            onMouseEnter={onEnter}
+            onMouseLeave={onLeave}
             style={{
-                willChange: "transform",
-                borderRadius: "16px",
+                flex: isActive ? "2 1 0%" : isDimmed ? "0.7 1 0%" : "1 1 0%",
+                transition: "flex 0.45s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease",
+                opacity: isDimmed ? 0.52 : 1,
+                minWidth: 0,
+                borderRadius: 10,
                 overflow: "hidden",
                 position: "relative",
-                aspectRatio: "3 / 4",
-                transform: `rotate(${rotate})`,
-                boxShadow: "0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)",
                 cursor: "pointer",
             }}
         >
-            {/* Photo background */}
-            <div
+            <img
+                src={item.src}
+                alt={`${item.char} gallery`}
+                loading="lazy"
+                draggable={false}
                 style={{
-                    position: "absolute",
-                    inset: 0,
-                    backgroundImage: cssUrl(src),
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    objectPosition: "center 20%",
+                    display: "block",
+                    transform: isActive ? "scale(1.06)" : "scale(1)",
+                    transition: "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+                    transformOrigin: "center center",
+                    userSelect: "none",
+                    pointerEvents: "none",
                 }}
             />
 
-            {/* Gradient overlay — darkens bottom, lets the letter pop */}
-            <div
-                style={{
-                    position: "absolute",
-                    inset: 0,
-                    background:
-                        "linear-gradient(160deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.42) 100%)",
-                }}
-            />
+            {/* Bottom gradient */}
+            <div style={{
+                position: "absolute",
+                inset: 0,
+                pointerEvents: "none",
+                background: "linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.18) 40%, transparent 65%)",
+            }} />
 
-            {/* Giant letter — image-clipped so the photo bleeds through the text */}
-            <div
-                style={{
-                    position: "absolute",
-                    inset: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                }}
-            >
-                <span
-                    aria-hidden="true"
-                    style={{
-                        fontFamily:
-                            "'Impact', 'Arial Black', 'Franklin Gothic Heavy', sans-serif",
-                        fontSize: "clamp(5.5rem, 28vw, 14rem)",
-                        fontWeight: 900,
-                        lineHeight: 1,
-                        letterSpacing: "-0.02em",
-                        // Clip the SAME photo through the letter shape —
-                        // creates a vivid "window-within-window" effect
-                        backgroundImage: cssUrl(src),
-                        backgroundSize: "180% 180%",
-                        backgroundPosition: "center",
-                        WebkitBackgroundClip: "text",
-                        backgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                        color: "transparent",
-                        // Bright white stroke so the letter reads over dark areas
-                        WebkitTextStroke: "2px rgba(255,255,255,0.55)",
-                        filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.55))",
-                        userSelect: "none",
-                    }}
-                >
-                    {char}
+            {/* Letter label */}
+            <div style={{
+                position: "absolute",
+                bottom: 22,
+                left: 0,
+                right: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                pointerEvents: "none",
+                gap: 8,
+            }}>
+                <div style={{
+                    height: 2,
+                    width: isActive ? 32 : 12,
+                    borderRadius: 2,
+                    backgroundColor: isActive ? "#0998d5" : "rgba(255,255,255,0.60)",
+                    transition: "width 0.3s ease, background-color 0.3s ease",
+                }} />
+                <span style={{
+                    color: "#fff",
+                    fontSize: "clamp(1.6rem, 2.4vw, 2.2rem)",
+                    fontWeight: 700,
+                    letterSpacing: "0.06em",
+                    lineHeight: 1,
+                    textShadow: isActive
+                        ? "0 0 24px rgba(9,152,213,0.55), 0 2px 10px rgba(0,0,0,0.55)"
+                        : "0 1px 12px rgba(0,0,0,0.65)",
+                    transform: isActive ? "scale(1.12)" : "scale(1)",
+                    display: "inline-block",
+                    transition: "transform 0.3s ease, text-shadow 0.3s ease",
+                    transformOrigin: "center bottom",
+                }}>
+                    {item.char}
                 </span>
             </div>
-        </motion.div>
+        </div>
     );
 });
-MobileCard.displayName = "GallerySection.MobileCard";
 
-// ─── Mobile container ─────────────────────────────────────────────────────────
+/* ─────────────────────────────────────────────────────────────
+   MOBILE CARD
+   Pure static display — no interaction, no animation.
+───────────────────────────────────────────────────────────── */
 
-const mobileContainerVariants = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.09 } },
-};
+const MobileCard = memo(function MobileCard({ item }) {
+    return (
+        <div style={{
+            position: "relative",
+            borderRadius: 10,
+            overflow: "hidden",
+            aspectRatio: "3 / 4",
+        }}>
+            <img
+                src={item.src}
+                alt={`${item.char} gallery`}
+                loading="lazy"
+                draggable={false}
+                style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    objectPosition: "center 20%",
+                    display: "block",
+                    userSelect: "none",
+                }}
+            />
 
-const MobileGallery = memo(({ inView }) => (
-    <motion.div
-        initial="hidden"
-        animate={inView ? "visible" : "hidden"}
-        variants={mobileContainerVariants}
-        style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "12px",
-            padding: "0 16px",
-            width: "100%",
-        }}
-    >
-        {LETTERS.map((l, i) => (
-            <MobileCard key={i} char={l.char} src={l.src} index={i} />
-        ))}
-    </motion.div>
-));
-MobileGallery.displayName = "GallerySection.MobileGallery";
+            {/* Bottom gradient */}
+            <div style={{
+                position: "absolute",
+                inset: 0,
+                pointerEvents: "none",
+                background: "linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 55%)",
+            }} />
 
-// ─── Section ──────────────────────────────────────────────────────────────────
+            {/* Letter label */}
+            <div style={{
+                position: "absolute",
+                bottom: 16,
+                left: 0,
+                right: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                pointerEvents: "none",
+                gap: 6,
+            }}>
+                <div style={{
+                    height: 2,
+                    width: 12,
+                    borderRadius: 2,
+                    backgroundColor: "rgba(255,255,255,0.60)",
+                }} />
+                <span style={{
+                    color: "#fff",
+                    fontSize: "clamp(1.4rem, 6.5vw, 1.9rem)",
+                    fontWeight: 700,
+                    letterSpacing: "0.06em",
+                    lineHeight: 1,
+                    textShadow: "0 1px 12px rgba(0,0,0,0.65)",
+                }}>
+                    {item.char}
+                </span>
+            </div>
+        </div>
+    );
+});
+
+/* ─────────────────────────────────────────────────────────────
+   ROOT COMPONENT
+───────────────────────────────────────────────────────────── */
 
 const GallerySection = () => {
-    const ref = useRef(null);
-    const inView = useInView(ref, { once: true, margin: "-60px 0px" });
+    const [activeIdx, setActiveIdx] = useState(null);
+
+    // Stable per-tile handlers — never recreated
+    const enterHandlers = useMemo(
+        () => LETTERS.map((_, i) => () => setActiveIdx(i)),
+        []
+    );
+    const handleLeave = useMemo(() => () => setActiveIdx(null), []);
 
     return (
         <section
-            ref={ref}
-            className={`relative w-full bg-white dark:bg-gray-950 overflow-hidden ${SECTION_SPACING}`}
+            className={`relative w-full bg-white dark:bg-gray-950 ${SECTION_SPACING}`}
             aria-label="GCCCIB Gallery"
         >
-            <div className="relative z-10 py-5 container mx-auto px-2 overflow-hidden">
-                {/* Top fade */}
-                <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-white dark:from-gray-950 to-transparent pointer-events-none z-10" />
-                {/* Bottom fade */}
-                <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-white dark:from-gray-950 to-transparent pointer-events-none z-10" />
-                {/* ── MOBILE layout (< sm) ── */}
-                <div className="sm:hidden relative w-full">
-                    <MobileGallery inView={inView} />
+            <div className="container mx-auto px-2 py-6">
+
+                {/*
+                    DESKTOP / TABLET (≥ sm)
+                    ─────────────────────────────────────────────────────────
+                    Visibility controlled by Tailwind `sm:` — NO JavaScript.
+                    Tiles are always in the DOM; CSS hides the container.
+                    Accordion uses CSS flex transition — zero JS width math.
+                */}
+                <div
+                    className="hidden sm:flex"
+                    style={{
+                        gap: 6,
+                        height: "clamp(360px, 46vw, 560px)",
+                        alignItems: "stretch",
+                    }}
+                >
+                    {LETTERS.map((item, i) => (
+                        <DesktopTile
+                            key={i}
+                            item={item}
+                            isActive={activeIdx === i}
+                            isDimmed={activeIdx !== null && activeIdx !== i}
+                            onEnter={enterHandlers[i]}
+                            onLeave={handleLeave}
+                        />
+                    ))}
                 </div>
-                {/* ── TABLET + DESKTOP layout (≥ sm) — completely unchanged ── */}
-                <div className="hidden sm:flex relative w-full justify-center">
-                    <motion.div
-                        initial="hidden"
-                        animate={inView ? "visible" : "hidden"}
-                        variants={containerVariants}
-                        style={{
-                            display: "inline-flex",
-                            alignItems: "flex-end",
-                            width: "100%",
-                            justifyContent: "center",
-                            overflow: "hidden",
-                        }}
-                    >
-                        {LETTERS.map((l, i) => (
-                            <Letter key={i} char={l.char} src={l.src} index={i} />
-                        ))}
-                    </motion.div>
+
+                {/*
+                    MOBILE (< sm)
+                    ─────────────────────────────────────────────────────────
+                    Static 2-column grid, no interaction, no animation.
+                */}
+                <div
+                    className="grid grid-cols-2 sm:hidden"
+                    style={{ gap: 10 }}
+                >
+                    {LETTERS.map((item, i) => (
+                        <MobileCard key={i} item={item} />
+                    ))}
                 </div>
+
             </div>
         </section>
     );

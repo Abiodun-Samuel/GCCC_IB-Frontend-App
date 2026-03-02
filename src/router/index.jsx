@@ -111,6 +111,7 @@ const AppRoutes = [
           { path: 'service-attendance', element: withSuspense(ServiceAttendancePage) },
           { path: 'first-timers', element: withSuspense(FirstTimerPage) },
           { path: 'reward-store', element: withSuspense(UserRedeemPage) },
+          { path: 'first-timers/report', element: withSuspense(AdminFirstTimerReportPage) },
 
           // Admin routes
           {
@@ -122,7 +123,6 @@ const AppRoutes = [
               { path: 'events', element: withSuspense(AdminEventsPage) },
               { path: 'events/:eventId/registration', element: withSuspense(AdminEventRegistrationPage) },
               { path: 'first-timers', element: withSuspense(AdminFirstTimerPage) },
-              { path: 'first-timers/report', element: withSuspense(AdminFirstTimerReportPage) },
               { path: 'members', element: withSuspense(AdminMembersPage) },
               { path: 'forms', element: withSuspense(AdminFormsPage) },
               { path: 'followup-feedbacks', element: withSuspense(AdminFollowupFeedbacksPage) },

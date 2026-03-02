@@ -165,7 +165,7 @@ const FirstTimersCharts = () => {
 
                 </div>
                 <div className="relative inline-block mb-4">
-                    <Link to='/dashboard/admin/first-timers/report'
+                    <Link to='/dashboard/first-timers/report'
                         className="
                                 flex items-center gap-2 
                                 px-4 py-2 rounded-lg 

@@ -1,7 +1,4 @@
-import React, {
-    useState, useRef, useEffect,
-    useCallback, useMemo,
-} from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SECTION_SPACING_BOTTOM } from '@/utils/constant';
 
@@ -12,7 +9,7 @@ import { SECTION_SPACING_BOTTOM } from '@/utils/constant';
 const BRAND = '#0998d5';
 const BRAND_DARK = '#076fa3';
 const LETTERS = ['G', 'C', 'C', 'C', 'I', 'B'];
-const TILE_GAP = 6; // tighter gap → frames feel like a continuous frieze
+const TILE_GAP = 6;
 
 const IMAGE_POOL = [
     '/images/gallery/gallery1.jpg',
@@ -52,7 +49,6 @@ function computeWidths(containerW, count, gap, activeIdx, activeW) {
    ANIMATION CONFIG
 ───────────────────────────────────────────────────────────── */
 
-// Slightly heavier spring — rectangular frames should feel architectural
 const WIDTH_SPRING = { type: 'spring', stiffness: 240, damping: 38, mass: 1.1 };
 const EASE_STD = { duration: 0.32, ease: [0.4, 0, 0.2, 1] };
 const EASE_SLOW = { duration: 0.55, ease: [0.4, 0, 0.2, 1] };
@@ -60,7 +56,6 @@ const EASE_ENTER = { duration: 0.45, ease: [0.16, 1, 0.3, 1] };
 
 /* ─────────────────────────────────────────────────────────────
    CORNER BRACKETS
-   Fine-line brackets: precise, architectural, 20×20px.
 ───────────────────────────────────────────────────────────── */
 
 const BRACKETS = [
@@ -102,8 +97,7 @@ function CornerBrackets() {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   INDEX BADGE  — top-right ordinal (01, 02 …)
-   Replaces nothing from original; purely additive editorial detail.
+   INDEX BADGE
 ───────────────────────────────────────────────────────────── */
 
 function IndexBadge({ index, isActive }) {
@@ -116,7 +110,6 @@ function IndexBadge({ index, isActive }) {
                 top: 16, right: 18,
                 zIndex: 10,
                 pointerEvents: 'none',
-                fontFamily: "'DM Mono', 'Courier New', monospace",
                 fontSize: 10,
                 fontWeight: 500,
                 letterSpacing: '0.12em',
@@ -130,7 +123,7 @@ function IndexBadge({ index, isActive }) {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   LETTER BADGE  — bottom centre, Cormorant Garamond
+   LETTER BADGE
 ───────────────────────────────────────────────────────────── */
 
 function LetterBadge({ letter, isActive, entranceDelay, fontSize }) {
@@ -150,7 +143,6 @@ function LetterBadge({ letter, isActive, entranceDelay, fontSize }) {
                 pointerEvents: 'none',
             }}
         >
-            {/* Accent rule — expands on active */}
             <motion.div
                 animate={{
                     width: isActive ? 32 : 12,
@@ -160,8 +152,6 @@ function LetterBadge({ letter, isActive, entranceDelay, fontSize }) {
                 transition={EASE_STD}
                 style={{ height: 1.5, borderRadius: 1, marginBottom: 8 }}
             />
-
-            {/* Letter */}
             <motion.span
                 animate={{
                     scale: isActive ? 1.16 : 1,
@@ -171,7 +161,6 @@ function LetterBadge({ letter, isActive, entranceDelay, fontSize }) {
                 }}
                 transition={EASE_STD}
                 style={{
-                    fontFamily: "'Cormorant Garamond', 'Playfair Display', Georgia, serif",
                     fontWeight: 700,
                     fontSize,
                     lineHeight: 1,
@@ -189,9 +178,6 @@ function LetterBadge({ letter, isActive, entranceDelay, fontSize }) {
 
 /* ─────────────────────────────────────────────────────────────
    SCANLINE TEXTURE
-   Thin horizontal rules applied as a CSS gradient — gives
-   collapsed tiles a subtle engraved quality without any image
-   asset. Fades out on active state.
 ───────────────────────────────────────────────────────────── */
 
 function ScanlineOverlay({ isActive }) {
@@ -208,12 +194,7 @@ function ScanlineOverlay({ isActive }) {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   RECT TILE — desktop + tablet row layout
-   Key differences from the pill version:
-     • borderRadius: 10px (subtle, never rounds to pill)
-     • width animates via WIDTH_SPRING (identical logic)
-     • left edge accent line instead of bottom — reads "door frame"
-     • ScanlineOverlay on inactive tiles
+   RECT TILE
 ───────────────────────────────────────────────────────────── */
 
 const RectTile = React.memo(function RectTile({
@@ -236,13 +217,19 @@ const RectTile = React.memo(function RectTile({
                 borderRadius: 10,
                 flexShrink: 0,
                 position: 'relative',
-                overflow: 'hidden',
+                overflow: 'hidden',  // correct: clips only within this tile
                 cursor: 'pointer',
                 willChange: 'width',
-                transition: 'box-shadow 0.38s ease',
             }}
         >
-            {/* ── Image ── */}
+            {/* ── Image ─────────────────────────────────────────────────
+                FIX 1: objectPosition 'center 20%'
+                When a narrow tile expands, object-fit:cover silently
+                reframes the crop around the centre point. If a face or
+                focal detail sits in the upper half the top slides out of
+                the viewport entirely. Anchoring at 20% from the top keeps
+                the subject in frame across the full width range.
+            ──────────────────────────────────────────────────────────── */}
             <motion.img
                 src={tile.src}
                 alt={`${tile.letter} gallery`}
@@ -253,13 +240,17 @@ const RectTile = React.memo(function RectTile({
                 style={{
                     position: 'absolute', inset: 0,
                     width: '100%', height: '100%',
-                    objectFit: 'cover', display: 'block',
-                    pointerEvents: 'none', userSelect: 'none',
+                    objectFit: 'cover',
+                    objectPosition: 'center 20%',  // ← FIX 1
+                    display: 'block',
+                    pointerEvents: 'none',
+                    userSelect: 'none',
                     willChange: 'transform',
+                    transformOrigin: 'center center',
                 }}
             />
 
-            {/* ── Gradient scrim — heavier at bottom for letter legibility ── */}
+            {/* Gradient scrim */}
             <div style={{
                 position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
                 background: `linear-gradient(
@@ -271,10 +262,9 @@ const RectTile = React.memo(function RectTile({
                 transition: 'background 0.38s ease',
             }} />
 
-            {/* ── Scanline texture — fades on hover ── */}
             <ScanlineOverlay isActive={isActive} />
 
-            {/* ── Left edge accent line — slides up from 0 height ── */}
+            {/* Left edge accent */}
             <motion.div
                 animate={{ scaleY: isActive ? 1 : 0, opacity: isActive ? 1 : 0 }}
                 transition={EASE_STD}
@@ -286,7 +276,7 @@ const RectTile = React.memo(function RectTile({
                 }}
             />
 
-            {/* ── Bottom rule — secondary brand marker ── */}
+            {/* Bottom rule */}
             <motion.div
                 animate={{ scaleX: isActive ? 1 : 0, opacity: isActive ? 1 : 0 }}
                 transition={{ ...EASE_STD, delay: isActive ? 0.06 : 0 }}
@@ -298,7 +288,7 @@ const RectTile = React.memo(function RectTile({
                 }}
             />
 
-            {/* ── Top edge line — closes the frame ── */}
+            {/* Top edge line */}
             <motion.div
                 animate={{ scaleX: isActive ? 1 : 0, opacity: isActive ? 0.40 : 0 }}
                 transition={{ ...EASE_STD, delay: isActive ? 0.06 : 0 }}
@@ -327,29 +317,14 @@ const RectTile = React.memo(function RectTile({
 });
 
 /* ─────────────────────────────────────────────────────────────
-   MOBILE CARD  — 2-col grid, tap-to-activate
-   Pattern: plain div owns the aspect-ratio (paddingTop trick —
-   reliable across all browsers and Framer Motion versions).
-   motion.div fills it with position:absolute so Framer's
-   injected inline styles never fight the container height.
+   MOBILE CARD
 ───────────────────────────────────────────────────────────── */
 
 const MobileCard = React.memo(function MobileCard({
     tile, isActive, isDimmed, onToggle,
 }) {
     return (
-        /*
-         * Outer shell — owns the 3:4 portrait ratio via paddingTop.
-         * paddingTop: '133.33%' = (4/3) × 100% → height always = 4/3 × width.
-         * Framer never touches this div so aspect ratio is never overridden.
-         */
-        <div
-            style={{
-                position: 'relative',
-                width: '100%',
-                paddingTop: '133.33%',  /* 3:4 portrait */
-            }}
-        >
+        <div style={{ position: 'relative', width: '100%', paddingTop: '133.33%' }}>
             <motion.div
                 onClick={onToggle}
                 initial={{ opacity: 0, y: 16 }}
@@ -359,8 +334,7 @@ const MobileCard = React.memo(function MobileCard({
                     y: EASE_ENTER,
                 }}
                 style={{
-                    position: 'absolute',
-                    inset: 0,
+                    position: 'absolute', inset: 0,
                     borderRadius: 10,
                     overflow: 'hidden',
                     cursor: 'pointer',
@@ -371,7 +345,6 @@ const MobileCard = React.memo(function MobileCard({
                     transition: 'box-shadow 0.32s ease',
                 }}
             >
-                {/* Image — fills the absolute container completely */}
                 <motion.img
                     src={tile.src}
                     alt={`${tile.letter} gallery`}
@@ -382,12 +355,15 @@ const MobileCard = React.memo(function MobileCard({
                     style={{
                         position: 'absolute', inset: 0,
                         width: '100%', height: '100%',
-                        objectFit: 'cover', display: 'block',
-                        pointerEvents: 'none', userSelect: 'none',
+                        objectFit: 'cover',
+                        objectPosition: 'center 20%',  // ← FIX 1 (mobile)
+                        display: 'block',
+                        pointerEvents: 'none',
+                        userSelect: 'none',
+                        transformOrigin: 'center center',
                     }}
                 />
 
-                {/* Scrim */}
                 <div style={{
                     position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
                     background: `linear-gradient(to top, rgba(2,12,22,0.80) 0%, rgba(0,0,0,0.16) 40%, transparent 65%)`,
@@ -395,7 +371,6 @@ const MobileCard = React.memo(function MobileCard({
 
                 <ScanlineOverlay isActive={isActive} />
 
-                {/* Left accent */}
                 <motion.div
                     animate={{ scaleY: isActive ? 1 : 0, opacity: isActive ? 1 : 0 }}
                     transition={EASE_STD}
@@ -407,7 +382,6 @@ const MobileCard = React.memo(function MobileCard({
                     }}
                 />
 
-                {/* Bottom rule */}
                 <motion.div
                     animate={{ scaleX: isActive ? 1 : 0, opacity: isActive ? 1 : 0 }}
                     transition={{ ...EASE_STD, delay: isActive ? 0.06 : 0 }}
@@ -443,19 +417,6 @@ const MobileCard = React.memo(function MobileCard({
 export default function GCCCIBGallery() {
     const sectionRef = useRef(null);
 
-    /* ── Load fonts once ── */
-    useEffect(() => {
-        const FONT_ID = 'gcccib-fonts';
-        if (document.getElementById(FONT_ID)) return;
-        const link = document.createElement('link');
-        link.id = FONT_ID;
-        link.rel = 'stylesheet';
-        // Cormorant Garamond (letters) + DM Mono (index badge)
-        link.href = 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Mono:wght@400;500&display=swap';
-        document.head.appendChild(link);
-    }, []);
-
-    /* ── Stable tiles ── */
     const [tiles] = useState(() =>
         pickN(IMAGE_POOL, 6).map((src, i) => ({
             id: `gccc-${i}`,
@@ -467,7 +428,6 @@ export default function GCCCIBGallery() {
 
     const [activeId, setActiveId] = useState(null);
 
-    /* ── Container width ── */
     const innerRef = useRef(null);
     const [cW, setCW] = useState(0);
 
@@ -483,20 +443,19 @@ export default function GCCCIBGallery() {
     const isRow = cW >= 640;
     const isMobile = cW > 0 && cW < 640;
 
-    /* ── Tile height — portrait standing ratio ── */
     const tileH = useMemo(() => {
         if (cW >= 1280) return 560;
         if (cW >= 1024) return 520;
         if (cW >= 768) return 460;
         if (cW >= 640) return 400;
-        return 185; // mobile: landscape strip
+        return 185;
     }, [cW]);
 
-    /* ── Active width — 3.2× resting, max 40% of container ── */
     const defaultW = useMemo(
         () => (cW - TILE_GAP * (tiles.length - 1)) / tiles.length,
         [cW, tiles.length]
     );
+
     const activeW = useMemo(
         () => Math.min(defaultW * 3.2, cW * 0.40),
         [defaultW, cW]
@@ -512,7 +471,6 @@ export default function GCCCIBGallery() {
         [cW, tiles.length, activeIdx, activeW]
     );
 
-    /* ── Stable handlers ── */
     const handleEnter = useCallback((id) => setActiveId(id), []);
     const handleLeave = useCallback(() => setActiveId(null), []);
     const handleToggle = useCallback(
@@ -520,16 +478,12 @@ export default function GCCCIBGallery() {
         []
     );
 
-    /* ─────────────────────────────────────────────────────────
-       RENDER
-    ──────────────────────────────────────────────────────────── */
     return (
         <section
             ref={sectionRef}
-            className={`relative w-full overflow-hidden ${SECTION_SPACING_BOTTOM}`}
+            className={`relative w-full ${SECTION_SPACING_BOTTOM}`}
             aria-label="GCCCIB Gallery"
         >
-            {/* Subtle ambient glow — soft on white */}
             <div
                 aria-hidden="true"
                 style={{
@@ -546,18 +500,10 @@ export default function GCCCIBGallery() {
 
             <div
                 ref={innerRef}
-                className="relative z-10 py-6 container mx-auto px-2 overflow-hidden"
+                className="relative z-10 py-6 container mx-auto px-2"
             >
-                {/* ── ROW: desktop + tablet ── */}
                 {isRow && cW > 0 && (
-                    <div
-                        style={{
-                            display: 'flex',
-                            gap: TILE_GAP,
-                            height: tileH,
-                            alignItems: 'stretch',
-                        }}
-                    >
+                    <div style={{ display: 'flex', gap: TILE_GAP, height: tileH, alignItems: 'stretch' }}>
                         {tiles.map((tile, i) => (
                             <RectTile
                                 key={tile.id}
@@ -573,15 +519,8 @@ export default function GCCCIBGallery() {
                     </div>
                 )}
 
-                {/* ── GRID: mobile — 2 columns of portrait standing rectangles ── */}
                 {isMobile && (
-                    <div
-                        style={{
-                            display: 'grid',
-                            gridTemplateColumns: '1fr 1fr',
-                            gap: 10,
-                        }}
-                    >
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                         {tiles.map(tile => (
                             <MobileCard
                                 key={tile.id}

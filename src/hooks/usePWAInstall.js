@@ -2,20 +2,42 @@ import { useState, useEffect } from 'react';
 
 let cachedPrompt = null;
 
+// Capture as early as possible — before React boots
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     cachedPrompt = e;
 });
 
+// iOS detection — covers iPhone, iPad (including iPadOS 13+)
+const isIOS = () =>
+    /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+// Standalone detection — works for both Android and iOS
+const isInStandaloneMode = () =>
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+
 export const usePWAInstall = () => {
     const [isInstallable, setIsInstallable] = useState(!!cachedPrompt);
-    const [isInstalled, setIsInstalled] = useState(
-        () => window.matchMedia('(display-mode: standalone)').matches
-    );
+    const [isInstalled, setIsInstalled] = useState(isInStandaloneMode);
+    const [isIOSDevice, setIsIOSDevice] = useState(false);
 
     useEffect(() => {
-        if (isInstalled) return;
+        // Already installed — nothing to do
+        if (isInStandaloneMode()) {
+            setIsInstalled(true);
+            return;
+        }
 
+        // iOS never fires beforeinstallprompt — show manual guide instead
+        if (isIOS()) {
+            setIsIOSDevice(true);
+            setIsInstallable(true);
+            return;
+        }
+
+        // Android/Chrome — use cached prompt if already fired
         if (cachedPrompt) {
             setIsInstallable(true);
         }
@@ -50,5 +72,5 @@ export const usePWAInstall = () => {
         setIsInstallable(false);
     };
 
-    return { isInstallable, isInstalled, promptInstall };
+    return { isInstallable, isInstalled, isIOSDevice, promptInstall };
 };
