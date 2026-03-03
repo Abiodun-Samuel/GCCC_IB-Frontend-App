@@ -1,6 +1,7 @@
 import { memo, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Heart, Users, Crown, MapPin, Camera } from 'lucide-react';
 import { SECTION_SPACING } from '@/utils/constant';
+import { versionedAsset } from '@/utils/helper';
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 
@@ -42,7 +43,7 @@ const VALUES = [
 
 const ABOUT_IMAGES = Array.from({ length: 15 }, (_, i) => ({
     id: i + 1,
-    src: `/images/home/about/about${i + 1}.jpg`,
+    src: versionedAsset(`/images/home/about/about${i + 1}.jpg`),
     alt: `GCCC Ibadan Community — photo ${i + 1}`,
 }));
 

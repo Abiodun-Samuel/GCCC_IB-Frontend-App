@@ -1,17 +1,18 @@
 import { memo, useState, useMemo } from "react";
 import { SECTION_SPACING } from "@/utils/constant";
+import { versionedAsset } from "@/utils/helper";
 
 /* ─────────────────────────────────────────────────────────────
    DATA
 ───────────────────────────────────────────────────────────── */
 
 const LETTERS = [
-    { char: "G", src: "/images/home/about1.jpg" },
-    { char: "C", src: "/images/home/about3.jpg" },
-    { char: "C", src: "/images/home/about6.jpg" },
-    { char: "I", src: "/images/home/about4.jpg" },
-    { char: "C", src: "/images/home/about2.jpg" },
-    { char: "B", src: "/images/home/about5.jpg" },
+    { char: "G", src: versionedAsset("/images/home/about1.jpg") },
+    { char: "C", src: versionedAsset("/images/home/about3.jpg") },
+    { char: "C", src: versionedAsset("/images/home/about6.jpg") },
+    { char: "I", src: versionedAsset("/images/home/about4.jpg") },
+    { char: "C", src: versionedAsset("/images/home/about2.jpg") },
+    { char: "B", src: versionedAsset("/images/home/about5.jpg") },
 ];
 
 /* ─────────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 {
   "name": "gccc-ibadan",
   "private": true,
-  "version": "2.0.2",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "predev": "rimraf node_modules/.vite",

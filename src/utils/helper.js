@@ -370,3 +370,11 @@ export const fetchEventImageFile = async (imageUrl) => {
     return null;
   }
 };
+
+
+const VERSION = !import.meta.env.DEV ? Date.now() : __APP_VERSION__;
+
+export const versionedAsset = (path) => {
+  if (!path) return '';
+  return `${path}?v=${VERSION}`;
+};

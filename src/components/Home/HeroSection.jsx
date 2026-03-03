@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, memo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
+import { versionedAsset } from '@/utils/helper';
 
 // ─── Constants outside component — never re-created ───────────────────────────
 const SPACING = {
@@ -17,7 +18,7 @@ const SPACING = {
 
 const ALL_IMAGES = Array.from({ length: 10 }, (_, i) => ({
     id: i + 1,
-    url: `/images/home/hero/hero${i + 1}.jpg`,
+    url: versionedAsset(`/images/home/hero/hero${i + 1}.jpg`),
     alt: `Church image ${i + 1}`,
 }));
 

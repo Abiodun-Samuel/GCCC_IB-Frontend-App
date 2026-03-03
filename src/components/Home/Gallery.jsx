@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SECTION_SPACING_BOTTOM } from '@/utils/constant';
+import { versionedAsset } from '@/utils/helper';
 
 /* ─────────────────────────────────────────────────────────────
    CONSTANTS
@@ -12,12 +13,12 @@ const LETTERS = ['G', 'C', 'C', 'C', 'I', 'B'];
 const TILE_GAP = 6;
 
 const IMAGE_POOL = [
-    '/images/gallery/gallery1.jpg',
-    '/images/gallery/gallery2.jpg',
-    '/images/gallery/gallery3.jpg',
-    '/images/gallery/gallery4.jpg',
-    '/images/gallery/gallery5.jpg',
-    '/images/gallery/gallery6.jpg',
+    versionedAsset('/images/gallery/gallery1.jpg'),
+    versionedAsset('/images/gallery/gallery2.jpg'),
+    versionedAsset('/images/gallery/gallery3.jpg'),
+    versionedAsset('/images/gallery/gallery4.jpg'),
+    versionedAsset('/images/gallery/gallery5.jpg'),
+    versionedAsset('/images/gallery/gallery6.jpg'),
 ];
 
 /* ─────────────────────────────────────────────────────────────
