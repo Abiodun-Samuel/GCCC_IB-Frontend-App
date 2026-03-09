@@ -400,7 +400,7 @@ const PageHeader = memo(() => (
                 colorRGB="255,255,255"
                 title="TikTok"
             />
-            <SocialChip
+            {/* <SocialChip
                 href="https://t.me/Pastoropeyemipeter"
                 icon={Send}
                 colorRGB="0,136,204"
@@ -411,7 +411,7 @@ const PageHeader = memo(() => (
                 icon={Music2}
                 colorRGB="29,185,84"
                 title="Spotify"
-            />
+            /> */}
         </div>
     </div>
 ));
@@ -649,7 +649,7 @@ const MediaHub = ({ isAuthenticated = false, user }) => {
             <PageHeader />
             <div className="container mx-auto px-2 relative z-10 flex flex-col gap-16 sm:gap-20">
                 <VideoSection user={user} isAuthenticated={isAuthenticated} />
-                <SpotifySection user={user} isAuthenticated={isAuthenticated} />
+                {/* <SpotifySection user={user} isAuthenticated={isAuthenticated} /> */}
             </div>
         </section>
     );
