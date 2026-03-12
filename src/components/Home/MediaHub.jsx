@@ -400,18 +400,12 @@ const PageHeader = memo(() => (
                 colorRGB="255,255,255"
                 title="TikTok"
             />
-            {/* <SocialChip
-                href="https://t.me/Pastoropeyemipeter"
+            <SocialChip
+                href="https://t.me/gcccibadan"
                 icon={Send}
                 colorRGB="0,136,204"
                 title="Telegram"
             />
-            <SocialChip
-                href="https://open.spotify.com/show/5yc39lH1EtNRoUQb1mG7SY"
-                icon={Music2}
-                colorRGB="29,185,84"
-                title="Spotify"
-            /> */}
         </div>
     </div>
 ));

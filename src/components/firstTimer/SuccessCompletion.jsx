@@ -185,8 +185,9 @@ const SuccessCompletion = memo(() => (
               icon={InstagramIcon} colorRGB="225,48,108" title="Instagram" />
             <SocialChip href="https://www.tiktok.com/@gcccibadan"
               icon={TikTokIcon} colorRGB="20,20,20" title="TikTok" />
-            {/* <SocialChip href="https://t.me/Pastoropeyemipeter"
+            <SocialChip href="https://t.me/gcccibadan"
               icon={Send} colorRGB="0,136,204" title="Telegram" />
+            {/* 
             <SocialChip href="https://open.spotify.com/show/5yc39lH1EtNRoUQb1mG7SY"
               icon={Music2} colorRGB="29,185,84" title="Spotify" /> */}
           </div>

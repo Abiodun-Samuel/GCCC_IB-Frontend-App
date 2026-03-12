@@ -876,13 +876,13 @@ const RecapLinks = memo(() => (
         >
             <Youtube size={13} />Watch Recap
         </a>
-        {/* <a
-            href="https://t.me/Pastoropeyemipeter" target="_blank" rel="noopener noreferrer"
+        <a
+            href="https://t.me/gcccibadan" target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold text-white hover:opacity-85 active:scale-95 transition-all"
             style={{ background: `rgba(${BRAND_RGB},0.26)`, border: `1px solid rgba(${BRAND_RGB},0.36)` }}
         >
             <Radio size={13} />Get Audio
-        </a> */}
+        </a>
     </div>
 ));
 RecapLinks.displayName = 'Hub.RecapLinks';
@@ -901,10 +901,10 @@ const NoServiceContent = memo(() => (
                 href="https://www.youtube.com/@GcccIbadan" target="_blank" rel="noopener noreferrer">
                 Watch on YouTube
             </Button>
-            {/* <Button endIcon={<ArrowRight size={14} />} startIcon={<Radio />}
-                href="https://t.me/Pastoropeyemipeter" target="_blank" rel="noopener noreferrer">
+            <Button endIcon={<ArrowRight size={14} />} startIcon={<Radio />}
+                href="https://t.me/gcccibadan" target="_blank" rel="noopener noreferrer">
                 Telegram
-            </Button> */}
+            </Button>
         </div>
     </div>
 ));
