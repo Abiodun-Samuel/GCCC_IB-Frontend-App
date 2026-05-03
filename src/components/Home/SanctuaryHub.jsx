@@ -1099,8 +1099,8 @@ const EventCardInner = memo(({ event }) => {
                         )}
                         {hasRegistration && (
                             <a href={event.registration_link} target="_blank" rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:opacity-85 active:scale-95">
-                                <UserPlus size={11} />Register
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-blue-500 hover:opacity-85 active:scale-95">
+                                <UserPlus size={11} />Register / Invite
                                 {regDeadlineFmt && <span className="text-white/30 font-normal">· {regDeadlineFmt}</span>}
                             </a>
                         )}

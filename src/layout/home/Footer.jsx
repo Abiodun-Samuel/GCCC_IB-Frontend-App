@@ -2,7 +2,7 @@ import {
     memo, useRef, useCallback, useState, useEffect, useLayoutEffect, Suspense, lazy, useMemo,
 } from 'react';
 import { motion, useInView, useMotionValue, useTransform, useSpring } from 'framer-motion';
-import { MapPin, Navigation, Phone, Mail, ExternalLink, Facebook, Instagram, Youtube, ChevronRight } from 'lucide-react';
+import { MapPin, Navigation, Phone, Mail, ExternalLink, Facebook, Instagram, Youtube, ChevronRight, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 /* ─── Tokens ─────────────────────────────────────────────────────────────────── */
@@ -218,6 +218,7 @@ const SOCIAL_LINKS = [
     { icon: Instagram, href: 'https://www.instagram.com/gcccibadan?igsh=YmhydmdsemN2M3Mx', label: 'Instagram', hoverBg: '#dd2a7b' },
     { icon: TikTok, href: 'https://www.tiktok.com/@gcccibadan?_r=1&_t=ZS-93jXPQ30QnU', label: 'TikTok', hoverBg: '#010101' },
     { icon: Youtube, href: 'https://www.youtube.com/@GcccIbadan', label: 'YouTube', hoverBg: '#ff0000' },
+    { icon: Send, href: 'https://t.me/gcccibadan', label: 'Telegram', hoverBg: '#0088cc' },
 ];
 
 const QUICK_LINKS = [

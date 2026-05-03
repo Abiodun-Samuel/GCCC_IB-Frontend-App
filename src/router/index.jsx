@@ -18,6 +18,7 @@ const ForgotPasswordPage = lazy(() => import('@/pages/Home/Auth/ForgotPasswordPa
 const FormPage = lazy(() => import('../pages/Home/FormPage'));
 const FirstTimerWelcomePage = lazy(() => import('../pages/Home/FirstTimerWelcomePage'));
 const EventRegistrationPage = lazy(() => import('@/pages/Home/EventRegistrationPage'));
+const InviteGeneratorPage = lazy(() => import('../pages/Home/InviteGeneratorPage'));
 
 // Dashboard
 const DashboardPage = lazy(() => import('../pages/Dashboard/DashboardPage'));
@@ -88,6 +89,7 @@ const AppRoutes = [
       // Public pages
       { path: 'events/:eventId/registration', element: withSuspense(EventRegistrationPage) },
       { path: 'first-timer/welcome', element: withSuspense(FirstTimerWelcomePage) },
+      { path: 'apostolic-congress', element: withSuspense(InviteGeneratorPage) },
     ],
   },
 
