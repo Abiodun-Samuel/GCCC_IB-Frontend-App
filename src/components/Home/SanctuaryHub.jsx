@@ -1010,11 +1010,415 @@ const ServiceRail = memo(({
 ServiceRail.displayName = 'Hub.ServiceRail';
 
 // ─── Event Panel ──────────────────────────────────────────────────────────────
+// const EventCardInner = memo(({ event }) => {
+//     const [imgError, setImgError] = useState(false);
+//     const cfg = EVENT_STATUS_CFG[event.status] || EVENT_STATUS_CFG.upcoming;
+//     const handleShare = useCallback(() => doShare(event), [event]);
 
+//     const startTimeFmt = fmtTime24(event.start_time) || event.time;
+//     const endTimeFmt = fmtTime24(event.end_time);
+//     const timeRange = endTimeFmt ? `${startTimeFmt} – ${endTimeFmt}` : startTimeFmt;
+
+//     const endDateFmt = event.end_date
+//         ? new Date(event.end_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+//         : null;
+//     const dateRange = endDateFmt && endDateFmt !== event.date ? `${event.date} – ${endDateFmt}` : event.date;
+
+//     const regDeadlineFmt = event.registration_deadline
+//         ? new Date(event.registration_deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+//         : null;
+
+//     const hasVideo = event.has_streaming && !!event.video_streaming_link;
+//     const hasAudio = event.has_streaming && !!event.audio_streaming_link;
+//     const hasRegistration = event.is_registration_open && !!event.registration_link;
+
+//     return (
+//         <div className="flex flex-row min-h-0">
+
+//             {/* ── Image rail (left) ──────────────────────────────────────────
+//                 Fixed width, full card height. object-cover fills the column
+//                 regardless of whether the source is portrait or landscape.    */}
+//             <div
+//                 className="relative overflow-hidden bg-white/5 rounded-l-2xl flex-shrink-0"
+//                 style={{ width: 140 }}
+//             >
+//                 {!imgError ? (
+//                     <img
+//                         src={event.image}
+//                         alt={event.title}
+//                         onError={() => setImgError(true)}
+//                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+//                     />
+//                 ) : (
+//                     <div
+//                         className="absolute inset-0 flex items-center justify-center"
+//                         style={{ background: `linear-gradient(135deg, rgba(${BRAND_RGB},0.07), rgba(${TEAL_RGB},0.04))` }}
+//                     >
+//                         <Calendar size={32} style={{ color: `rgba(${BRAND_RGB},0.22)` }} strokeWidth={1} />
+//                     </div>
+//                 )}
+
+//                 {/* Subtle gradient so the status badge is always legible */}
+//                 <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-transparent to-black/30 pointer-events-none" />
+
+//                 {/* Status badge — top of image rail */}
+//                 <div className="absolute top-3 left-0 right-0 flex justify-center px-2">
+//                     <span
+//                         className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold backdrop-blur-sm w-full justify-center"
+//                         style={{
+//                             background: `rgba(${cfg.colorRGB},0.18)`,
+//                             border: `1px solid rgba(${cfg.colorRGB},0.32)`,
+//                             color: cfg.color,
+//                         }}
+//                     >
+//                         <span
+//                             className="w-1.5 h-1.5 rounded-full shrink-0"
+//                             style={{
+//                                 backgroundColor: cfg.color,
+//                                 ...(cfg.pulse && { animation: 'hub-ripple 1.6s ease-out infinite' }),
+//                             }}
+//                         />
+//                         {cfg.label}
+//                     </span>
+//                 </div>
+
+//                 {/* Streaming / registration badges — bottom of image rail */}
+//                 <div className="absolute bottom-3 left-0 right-0 flex flex-col items-center gap-1 px-2">
+//                     {event.has_streaming && (
+//                         <span
+//                             className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md w-full justify-center"
+//                             style={{ background: `rgba(${BRAND_RGB},0.22)`, color: '#7dd3fc' }}
+//                         >
+//                             <Wifi size={9} />Stream
+//                         </span>
+//                     )}
+//                     {event.is_registration_open && (
+//                         <span
+//                             className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md w-full justify-center"
+//                             style={{ background: 'rgba(52,211,153,0.18)', color: '#6ee7b7' }}
+//                         >
+//                             <UserCheck size={9} />Open
+//                         </span>
+//                     )}
+//                     {!event.has_streaming && !event.is_registration_open && (
+//                         <span
+//                             className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md w-full justify-center"
+//                             style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.28)' }}
+//                         >
+//                             <MapPin size={9} />In-person
+//                         </span>
+//                     )}
+//                 </div>
+//             </div>
+
+//             {/* ── Content panel (right) ──────────────────────────────────── */}
+//             <div className="flex flex-col flex-1 min-w-0 p-4 gap-3">
+
+//                 {/* Time badge + title */}
+//                 <div className="flex flex-col gap-1.5">
+//                     <span
+//                         className="self-start inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold text-white"
+//                         style={{ background: `rgba(${BRAND_RGB},0.55)`, backdropFilter: 'blur(6px)' }}
+//                     >
+//                         <Clock size={10} />{timeRange}
+//                     </span>
+//                     <h3 className="text-white font-bold text-base sm:text-lg leading-snug line-clamp-2 drop-shadow">
+//                         {event.title}
+//                     </h3>
+//                 </div>
+
+//                 {/* Date + location */}
+//                 <div className="flex flex-col gap-1.5">
+//                     <div className="flex items-center gap-2">
+//                         <CalendarClock size={12} style={{ color: `rgba(${BRAND_RGB},0.65)` }} className="shrink-0" />
+//                         <span className="text-xs text-white/45 truncate">{dateRange}</span>
+//                     </div>
+//                     <div className="flex items-center gap-2">
+//                         <MapPin size={12} style={{ color: `rgba(${BRAND_RGB},0.65)` }} className="shrink-0" />
+//                         <span className="text-xs text-white/45 truncate">{event.location}</span>
+//                     </div>
+//                 </div>
+
+//                 {/* Description */}
+//                 {event.description && (
+//                     <p className="text-xs text-white/32 line-clamp-2 leading-relaxed">{event.description}</p>
+//                 )}
+
+//                 {/* Streaming / registration links */}
+//                 {(hasVideo || hasAudio || hasRegistration) && (
+//                     <div className="flex flex-wrap gap-1.5">
+//                         {hasVideo && (
+//                             <a
+//                                 href={event.video_streaming_link}
+//                                 target="_blank"
+//                                 rel="noopener noreferrer"
+//                                 className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all hover:opacity-85 active:scale-95"
+//                                 style={{ background: '#cc000022', border: '1px solid #cc000055', color: '#f87171' }}
+//                             >
+//                                 <Video size={10} />Watch
+//                             </a>
+//                         )}
+//                         {hasAudio && (
+//                             <a
+//                                 href={event.audio_streaming_link}
+//                                 target="_blank"
+//                                 rel="noopener noreferrer"
+//                                 className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all hover:opacity-85 active:scale-95"
+//                                 style={{ background: `rgba(${TEAL_RGB},0.12)`, border: `1px solid rgba(${TEAL_RGB},0.28)`, color: TEAL }}
+//                             >
+//                                 <Mic size={10} />Listen
+//                             </a>
+//                         )}
+//                         {hasRegistration && (
+//                             <a
+//                                 href={event.registration_link}
+//                                 target="_blank"
+//                                 rel="noopener noreferrer"
+//                                 className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all text-blue-400 hover:opacity-85 active:scale-95"
+//                             >
+//                                 <UserPlus size={10} />Register
+//                                 {regDeadlineFmt && (
+//                                     <span className="text-white/30 font-normal">· {regDeadlineFmt}</span>
+//                                 )}
+//                             </a>
+//                         )}
+//                     </div>
+//                 )}
+
+//                 {/* Footer: spacer + share button pinned to bottom-right */}
+//                 <div
+//                     className="flex items-center justify-end mt-auto pt-2"
+//                     style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
+//                 >
+//                     <button
+//                         onClick={handleShare}
+//                         className="shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white transition-all duration-200 hover:opacity-90 active:scale-95"
+//                         style={{
+//                             background: `linear-gradient(135deg, ${BRAND} 0%, ${TEAL} 100%)`,
+//                             boxShadow: `0 2px 14px rgba(${BRAND_RGB},0.32)`,
+//                         }}
+//                         aria-label={`Share ${event.title}`}
+//                     >
+//                         <Share2 size={12} />Share
+//                     </button>
+//                 </div>
+//             </div>
+//         </div>
+//     );
+// });
+// const EventCardInner = memo(({ event }) => {
+//     const [imgError, setImgError] = useState(false);
+//     const cfg = EVENT_STATUS_CFG[event.status] || EVENT_STATUS_CFG.upcoming;
+//     const handleShare = useCallback(() => doShare(event), [event]);
+
+//     const startTimeFmt = fmtTime24(event.start_time) || event.time;
+//     const endTimeFmt = fmtTime24(event.end_time);
+//     const timeRange = endTimeFmt ? `${startTimeFmt} – ${endTimeFmt}` : startTimeFmt;
+
+//     const endDateFmt = event.end_date
+//         ? new Date(event.end_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+//         : null;
+//     const dateRange = endDateFmt && endDateFmt !== event.date ? `${event.date} – ${endDateFmt}` : event.date;
+
+//     const regDeadlineFmt = event.registration_deadline
+//         ? new Date(event.registration_deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+//         : null;
+
+//     const hasVideo = event.has_streaming && !!event.video_streaming_link;
+//     const hasAudio = event.has_streaming && !!event.audio_streaming_link;
+//     const hasRegistration = event.is_registration_open && !!event.registration_link;
+
+//     return (
+//         <div className="flex flex-col">
+//             <div className="relative overflow-hidden bg-white/5 rounded-t-2xl" style={{ height: 180 }}>
+//                 {!imgError ? (
+//                     <img src={event.image} alt={event.title} onError={() => setImgError(true)}
+//                         className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" />
+//                 ) : (
+//                     <div className="w-full h-full flex items-center justify-center"
+//                         style={{ background: `linear-gradient(135deg, rgba(${BRAND_RGB},0.07), rgba(${TEAL_RGB},0.04))` }}>
+//                         <Calendar size={36} style={{ color: `rgba(${BRAND_RGB},0.22)` }} strokeWidth={1} />
+//                     </div>
+//                 )}
+//                 <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/15 to-transparent" />
+//                 <div className="absolute top-4 left-4">
+//                     <span
+//                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold backdrop-blur-sm"
+//                         style={{ background: `rgba(${cfg.colorRGB},0.18)`, border: `1px solid rgba(${cfg.colorRGB},0.32)`, color: cfg.color }}
+//                     >
+//                         <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: cfg.color, ...(cfg.pulse && { animation: 'hub-ripple 1.6s ease-out infinite' }) }} />
+//                         {cfg.label}
+//                     </span>
+//                 </div>
+//                 <div className="absolute top-4 right-4">
+//                     <span
+//                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-white"
+//                         style={{ background: `rgba(${BRAND_RGB},0.65)`, backdropFilter: 'blur(6px)' }}
+//                     >
+//                         <Clock size={10} />{timeRange}
+//                     </span>
+//                 </div>
+//                 <div className="absolute bottom-0 left-0 right-0 px-5 pb-4">
+//                     <h3 className="text-white font-bold text-lg sm:text-xl leading-tight line-clamp-2 drop-shadow">{event.title}</h3>
+//                 </div>
+//             </div>
+//             <div className="flex flex-col gap-3.5 p-5">
+//                 <div className="flex flex-col gap-3">
+//                     <div className="flex items-center gap-2">
+//                         <CalendarClock size={13} style={{ color: `rgba(${BRAND_RGB},0.65)` }} className="shrink-0" />
+//                         <span className="text-sm text-white/45 truncate">{dateRange}</span>
+//                     </div>
+//                     <div className="flex items-center gap-2 truncate">
+//                         <MapPin size={13} style={{ color: `rgba(${BRAND_RGB},0.65)` }} className="shrink-0" />
+//                         <span className="text-sm text-white/45 truncate">{event.location}</span>
+//                     </div>
+//                 </div>
+//                 {event.description && (
+//                     <p className="text-sm text-white/32 line-clamp-3 leading-relaxed">{event.description}</p>
+//                 )}
+//                 {(hasVideo || hasAudio || hasRegistration) && (
+//                     <div className="flex flex-wrap gap-2 pt-1 pb-1">
+//                         {hasVideo && (
+//                             <a href={event.video_streaming_link} target="_blank" rel="noopener noreferrer"
+//                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:opacity-85 active:scale-95"
+//                                 style={{ background: '#cc000022', border: '1px solid #cc000055', color: '#f87171' }}>
+//                                 <Video size={11} />Watch Live
+//                             </a>
+//                         )}
+//                         {hasAudio && (
+//                             <a href={event.audio_streaming_link} target="_blank" rel="noopener noreferrer"
+//                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:opacity-85 active:scale-95"
+//                                 style={{ background: `rgba(${TEAL_RGB},0.12)`, border: `1px solid rgba(${TEAL_RGB},0.28)`, color: TEAL }}>
+//                                 <Mic size={11} />Listen Live
+//                             </a>
+//                         )}
+//                         {hasRegistration && (
+//                             <a href={event.registration_link} target="_blank" rel="noopener noreferrer"
+//                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-blue-500 hover:opacity-85 active:scale-95">
+//                                 <UserPlus size={11} />Register / Invite
+//                                 {regDeadlineFmt && <span className="text-white/30 font-normal">· {regDeadlineFmt}</span>}
+//                             </a>
+//                         )}
+//                     </div>
+//                 )}
+//                 <div className="flex items-center justify-between gap-3 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+//                     <div className="flex items-center gap-2 flex-wrap">
+//                         {event.has_streaming && (
+//                             <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg"
+//                                 style={{ background: `rgba(${BRAND_RGB},0.14)`, color: '#7dd3fc' }}>
+//                                 <Wifi size={10} />Streaming
+//                             </span>
+//                         )}
+//                         {event.is_registration_open && (
+//                             <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg"
+//                                 style={{ background: 'rgba(52,211,153,0.14)', color: '#6ee7b7' }}>
+//                                 <UserCheck size={10} />Open
+//                             </span>
+//                         )}
+//                         {!event.has_streaming && !event.is_registration_open && (
+//                             <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg"
+//                                 style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.28)' }}>
+//                                 <MapPin size={10} />In-person
+//                             </span>
+//                         )}
+//                     </div>
+//                     <button
+//                         onClick={handleShare}
+//                         className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all duration-200 hover:opacity-90 active:scale-95"
+//                         style={{
+//                             background: `linear-gradient(135deg, ${BRAND} 0%, ${TEAL} 100%)`,
+//                             boxShadow: `0 2px 14px rgba(${BRAND_RGB},0.32)`,
+//                         }}
+//                         aria-label={`Share ${event.title}`}
+//                     >
+//                         <Share2 size={13} />Share
+//                     </button>
+//                 </div>
+//             </div>
+//         </div>
+//     );
+// });
+// EventCardInner.displayName = 'Hub.EventCardInner';
+
+// const EventPanel = memo(({ event, isLoading, isError }) => {
+//     const isLive = event?.status === 'ongoing';
+//     return (
+//         <section data-aos="fade" data-aos-duration="480" data-aos-delay="100" className="flex flex-col gap-4">
+//             <div className="flex items-center justify-between gap-3">
+//                 <div className="flex items-center gap-2.5">
+//                     <div
+//                         className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+//                         style={{ background: `rgba(${BRAND_RGB},0.11)`, border: `1px solid rgba(${BRAND_RGB},0.16)` }}
+//                     >
+//                         <Zap size={14} style={{ color: BRAND }} />
+//                     </div>
+//                     <div>
+//                         <h2 className="text-sm font-black text-white tracking-tight capitalize leading-tight">{event?.status} Event</h2>
+//                         {!isLoading && !isError && (
+//                             <p className="text-[10px] text-white/28 mt-0.5">{!event ? 'Nothing scheduled' : event.date}</p>
+//                         )}
+//                     </div>
+//                 </div>
+//                 {isLive && !isLoading && (
+//                     <div className="flex items-center gap-1.5 shrink-0">
+//                         <LiveDot color={EMERALD} />
+//                         <span className="text-[10px] font-semibold text-emerald-400">Live Now</span>
+//                     </div>
+//                 )}
+//             </div>
+//             <div className="ev-card hub-event-card-shell rounded-2xl overflow-hidden" style={cardShell()}>
+//                 {isLoading ? (
+//                     <div className="animate-pulse">
+//                         <div style={{ height: 180, background: 'rgba(255,255,255,0.05)' }} />
+//                         <div className="p-5 space-y-3">
+//                             <SkeletonBlock className="h-3.5 w-3/4" /><SkeletonBlock className="h-3 w-1/2" />
+//                             <SkeletonBlock className="h-3 w-full" />
+//                             <div className="flex justify-between pt-1">
+//                                 <SkeletonBlock className="h-6 w-20" /><SkeletonBlock className="h-7 w-20" />
+//                             </div>
+//                         </div>
+//                     </div>
+//                 ) : isError ? (
+//                     <div className="flex flex-col items-center justify-center text-center p-12">
+//                         <AlertCircle size={28} style={{ color: '#f87171' }} className="mb-3" />
+//                         <p className="text-sm font-bold text-white">Failed to Load Event</p>
+//                         <p className="text-xs text-white/32 mt-1">Try refreshing the page.</p>
+//                     </div>
+//                 ) : !event ? (
+//                     <div className="flex flex-col items-center justify-center text-center p-12">
+//                         <div
+//                             className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+//                             style={{ background: `rgba(${BRAND_RGB},0.07)`, border: `1px solid rgba(${BRAND_RGB},0.10)` }}
+//                         >
+//                             <Calendar size={24} style={{ color: `rgba(${BRAND_RGB},0.35)` }} strokeWidth={1.3} />
+//                         </div>
+//                         <p className="text-sm font-bold text-white mb-1.5">No Events Today</p>
+//                         <p className="text-xs text-white/28 max-w-[180px] leading-relaxed">
+//                             Nothing scheduled. Check back later for upcoming events.
+//                         </p>
+//                     </div>
+//                 ) : (
+//                     <EventCardInner event={event} />
+//                 )}
+//             </div>
+//         </section>
+//     );
+// });
+// EventPanel.displayName = 'Hub.EventPanel';
+// ─── EventCardInner ───────────────────────────────────────────────────────────
+// ─── EventCardInner ───────────────────────────────────────────────────────────
+// ─── EventCardInner ───────────────────────────────────────────────────────────
 const EventCardInner = memo(({ event }) => {
     const [imgError, setImgError] = useState(false);
+    const [isPortrait, setIsPortrait] = useState(false);
     const cfg = EVENT_STATUS_CFG[event.status] || EVENT_STATUS_CFG.upcoming;
     const handleShare = useCallback(() => doShare(event), [event]);
+
+    // Detect orientation once the image loads — no layout thrash, just a height bump
+    const handleImgLoad = useCallback((e) => {
+        const { naturalWidth, naturalHeight } = e.currentTarget;
+        setIsPortrait(naturalHeight > naturalWidth);
+    }, []);
 
     const startTimeFmt = fmtTime24(event.start_time) || event.time;
     const endTimeFmt = fmtTime24(event.end_time);
@@ -1023,7 +1427,9 @@ const EventCardInner = memo(({ event }) => {
     const endDateFmt = event.end_date
         ? new Date(event.end_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
         : null;
-    const dateRange = endDateFmt && endDateFmt !== event.date ? `${event.date} – ${endDateFmt}` : event.date;
+    const dateRange = endDateFmt && endDateFmt !== event.date
+        ? `${event.date} – ${endDateFmt}`
+        : event.date;
 
     const regDeadlineFmt = event.registration_deadline
         ? new Date(event.registration_deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -1033,96 +1439,181 @@ const EventCardInner = memo(({ event }) => {
     const hasAudio = event.has_streaming && !!event.audio_streaming_link;
     const hasRegistration = event.is_registration_open && !!event.registration_link;
 
+    // Portrait: taller container so image shows without harsh cropping
+    // Landscape: standard 210px, object-cover fills cleanly
+    const imgContainerHeight = isPortrait ? 300 : 210;
+
     return (
         <div className="flex flex-col">
-            <div className="relative overflow-hidden bg-white/5 rounded-t-2xl" style={{ height: 180 }}>
+
+            {/* ── Image — orientation-aware, no overlays ─────────────────────
+                Portrait  → taller box + object-contain + blurred backdrop
+                           (shows the full flyer, blurred copy fills the sides)
+                Landscape → standard height + object-cover object-top           */}
+            <div
+                className="relative w-full overflow-hidden bg-black/30 transition-all duration-300"
+                style={{ height: imgContainerHeight }}
+            >
                 {!imgError ? (
-                    <img src={event.image} alt={event.title} onError={() => setImgError(true)}
-                        className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" />
+                    <>
+                        {/* Blurred backdrop — only meaningful for portrait; fills dark pillarbox */}
+                        {isPortrait && (
+                            <img
+                                alt='hello'
+                                src={event.image}
+                                aria-hidden
+                                className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-30 pointer-events-none"
+                            />
+                        )}
+                        {/* Primary image */}
+                        <img
+                            src={event.image}
+                            alt={event.title}
+                            onLoad={handleImgLoad}
+                            onError={() => setImgError(true)}
+                            className={[
+                                'relative w-full h-full transition-transform duration-700 hover:scale-105',
+                                isPortrait
+                                    ? 'object-contain'          // show full poster
+                                    : 'object-cover object-top', // crop landscape to top
+                            ].join(' ')}
+                        />
+                    </>
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center"
-                        style={{ background: `linear-gradient(135deg, rgba(${BRAND_RGB},0.07), rgba(${TEAL_RGB},0.04))` }}>
+                    <div
+                        className="w-full h-full flex items-center justify-center"
+                        style={{ background: `linear-gradient(135deg, rgba(${BRAND_RGB},0.07), rgba(${TEAL_RGB},0.04))` }}
+                    >
                         <Calendar size={36} style={{ color: `rgba(${BRAND_RGB},0.22)` }} strokeWidth={1} />
                     </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/15 to-transparent" />
-                <div className="absolute top-4 left-4">
+            </div>
+
+            {/* ── Content ───────────────────────────────────────────────────── */}
+            <div className="flex flex-col gap-4 p-5">
+
+                {/* Row 1: status badge left, time right */}
+                <div className="flex items-center justify-between gap-3">
                     <span
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold backdrop-blur-sm"
-                        style={{ background: `rgba(${cfg.colorRGB},0.18)`, border: `1px solid rgba(${cfg.colorRGB},0.32)`, color: cfg.color }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold"
+                        style={{
+                            background: `rgba(${cfg.colorRGB},0.15)`,
+                            border: `1px solid rgba(${cfg.colorRGB},0.30)`,
+                            color: cfg.color,
+                        }}
                     >
-                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: cfg.color, ...(cfg.pulse && { animation: 'hub-ripple 1.6s ease-out infinite' }) }} />
+                        <span
+                            className="w-1.5 h-1.5 rounded-full shrink-0"
+                            style={{
+                                backgroundColor: cfg.color,
+                                ...(cfg.pulse && { animation: 'hub-ripple 1.6s ease-out infinite' }),
+                            }}
+                        />
                         {cfg.label}
                     </span>
-                </div>
-                <div className="absolute top-4 right-4">
                     <span
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-white"
-                        style={{ background: `rgba(${BRAND_RGB},0.65)`, backdropFilter: 'blur(6px)' }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-white shrink-0"
+                        style={{ background: `rgba(${BRAND_RGB},0.55)` }}
                     >
-                        <Clock size={10} />{timeRange}
+                        <Clock size={11} />{timeRange}
                     </span>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 px-5 pb-4">
-                    <h3 className="text-white font-bold text-lg sm:text-xl leading-tight line-clamp-2 drop-shadow">{event.title}</h3>
-                </div>
-            </div>
-            <div className="flex flex-col gap-3.5 p-5">
-                <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-2">
-                        <CalendarClock size={13} style={{ color: `rgba(${BRAND_RGB},0.65)` }} className="shrink-0" />
-                        <span className="text-sm text-white/45 truncate">{dateRange}</span>
+
+                {/* Row 2: title */}
+                <h3
+                    className="text-white font-black leading-tight line-clamp-2"
+                    style={{ fontSize: '1.15rem', letterSpacing: '-0.015em' }}
+                >
+                    {event.title}
+                </h3>
+
+                {/* Row 3: date + location */}
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-start gap-2.5">
+                        <CalendarClock size={13} className="shrink-0 mt-0.5" style={{ color: `rgba(${BRAND_RGB},0.70)` }} />
+                        <span className="text-sm text-white/55 leading-snug">{dateRange}</span>
                     </div>
-                    <div className="flex items-center gap-2 truncate">
-                        <MapPin size={13} style={{ color: `rgba(${BRAND_RGB},0.65)` }} className="shrink-0" />
-                        <span className="text-sm text-white/45 truncate">{event.location}</span>
+                    <div className="flex items-center gap-2.5">
+                        <MapPin size={13} className="shrink-0" style={{ color: `rgba(${BRAND_RGB},0.70)` }} />
+                        <span className="text-sm text-white/55 truncate">{event.location}</span>
                     </div>
                 </div>
+
+                {/* Row 4: description */}
                 {event.description && (
-                    <p className="text-sm text-white/32 line-clamp-3 leading-relaxed">{event.description}</p>
+                    <p className="text-sm leading-relaxed line-clamp-3" style={{ color: 'rgba(255,255,255,0.32)' }}>
+                        {event.description}
+                    </p>
                 )}
+
+                {/* Row 5: action links */}
                 {(hasVideo || hasAudio || hasRegistration) && (
-                    <div className="flex flex-wrap gap-2 pt-1 pb-1">
+                    <div className="flex flex-wrap gap-2">
                         {hasVideo && (
-                            <a href={event.video_streaming_link} target="_blank" rel="noopener noreferrer"
+                            <a
+                                href={event.video_streaming_link}
+                                target="_blank" rel="noopener noreferrer"
                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:opacity-85 active:scale-95"
-                                style={{ background: '#cc000022', border: '1px solid #cc000055', color: '#f87171' }}>
+                                style={{ background: '#cc000022', border: '1px solid #cc000055', color: '#f87171' }}
+                            >
                                 <Video size={11} />Watch Live
                             </a>
                         )}
                         {hasAudio && (
-                            <a href={event.audio_streaming_link} target="_blank" rel="noopener noreferrer"
+                            <a
+                                href={event.audio_streaming_link}
+                                target="_blank" rel="noopener noreferrer"
                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:opacity-85 active:scale-95"
-                                style={{ background: `rgba(${TEAL_RGB},0.12)`, border: `1px solid rgba(${TEAL_RGB},0.28)`, color: TEAL }}>
+                                style={{ background: `rgba(${TEAL_RGB},0.12)`, border: `1px solid rgba(${TEAL_RGB},0.28)`, color: TEAL }}
+                            >
                                 <Mic size={11} />Listen Live
                             </a>
                         )}
                         {hasRegistration && (
-                            <a href={event.registration_link} target="_blank" rel="noopener noreferrer"
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-blue-500 hover:opacity-85 active:scale-95">
+                            <a
+                                href={event.registration_link}
+                                target="_blank" rel="noopener noreferrer"
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:opacity-85 active:scale-95"
+                                style={{ background: `rgba(${BRAND_RGB},0.13)`, border: `1px solid rgba(${BRAND_RGB},0.25)`, color: '#7dd3fc' }}
+                            >
                                 <UserPlus size={11} />Register / Invite
-                                {regDeadlineFmt && <span className="text-white/30 font-normal">· {regDeadlineFmt}</span>}
+                                {regDeadlineFmt && (
+                                    <span style={{ color: 'rgba(255,255,255,0.28)', fontWeight: 400 }}>
+                                        · {regDeadlineFmt}
+                                    </span>
+                                )}
                             </a>
                         )}
                     </div>
                 )}
-                <div className="flex items-center justify-between gap-3 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+
+                {/* Row 6: footer — feature badges left, share right */}
+                <div
+                    className="flex items-center justify-between gap-3 pt-1"
+                    style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
+                >
                     <div className="flex items-center gap-2 flex-wrap">
                         {event.has_streaming && (
-                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg"
-                                style={{ background: `rgba(${BRAND_RGB},0.14)`, color: '#7dd3fc' }}>
+                            <span
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg"
+                                style={{ background: `rgba(${BRAND_RGB},0.14)`, color: '#7dd3fc' }}
+                            >
                                 <Wifi size={10} />Streaming
                             </span>
                         )}
                         {event.is_registration_open && (
-                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg"
-                                style={{ background: 'rgba(52,211,153,0.14)', color: '#6ee7b7' }}>
+                            <span
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg"
+                                style={{ background: 'rgba(52,211,153,0.14)', color: '#6ee7b7' }}
+                            >
                                 <UserCheck size={10} />Open
                             </span>
                         )}
                         {!event.has_streaming && !event.is_registration_open && (
-                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg"
-                                style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.28)' }}>
+                            <span
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg"
+                                style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.28)' }}
+                            >
                                 <MapPin size={10} />In-person
                             </span>
                         )}
@@ -1143,12 +1634,15 @@ const EventCardInner = memo(({ event }) => {
         </div>
     );
 });
-EventCardInner.displayName = 'Hub.EventCardInner';
 
+
+// ─── EventPanel ───────────────────────────────────────────────────────────────
 const EventPanel = memo(({ event, isLoading, isError }) => {
     const isLive = event?.status === 'ongoing';
     return (
         <section data-aos="fade" data-aos-duration="480" data-aos-delay="100" className="flex flex-col gap-4">
+
+            {/* Section header */}
             <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
                     <div
@@ -1158,9 +1652,13 @@ const EventPanel = memo(({ event, isLoading, isError }) => {
                         <Zap size={14} style={{ color: BRAND }} />
                     </div>
                     <div>
-                        <h2 className="text-sm font-black text-white tracking-tight capitalize leading-tight">{event?.status} Event</h2>
+                        <h2 className="text-sm font-black text-white tracking-tight capitalize leading-tight">
+                            {event?.status} Event
+                        </h2>
                         {!isLoading && !isError && (
-                            <p className="text-[10px] text-white/28 mt-0.5">{!event ? 'Nothing scheduled' : event.date}</p>
+                            <p className="text-[10px] text-white/28 mt-0.5">
+                                {!event ? 'Nothing scheduled' : event.date}
+                            </p>
                         )}
                     </div>
                 </div>
@@ -1171,15 +1669,27 @@ const EventPanel = memo(({ event, isLoading, isError }) => {
                     </div>
                 )}
             </div>
+
+            {/* Card shell */}
             <div className="ev-card hub-event-card-shell rounded-2xl overflow-hidden" style={cardShell()}>
                 {isLoading ? (
                     <div className="animate-pulse">
-                        <div style={{ height: 180, background: 'rgba(255,255,255,0.05)' }} />
-                        <div className="p-5 space-y-3">
-                            <SkeletonBlock className="h-3.5 w-3/4" /><SkeletonBlock className="h-3 w-1/2" />
+                        <div style={{ height: 210, background: 'rgba(255,255,255,0.05)' }} />
+                        <div className="p-5 flex flex-col gap-4">
+                            <div className="flex justify-between">
+                                <SkeletonBlock className="h-6 w-20 rounded-full" />
+                                <SkeletonBlock className="h-6 w-20 rounded-xl" />
+                            </div>
+                            <SkeletonBlock className="h-5 w-3/4" />
+                            <div className="flex flex-col gap-2">
+                                <SkeletonBlock className="h-3.5 w-1/2" />
+                                <SkeletonBlock className="h-3.5 w-1/3" />
+                            </div>
                             <SkeletonBlock className="h-3 w-full" />
-                            <div className="flex justify-between pt-1">
-                                <SkeletonBlock className="h-6 w-20" /><SkeletonBlock className="h-7 w-20" />
+                            <SkeletonBlock className="h-3 w-4/5" />
+                            <div className="flex justify-between items-center pt-1">
+                                <SkeletonBlock className="h-6 w-24" />
+                                <SkeletonBlock className="h-8 w-20 rounded-xl" />
                             </div>
                         </div>
                     </div>
@@ -1209,9 +1719,6 @@ const EventPanel = memo(({ event, isLoading, isError }) => {
         </section>
     );
 });
-EventPanel.displayName = 'Hub.EventPanel';
-
-// ─── Root ─────────────────────────────────────────────────────────────────────
 
 const SanctuaryHub = () => {
     const [searchParams] = useSearchParams();

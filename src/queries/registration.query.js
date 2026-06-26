@@ -16,13 +16,13 @@ export const useCreateRegistration = (options = {}) => {
     return useMutation({
         mutationFn: EventRegistrationService.createRegistration,
         onSuccess: (data, variables) => {
-            // queryClient.invalidateQueries({ queryKey: QUERY_KEYS.EVENT_REGISTRATIONS.ALL });
-            // queryClient.invalidateQueries({ queryKey: QUERY_KEYS.EVENT_REGISTRATIONS.MY_REGISTRATIONS });
-            // if (variables?.event_id) {
-            //     queryClient.invalidateQueries({
-            //         queryKey: QUERY_KEYS.EVENT_REGISTRATIONS.BY_EVENT(variables.event_id),
-            //     });
-            // }
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.EVENT_REGISTRATIONS.ALL });
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.EVENT_REGISTRATIONS.MY_REGISTRATIONS });
+            if (variables?.event_id) {
+                queryClient.invalidateQueries({
+                    queryKey: QUERY_KEYS.EVENT_REGISTRATIONS.BY_EVENT(variables.event_id),
+                });
+            }
             if (data?.message) Toast.success(data.message);
             options.onSuccess?.(data, variables);
         },

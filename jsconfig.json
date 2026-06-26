@@ -5,7 +5,6 @@
     "module": "ESNext",
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "bundler",
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },

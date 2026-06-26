@@ -1,5 +1,5 @@
 import {
-    memo, useRef, useCallback, useState, useEffect, useLayoutEffect, Suspense, lazy, useMemo,
+    Component, memo, useRef, useCallback, useState, useEffect, useLayoutEffect, Suspense, lazy, useMemo,
 } from 'react';
 import { motion, useInView, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { MapPin, Navigation, Phone, Mail, ExternalLink, Facebook, Instagram, Youtube, ChevronRight, Send } from 'lucide-react';
@@ -26,6 +26,26 @@ export const SHARED_STARS = Array.from({ length: 140 }, (_, i) => ({
 const isTouchDevice = () =>
     typeof window !== 'undefined' &&
     ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
+/* ─── WebGL capability detection (cached, frees its probe context) ───────────── */
+let _webglSupport = null;
+const isWebGLAvailable = () => {
+    if (_webglSupport !== null) return _webglSupport;
+    if (typeof window === 'undefined' || typeof document === 'undefined') return false;
+    try {
+        const canvas = document.createElement('canvas');
+        const gl =
+            window.WebGLRenderingContext &&
+            (canvas.getContext('webgl') || canvas.getContext('experimental-webgl'));
+        _webglSupport = !!gl;
+        if (gl && gl.getExtension) {
+            gl.getExtension('WEBGL_lose_context')?.loseContext?.();
+        }
+    } catch {
+        _webglSupport = false;
+    }
+    return _webglSupport;
+};
 
 /* ─── Container size hook ────────────────────────────────────────────────────── */
 function useContainerSize(ref) {
@@ -62,16 +82,88 @@ const RING_DATA = [{ lat: IBADAN_LAT, lng: IBADAN_LNG, maxR: 4, propagationSpeed
 const RING_COLOR_FN = () => BRAND;
 const POINT_ALTITUDE = 0.02;
 
+/* ─── Globe error boundary ───────────────────────────────────────────────────── */
+/* Catches the synchronous throw from react-globe.gl when a WebGL context cannot
+   be created at render time (context limit hit, GPU blocklisted, accel disabled). */
+class GlobeErrorBoundary extends Component {
+    state = { hasError: false };
+
+    static getDerivedStateFromError() {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error, info) {
+        if (import.meta.env?.DEV) {
+            console.error('Globe failed to render:', error, info);
+        }
+        this.props.onError?.(error);
+    }
+
+    render() {
+        if (this.state.hasError) return this.props.fallback ?? null;
+        return this.props.children;
+    }
+}
+
+/* ─── Static fallback (no WebGL / context failure) ───────────────────────────── */
+const GlobeFallback = memo(() => (
+    <div
+        className="absolute inset-0 flex flex-col items-center justify-center"
+        role="img"
+        aria-label="Glory Centre Community Church, Ibadan, Nigeria"
+    >
+        <div
+            className="relative rounded-full flex items-center justify-center"
+            style={{
+                width: '62%',
+                aspectRatio: '1 / 1',
+                background: `radial-gradient(circle at 35% 30%, rgba(${BRAND_RGB},0.22), rgba(2,12,24,0.95) 70%)`,
+                border: `1px solid rgba(${BRAND_RGB},0.30)`,
+                boxShadow: `0 0 60px rgba(${BRAND_RGB},0.18), inset 0 0 40px rgba(${BRAND_RGB},0.10)`,
+            }}
+        >
+            <MapPin size={26} style={{ color: BRAND }} aria-hidden />
+        </div>
+        <div
+            className="mt-5 flex items-center gap-2 px-3 py-1.5 rounded-full backdrop-blur-md"
+            style={{ background: 'rgba(2,12,24,0.90)', border: `1px solid rgba(${BRAND_RGB},0.30)` }}
+        >
+            <span
+                className="w-2 h-2 rounded-full animate-pulse shrink-0"
+                style={{ background: BRAND, boxShadow: `0 0 8px ${BRAND}` }}
+            />
+            <span className="text-white/80 text-xs font-medium whitespace-nowrap">Ibadan, Nigeria</span>
+        </div>
+    </div>
+));
+GlobeFallback.displayName = 'GlobeFallback';
+
 const LiveGlobe = memo(() => {
     const wrapRef = useRef(null);
     const globeRef = useRef(null);
     const size = useContainerSize(wrapRef);
     const [ready, setReady] = useState(false);
+    const [failed, setFailed] = useState(false);
+    const webglOK = useMemo(() => isWebGLAvailable(), []);
 
     useEffect(() => {
         if (!ready || !globeRef.current) return;
         globeRef.current.pointOfView({ lat: IBADAN_LAT, lng: IBADAN_LNG, altitude: 2.1 }, 1400);
     }, [ready]);
+
+    // Dispose the WebGL renderer on unmount so HMR / route changes do not leak
+    // contexts until the browser hits its per-page limit.
+    useEffect(() => () => {
+        const g = globeRef.current;
+        if (!g) return;
+        try {
+            const renderer = g.renderer?.();
+            renderer?.dispose?.();
+            renderer?.forceContextLoss?.();
+        } catch {
+            /* renderer already gone */
+        }
+    }, []);
 
     const setGlobeRef = useCallback(el => {
         globeRef.current = el;
@@ -84,6 +176,9 @@ const LiveGlobe = memo(() => {
     }, []);
 
     const handleReady = useCallback(() => setReady(true), []);
+    const handleGlobeError = useCallback(() => setFailed(true), []);
+
+    const showFallback = !webglOK || failed;
 
     return (
         <div
@@ -91,49 +186,57 @@ const LiveGlobe = memo(() => {
             className="relative w-full"
             style={{ aspectRatio: '1 / 1', maxWidth: 'min(560px, 100%)', margin: '0 auto', willChange: 'transform', contain: 'layout style' }}
         >
-            {(!ready || size === 0) && (
-                <div className="absolute inset-0 flex items-center justify-center z-10" aria-label="Loading globe">
-                    {''}  <div className="w-10 h-10 rounded-full border-2 border-white/10 animate-spin" style={{ borderTopColor: BRAND }} />
-                </div>
-            )}
-            {size > 0 && (
-                <Suspense fallback={null}>
-                    <GlobeGL
-                        ref={setGlobeRef}
-                        width={size} height={size}
-                        backgroundColor="rgba(0,0,0,0)"
-                        globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
-                        bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
-                        atmosphereColor={BRAND}
-                        atmosphereAltitude={0.20}
-                        pointsData={PIN_DATA}
-                        pointAltitude={POINT_ALTITUDE}
-                        pointRadius="size"
-                        pointColor="color"
-                        pointLabel="label"
-                        ringsData={RING_DATA}
-                        ringColor={RING_COLOR_FN}
-                        ringMaxRadius="maxR"
-                        ringPropagationSpeed="propagationSpeed"
-                        ringRepeatPeriod="repeatPeriod"
-                        enablePointerInteraction
-                        animateIn={false}
-                        onGlobeReady={handleReady}
-                    />
-                </Suspense>
-            )}
-            {ready && (
-                <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1.2, duration: 0.55 }}
-                    className="absolute bottom-[12%] right-[4%] flex items-center gap-2 px-3 py-1.5 rounded-full backdrop-blur-md pointer-events-none"
-                    style={{ background: 'rgba(2,12,24,0.90)', border: `1px solid rgba(${BRAND_RGB},0.30)` }}
-                    aria-hidden="true"
-                >
-                    <span className="w-2 h-2 rounded-full animate-pulse shrink-0" style={{ background: BRAND, boxShadow: `0 0 8px ${BRAND}` }} />
-                    <span className="text-white/80 text-xs font-medium whitespace-nowrap">Ibadan, Nigeria</span>
-                </motion.div>
+            {showFallback ? (
+                <GlobeFallback />
+            ) : (
+                <>
+                    {(!ready || size === 0) && (
+                        <div className="absolute inset-0 flex items-center justify-center z-10" aria-label="Loading globe">
+                            <div className="w-10 h-10 rounded-full border-2 border-white/10 animate-spin" style={{ borderTopColor: BRAND }} />
+                        </div>
+                    )}
+                    {size > 0 && (
+                        <GlobeErrorBoundary onError={handleGlobeError} fallback={<GlobeFallback />}>
+                            <Suspense fallback={null}>
+                                <GlobeGL
+                                    ref={setGlobeRef}
+                                    width={size} height={size}
+                                    backgroundColor="rgba(0,0,0,0)"
+                                    globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+                                    bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
+                                    atmosphereColor={BRAND}
+                                    atmosphereAltitude={0.20}
+                                    pointsData={PIN_DATA}
+                                    pointAltitude={POINT_ALTITUDE}
+                                    pointRadius="size"
+                                    pointColor="color"
+                                    pointLabel="label"
+                                    ringsData={RING_DATA}
+                                    ringColor={RING_COLOR_FN}
+                                    ringMaxRadius="maxR"
+                                    ringPropagationSpeed="propagationSpeed"
+                                    ringRepeatPeriod="repeatPeriod"
+                                    enablePointerInteraction
+                                    animateIn={false}
+                                    onGlobeReady={handleReady}
+                                />
+                            </Suspense>
+                        </GlobeErrorBoundary>
+                    )}
+                    {ready && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 1.2, duration: 0.55 }}
+                            className="absolute bottom-[12%] right-[4%] flex items-center gap-2 px-3 py-1.5 rounded-full backdrop-blur-md pointer-events-none"
+                            style={{ background: 'rgba(2,12,24,0.90)', border: `1px solid rgba(${BRAND_RGB},0.30)` }}
+                            aria-hidden="true"
+                        >
+                            <span className="w-2 h-2 rounded-full animate-pulse shrink-0" style={{ background: BRAND, boxShadow: `0 0 8px ${BRAND}` }} />
+                            <span className="text-white/80 text-xs font-medium whitespace-nowrap">Ibadan, Nigeria</span>
+                        </motion.div>
+                    )}
+                </>
             )}
         </div>
     );
@@ -209,7 +312,7 @@ const DIRECTIONS_URL = `https://www.google.com/maps/dir/?api=1&destination=${enc
 const MAPS_LINK = DIRECTIONS_URL;
 
 const CONTACT_INFO = [
-    { icon: Phone, label: 'Phone', value: '08063176234', link: 'tel:08063176234' },
+    { icon: Phone, label: 'Phone', value: '07068727719', link: 'tel:07068727719' },
     { icon: Mail, label: 'Email', value: 'admin@gcccibadan.org', link: 'mailto:admin@gcccibadan.org' },
 ];
 
@@ -545,7 +648,7 @@ const Footer = () => {
                                 ))}
                             </ul>
                         </motion.div>
-
+                        {/* tel:+234806317 */}
                         {/* Reach Out */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
@@ -557,7 +660,7 @@ const Footer = () => {
                             <h4 className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Reach Out</h4>
                             <div className="space-y-1">
                                 {[
-                                    { href: 'tel:+2348063176234', icon: Phone, text: '0806 317 6234' },
+                                    { href: 'tel:+2347068727719', icon: Phone, text: '0706 872 7719' },
                                     { href: 'mailto:admin@gcccibadan.org', icon: Mail, text: 'admin@gcccibadan.org' },
                                 ].map(({ href, icon: Icon, text }) => (
                                     <a

@@ -8,7 +8,7 @@ import {
     ArrowRight, ChevronLeft, Users, Wifi,
 } from 'lucide-react';
 import { useEvent } from '@/queries/events.query';
-import { Toast } from '@/lib/toastify';
+import { useCreateRegistration } from '@/queries/registration.query';
 import PageHeader from '@/components/common/PageHeader';
 
 /* ─── Tokens ──────────────────────────────────────────────────────────────────── */
@@ -214,19 +214,31 @@ SuccessState.displayName = 'SuccessState';
 
 /* ─── Registration Form ───────────────────────────────────────────────────────── */
 const RegistrationForm = memo(({ event, onSuccess }) => {
-    const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm({
+    const { register, handleSubmit, watch, formState: { errors } } = useForm({
         mode: 'onBlur',
         defaultValues: { first_name: '', last_name: '', email: '', phone: '', attendance_type: 'in_person', note: '' },
     });
+    const { mutateAsync, isPending } = useCreateRegistration();
 
     const onSubmit = useCallback(async (data) => {
+        const fullName = `${data.first_name} ${data.last_name}`.trim();
+        const payload = {
+            event_id: event.id,
+            title: event.title,
+            full_name: fullName,
+            phone_number: data.phone || '',
+            whatsapp_number: data.phone || '',
+            email: data.email,
+            attending: data.attendance_type === 'in_person',
+        };
+
         try {
-            await new Promise(r => setTimeout(r, 1200)); // TODO: replace with mutation
+            await mutateAsync(payload);
             onSuccess(data);
         } catch {
-            Toast.error('Registration failed. Please try again.');
+            // Error toast handled by the mutation hook
         }
-    }, [onSuccess]);
+    }, [event, mutateAsync, onSuccess]);
 
     const mode = watch('attendance_type');
 
@@ -252,9 +264,10 @@ const RegistrationForm = memo(({ event, onSuccess }) => {
                     })} />
             </Field>
 
-            <Field label="Phone Number" error={errors.phone?.message} hint="Optional — used only for event reminders">
+            <Field label="Phone Number" required error={errors.phone?.message} hint="">
                 <input type="tel" placeholder="08012345678" className={inputCls}
                     {...register('phone', {
+                        required: 'Required',
                         pattern: { value: /^[0-9+\-\s()]{7,15}$/, message: 'Invalid phone number' },
                     })} />
             </Field>
@@ -263,7 +276,7 @@ const RegistrationForm = memo(({ event, onSuccess }) => {
                 <div className="grid grid-cols-2 gap-3 mt-1">
                     {[
                         { value: 'in_person', label: 'In Person', Icon: Users },
-                        { value: 'online', label: 'Online', Icon: Wifi },
+                        // { value: 'online', label: 'Online', Icon: Wifi },
                     ].map(({ value, label, Icon }) => {
                         const on = mode === value;
                         return (
@@ -294,13 +307,13 @@ const RegistrationForm = memo(({ event, onSuccess }) => {
             </Field>
 
             <div className="flex flex-col gap-2.5 pt-1">
-                <motion.button type="submit" disabled={isSubmitting} whileTap={{ scale: 0.985 }}
+                <motion.button type="submit" disabled={isPending} whileTap={{ scale: 0.985 }}
                     className="w-full flex items-center justify-center gap-2.5 py-4 rounded-xl text-sm font-bold text-white disabled:opacity-55"
                     style={{
                         background: `linear-gradient(135deg, ${B} 0%, #0568a4 100%)`,
                         boxShadow: `0 4px 24px rgba(${B_RGB},0.28)`,
                     }}>
-                    {isSubmitting
+                    {isPending
                         ? <><Loader2 size={15} className="animate-spin" />Registering…</>
                         : <>Reserve My Spot <ArrowRight size={14} /></>
                     }

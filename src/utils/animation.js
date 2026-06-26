@@ -80,6 +80,10 @@ export const animationVariants = {
     hidden: { scale: 0.5, opacity: 0 },
     visible: { scale: 1, opacity: 1 },
   },
+  'zoom-out': {
+    hidden: { scale: 1.5, opacity: 0 },
+    visible: { scale: 1, opacity: 1 },
+  },
   'zoom-in-up': {
     hidden: { scale: 0.5, y: 30, opacity: 0 },
     visible: { scale: 1, y: 0, opacity: 1 },
