@@ -9,6 +9,19 @@
       href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
       rel="stylesheet"
     />
+    <!-- Hero LCP image: the tall left-hand frame of the hero wall, the one tile
+         that is visible and large at every breakpoint.
+         imagesizes MUST match the `sizes` for this tile in heroTiles.js, or the
+         browser fetches a second copy at a different width. -->
+    <link
+      rel="preload"
+      as="image"
+      type="image/avif"
+      href="/images/home/neon-couple-portrait-480.avif"
+      imagesrcset="/images/home/neon-couple-portrait-480.avif 480w, /images/home/neon-couple-portrait-768.avif 768w, /images/home/neon-couple-portrait-1200.avif 1200w, /images/home/neon-couple-portrait-1440.avif 1440w"
+      imagesizes="(max-width: 639px) 46vw, 24vw"
+    />
+
     <title>Home | GCCC Ibadan</title>
     <meta
       content="Glory Center Community Church, Ibadan, is a God ordained ministry, and the proof is in the signs and wonders following, fulfilled prophecies and transformed lives. Don't take our word for it, come see for yourself"
@@ -42,17 +55,8 @@
     />
     <meta content="Church, religion" name="keywords" />
 
-    <!-- PWA -->
+    <!-- Mobile browser chrome colour -->
     <meta name="theme-color" content="#0998d5" />
-    <meta name="description" content="GCCC Ibadan" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <!-- iOS Safari — does not read the manifest for these -->
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
-    <meta name="apple-mobile-web-app-title" content="GCCC" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <link rel="icon" type="image/png" href="/favicon.ico" />
   </head>

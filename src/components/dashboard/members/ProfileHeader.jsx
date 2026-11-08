@@ -98,7 +98,7 @@ export const ProfileHeader = ({
   }, []);
 
   const sanitizeFileName = useCallback((fileName) => {
-    return fileName.replace(/[^\w\-]+/g, '');
+    return fileName.replace(/[^\w-]+/g, '');
   }, []);
 
   const generateFileName = useCallback(

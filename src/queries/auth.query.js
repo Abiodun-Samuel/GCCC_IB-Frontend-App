@@ -41,8 +41,8 @@ export const useLogin = (options = {}) => {
 
   return useMutation({
     mutationFn: AuthService.login,
-    onSuccess: ({ data }) => {
-      const { token, user } = data;
+    onSuccess: (response, credentials) => {
+      const { token, user } = response.data;
       setAuthenticatedUser({ user });
       setToken({ token });
       queryClient.setQueryData(QUERY_KEYS.AUTH.ME, user);
@@ -59,9 +59,9 @@ export const useLogin = (options = {}) => {
 export const useForgotPassword = (options = {}) => {
   return useMutation({
     mutationFn: AuthService.sendResetLink,
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       Toast.success(data?.message);
-      options.onSuccess?.(data, credentials);
+      options.onSuccess?.(data, variables);
     },
     onError: (error) => {
       const message = handleApiError(error);
@@ -72,9 +72,9 @@ export const useForgotPassword = (options = {}) => {
 export const useResetPassword = (options = {}) => {
   return useMutation({
     mutationFn: AuthService.resetPassword,
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       Toast.success(data?.message);
-      options.onSuccess?.(data, credentials);
+      options.onSuccess?.(data, variables);
     },
     onError: (error) => {
       const message = handleApiError(error);

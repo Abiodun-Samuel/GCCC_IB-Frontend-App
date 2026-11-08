@@ -19,6 +19,7 @@ const FormPage = lazy(() => import('../pages/Home/FormPage'));
 const FirstTimerWelcomePage = lazy(() => import('../pages/Home/FirstTimerWelcomePage'));
 const EventRegistrationPage = lazy(() => import('@/pages/Home/EventRegistrationPage'));
 const InviteGeneratorPage = lazy(() => import('../pages/Home/InviteGeneratorPage'));
+const HangoutPage = lazy(() => import('@/pages/Home/HangoutPage'));
 
 // Dashboard
 const DashboardPage = lazy(() => import('../pages/Dashboard/DashboardPage'));
@@ -45,6 +46,7 @@ const AdminSettingsPage = lazy(() => import('../pages/Admin/AdminSettingsPage'))
 const AdminEventsPage = lazy(() => import('@/pages/Admin/AdminEventsPage'));
 const AdminEventRegistrationPage = lazy(() => import('@/pages/Admin/AdminEventRegistrationPage')); // ← was eager
 const AdminRedeemableItemsPage = lazy(() => import('@/pages/Admin/AdminRedeemableItemsPage'));     // ← was eager
+const AdminHangoutPage = lazy(() => import('@/pages/Admin/AdminHangoutPage'));
 
 // Leaders
 const LeadersDashboardPage = lazy(() => import('../pages/Leaders/LeadersDashboardPage'));
@@ -90,6 +92,7 @@ const AppRoutes = [
       { path: 'events/:eventId/registration', element: withSuspense(EventRegistrationPage) },
       { path: 'first-timer/welcome', element: withSuspense(FirstTimerWelcomePage) },
       { path: 'apostolic-congress', element: withSuspense(InviteGeneratorPage) },
+      { path: 'hangout', element: withSuspense(HangoutPage) },
     ],
   },
 
@@ -130,6 +133,7 @@ const AppRoutes = [
               { path: 'followup-feedbacks', element: withSuspense(AdminFollowupFeedbacksPage) },
               { path: 'settings', element: withSuspense(AdminSettingsPage) },
               { path: 'redeemable-items', element: withSuspense(AdminRedeemableItemsPage) },
+              { path: 'hangout', element: withSuspense(AdminHangoutPage) },
             ],
           },
 

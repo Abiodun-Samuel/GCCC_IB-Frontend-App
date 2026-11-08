@@ -176,7 +176,7 @@ const EventCard = ({ event, onViewDetails }) => {
                     </button>
 
                     <Link
-                        to={`/events/${event.id}/registration`}
+                        to={`/events/${event.slug}/registration`}
                         title="View registrations"
                         className="
                             flex items-center justify-center

@@ -27,7 +27,7 @@ const MonthlyTarget = ({ data, isError, isLoading, error, params, handleDateChan
     const [hasShownToast, setHasShownToast] = useState(false);
 
     const monthAndYear = `${getMonthName(params?.month)}, ${params.year}`;
-    const percentage = Number(data?.metrics?.present_percentage) ?? 0;
+    const percentage = Number(data?.metrics?.present_percentage) || 0;
     const { level, message, fromColor, toColor } = getAttendanceMessage(percentage);
     const isGoalMet = percentage === GOAL_PERCENTAGE;
 

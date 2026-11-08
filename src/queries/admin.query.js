@@ -19,9 +19,9 @@ export const useAdminAnalytics = (params = {}, options = {}) => {
 export const useFetchFromYouTube = (options = {}) => {
   return useMutation({
     mutationFn: AdminService.fetchFromYouTube,
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       Toast.success('YouTube videoes have been fetched successfully. ');
-      options.onSuccess?.(data, credentials);
+      options.onSuccess?.(data, variables);
     },
     onError: (error) => {
       const message = handleApiError(error);
@@ -32,9 +32,9 @@ export const useFetchFromYouTube = (options = {}) => {
 export const useAssignRoleToUsers = (options = {}) => {
   return useMutation({
     mutationFn: AdminService.assignRoleToUsers,
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       Toast.success(data?.message);
-      options.onSuccess?.(data, credentials);
+      options.onSuccess?.(data, variables);
     },
     onError: (error) => {
       const message = handleApiError(error);
@@ -46,9 +46,9 @@ export const useAssignRoleToUsers = (options = {}) => {
 export const useSyncUsersPermissions = (options = {}) => {
   return useMutation({
     mutationFn: AdminService.syncUsersPermissions,
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       Toast.success(data?.message);
-      options.onSuccess?.(data, credentials);
+      options.onSuccess?.(data, variables);
     },
     onError: (error) => {
       const message = handleApiError(error);

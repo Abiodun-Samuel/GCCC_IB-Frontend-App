@@ -12,6 +12,7 @@ import Avatar from '@/components/ui/Avatar';
 import RoleBadge from '@/components/userProfile/RoleBadge';
 import { useScrollState } from '@/hooks/useScrollState';
 import { ThemeToggleButton } from '@/components/common/ThemeToggleButton';
+import LiveClock from '@/components/common/LiveClock';
 import { EventIcon } from '@/icons';
 
 // ─── Shared style tokens ──────────────────────────────────────────────────────
@@ -64,16 +65,9 @@ const Header = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [mobileUserMenuOpen, setMobileUserMenuOpen] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [currentTime, setCurrentTime] = useState(new Date());
 
     const dropdownRef = useRef(null);
     const mobileUserDropdownRef = useRef(null);
-
-    // ── Clock ─────────────────────────────────────────────────────────────────
-    useEffect(() => {
-        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-        return () => clearInterval(timer);
-    }, []);
 
     // ── Click-outside ─────────────────────────────────────────────────────────
     useEffect(() => {
@@ -112,12 +106,12 @@ const Header = () => {
             });
         };
 
-        delay > 0 ? setTimeout(run, delay) : run();
+        if (delay > 0) {
+            setTimeout(run, delay);
+        } else {
+            run();
+        }
     }, [pathname, navigate]);
-
-    const formatTime = useCallback((date) =>
-        date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
-        []);
 
     const toggleMobileMenu = useCallback(() => setMobileMenuOpen(p => !p), []);
     const toggleMobileUserMenu = useCallback(() => setMobileUserMenuOpen(p => !p), []);
@@ -274,9 +268,7 @@ const Header = () => {
                             </Link>
                             <div className="mt-1 flex items-center gap-1.5 cursor-default w-fit">
                                 <Clock className="w-3 h-3 text-[#0998d5]" style={{ animation: 'hdr-spin 60s linear infinite' }} />
-                                <span className="text-xs font-mono font-medium tabular-nums text-[#0998d5]">
-                                    {formatTime(currentTime)}
-                                </span>
+                                <LiveClock className="text-xs font-mono font-medium tabular-nums text-[#0998d5]" />
                             </div>
                         </div>
 
@@ -378,9 +370,7 @@ const Header = () => {
                             </Link>
                             <div className="mt-1 flex items-center gap-1.5 cursor-default">
                                 <Clock className="w-3 h-3 text-[#0998d5]" style={{ animation: 'hdr-spin 60s linear infinite' }} />
-                                <span className="text-xs font-mono font-medium tabular-nums text-[#0998d5]">
-                                    {formatTime(currentTime)}
-                                </span>
+                                <LiveClock className="text-xs font-mono font-medium tabular-nums text-[#0998d5]" />
                             </div>
                         </div>
 

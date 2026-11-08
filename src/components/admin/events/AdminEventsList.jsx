@@ -566,7 +566,7 @@ const EventRow = memo(({ event, onEdit, onDelete }) => {
 
                     {/* ── Registrations page ── */}
                     <Link
-                        to={`/dashboard/admin/events/${event.id}/registration`}
+                        to={`/dashboard/admin/events/${event.slug}/registration`}
                         title="View registrations"
                         className="p-2 rounded-lg transition-colors flex items-center justify-center bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40"
                     >

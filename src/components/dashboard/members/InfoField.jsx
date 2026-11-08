@@ -65,10 +65,11 @@ export const InfoField = ({ icon: Icon, label, value, type }) => {
                 return `mailto:${value}`;
             case 'phone':
                 return `tel:${value.replace(/\s+/g, '')}`;
-            case 'whatsapp':
+            case 'whatsapp': {
                 // Remove all non-numeric characters for WhatsApp
                 const cleanNumber = value.replace(/\D/g, '');
                 return `https://wa.me/${cleanNumber}`;
+            }
             default:
                 return null;
         }

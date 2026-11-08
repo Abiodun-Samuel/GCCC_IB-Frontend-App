@@ -15,6 +15,15 @@ export const QUERY_KEYS = {
   },
 
   // ═══════════════════════════════════════════════════════════════════════
+  // GCCC HANGOUT (separate from events)
+  // ═══════════════════════════════════════════════════════════════════════
+  HANGOUT: {
+    DETAILS: ['hangout', 'details'],
+    REGISTRATIONS_ALL: ['hangout', 'registrations'],
+    REGISTRATIONS: (params = {}) => ['hangout', 'registrations', params],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════
   // EVENT REGISTRATIONS
   // ═══════════════════════════════════════════════════════════════════════
   EVENT_REGISTRATIONS: {

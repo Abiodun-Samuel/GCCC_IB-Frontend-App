@@ -26,7 +26,7 @@ const AdminMetric = ({ data }) => {
                         <IconComponent width={30} height={30} className={iconColor} />
                     </div>
                     <div className="relative inline-block">
-                        <button variant="neutral" className="p-0 m-0" onClick={toggleDropdown}>
+                        <button className="p-0 m-0" onClick={toggleDropdown}>
                             <VerticalDotsIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
                         </button>
                         <Dropdown

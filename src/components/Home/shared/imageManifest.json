@@ -1,0 +1,279 @@
+{
+  "congregation-family": {
+    "width": 1440,
+    "height": 1080,
+    "widths": [
+      480,
+      768,
+      1200,
+      1440
+    ]
+  },
+  "congregation-full": {
+    "width": 1440,
+    "height": 1693,
+    "widths": [
+      480,
+      768,
+      1200,
+      1440
+    ]
+  },
+  "congregation-row": {
+    "width": 1440,
+    "height": 1080,
+    "widths": [
+      480,
+      768,
+      1200,
+      1440
+    ]
+  },
+  "congregation-stage": {
+    "width": 1440,
+    "height": 1080,
+    "widths": [
+      480,
+      768,
+      1200,
+      1440
+    ]
+  },
+  "congregation-wide": {
+    "width": 1440,
+    "height": 1080,
+    "widths": [
+      480,
+      768,
+      1200,
+      1440
+    ]
+  },
+  "fellowship-outdoors": {
+    "width": 1440,
+    "height": 1444,
+    "widths": [
+      480,
+      768,
+      1200,
+      1440
+    ]
+  },
+  "magenta-children": {
+    "width": 1065,
+    "height": 710,
+    "widths": [
+      480,
+      768,
+      1065
+    ]
+  },
+  "magenta-pastor-trio": {
+    "width": 1065,
+    "height": 710,
+    "widths": [
+      480,
+      768,
+      1065
+    ]
+  },
+  "magenta-pastor-trio-duplicate": {
+    "width": 1065,
+    "height": 710,
+    "widths": [
+      480,
+      768,
+      1065
+    ]
+  },
+  "magenta-trio-men": {
+    "width": 1065,
+    "height": 710,
+    "widths": [
+      480,
+      768,
+      1065
+    ]
+  },
+  "magenta-trio-smile": {
+    "width": 1070,
+    "height": 716,
+    "widths": [
+      480,
+      768,
+      1070
+    ]
+  },
+  "magenta-trio-women": {
+    "width": 1070,
+    "height": 716,
+    "widths": [
+      480,
+      768,
+      1070
+    ]
+  },
+  "magenta-women-joy": {
+    "width": 1070,
+    "height": 716,
+    "widths": [
+      480,
+      768,
+      1070
+    ]
+  },
+  "magenta-women-laugh": {
+    "width": 1070,
+    "height": 716,
+    "widths": [
+      480,
+      768,
+      1070
+    ]
+  },
+  "magenta-youth-group": {
+    "width": 1065,
+    "height": 710,
+    "widths": [
+      480,
+      768,
+      1065
+    ]
+  },
+  "neon-agbada-portrait": {
+    "width": 1440,
+    "height": 1920,
+    "widths": [
+      480,
+      768,
+      1200,
+      1440
+    ]
+  },
+  "neon-black-tee-portrait": {
+    "width": 1440,
+    "height": 1919,
+    "widths": [
+      480,
+      768,
+      1200,
+      1440
+    ]
+  },
+  "neon-celebrate": {
+    "width": 1440,
+    "height": 960,
+    "widths": [
+      480,
+      768,
+      1200,
+      1440
+    ]
+  },
+  "neon-couple-portrait": {
+    "width": 1440,
+    "height": 1919,
+    "widths": [
+      480,
+      768,
+      1200,
+      1440
+    ]
+  },
+  "neon-duo-portrait": {
+    "width": 1440,
+    "height": 1919,
+    "widths": [
+      480,
+      768,
+      1200,
+      1440
+    ]
+  },
+  "neon-embrace": {
+    "width": 1440,
+    "height": 960,
+    "widths": [
+      480,
+      768,
+      1200,
+      1440
+    ]
+  },
+  "neon-family-four": {
+    "width": 1440,
+    "height": 960,
+    "widths": [
+      480,
+      768,
+      1200,
+      1440
+    ]
+  },
+  "neon-five-women-lowres": {
+    "width": 450,
+    "height": 335,
+    "widths": [
+      450
+    ]
+  },
+  "neon-group-balcony": {
+    "width": 1440,
+    "height": 960,
+    "widths": [
+      480,
+      768,
+      1200,
+      1440
+    ]
+  },
+  "neon-sisters-portrait": {
+    "width": 1440,
+    "height": 1919,
+    "widths": [
+      480,
+      768,
+      1200,
+      1440
+    ]
+  },
+  "neon-smile-portrait": {
+    "width": 1440,
+    "height": 1919,
+    "widths": [
+      480,
+      768,
+      1200,
+      1440
+    ]
+  },
+  "neon-trio-joy": {
+    "width": 1440,
+    "height": 960,
+    "widths": [
+      480,
+      768,
+      1200,
+      1440
+    ]
+  },
+  "word-ministration": {
+    "width": 959,
+    "height": 1131,
+    "widths": [
+      480,
+      768,
+      959
+    ]
+  },
+  "worship-lead": {
+    "width": 1440,
+    "height": 960,
+    "widths": [
+      480,
+      768,
+      1200,
+      1440
+    ]
+  }
+}

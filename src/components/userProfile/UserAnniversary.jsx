@@ -38,7 +38,7 @@ const calculateDaysUntil = (date) => {
     const anniversaryDate = new Date(date);
     const today = new Date();
 
-    let nextOccurrence = new Date(
+    const nextOccurrence = new Date(
         today.getFullYear(),
         anniversaryDate.getMonth(),
         anniversaryDate.getDate()

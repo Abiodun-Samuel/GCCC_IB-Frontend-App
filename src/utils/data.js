@@ -64,6 +64,7 @@ export const adminNavItems = [
       },
       { name: 'Attendance', path: '/dashboard/admin/attendance', pro: true },
       { name: 'Events', path: '/dashboard/admin/events', pro: true },
+      { name: 'Hangout', path: '/dashboard/admin/hangout', pro: true },
 
       {
         name: 'First Timers',
@@ -281,10 +282,10 @@ export const bibleVerses = [
 //     text: 'Global Glory Team Meeting - Saturday, October 18th at 10:00 AM',
 //   },
 //   { icon: '⚡', text: 'Divine Demand - Daily on YouTube at 5:30 AM' },
-//   { icon: '🎤', text: 'Share your testimonies at www.gcccibadan.org/forms' },
+//   { icon: '🎤', text: 'Share your testimonies at www.gcccibadan.com/forms' },
 //   {
 //     icon: '🙏',
-//     text: 'Submit prayer requests anonymously at www.gcccibadan.org/forms',
+//     text: 'Submit prayer requests anonymously at www.gcccibadan.com/forms',
 //   },
 //   { icon: '❓', text: 'Jesus Perspective Q&A - Second Tuesday of every month' },
 //   {

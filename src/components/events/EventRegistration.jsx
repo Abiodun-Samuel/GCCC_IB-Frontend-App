@@ -1,11 +1,12 @@
 import { memo, useCallback, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Calendar, Clock, MapPin, Video,
     CheckCircle2, AlertCircle, Loader2,
     ArrowRight, ChevronLeft, Users, Wifi,
+    BedDouble, Bus, HandCoins, Home,
 } from 'lucide-react';
 import { useEvent } from '@/queries/events.query';
 import { useCreateRegistration } from '@/queries/registration.query';
@@ -167,6 +168,76 @@ const inputCls = `
     focus:border-[#0998d5] focus:ring-2 focus:ring-[#0998d5]/10
 `;
 
+/* ─── ToggleCard ──────────────────────────────────────────────────────────────── */
+const ToggleCard = memo(({ Icon, label, description, checked, ...rest }) => (
+    <label
+        className={`relative flex items-start gap-3 px-4 py-3.5 rounded-xl cursor-pointer select-none border transition-all duration-200
+            ${checked
+                ? 'border-[#0998d5] bg-[#eef8fd] dark:bg-[#0998d5]/[0.09]'
+                : 'border-slate-200 dark:border-white/[0.08] bg-white dark:bg-transparent hover:bg-slate-50/80 dark:hover:bg-white/[0.04]'
+            }`}
+    >
+        <input type="checkbox" className="sr-only" checked={checked} {...rest} />
+        <span className={`mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors
+            ${checked ? 'bg-[#0998d5]/[0.12]' : 'bg-slate-50 dark:bg-white/[0.05]'}`}>
+            <Icon size={15} style={checked ? { color: B } : {}} className={checked ? '' : 'text-slate-300 dark:text-white/25'} />
+        </span>
+        <span className="flex flex-col gap-0.5 min-w-0">
+            <span className={`text-sm font-semibold leading-tight ${checked ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-white/45'}`}>
+                {label}
+            </span>
+            {description && (
+                <span className="text-[11px] leading-snug text-slate-400 dark:text-white/25">{description}</span>
+            )}
+        </span>
+        <span className={`ml-auto mt-1 w-4 h-4 rounded-md border shrink-0 flex items-center justify-center transition-all duration-200
+            ${checked ? 'border-transparent' : 'border-slate-300 dark:border-white/20'}`}
+            style={checked ? { background: B } : {}}>
+            {checked && <CheckCircle2 size={11} className="text-white" strokeWidth={3} />}
+        </span>
+    </label>
+));
+ToggleCard.displayName = 'ToggleCard';
+
+/* ─── ChoicePair ──────────────────────────────────────────────────────────────── */
+/* Two mutually-exclusive cards backed by a single boolean value. */
+const ChoicePair = memo(({ value, onChange, options }) => (
+    <div className="grid grid-cols-2 gap-3 mt-1">
+        {options.map((opt) => {
+            const on = value === opt.value;
+            const Icon = opt.Icon;
+            return (
+                <button
+                    key={String(opt.value)}
+                    type="button"
+                    onClick={() => onChange(opt.value)}
+                    aria-pressed={on}
+                    className={`relative flex flex-col items-start gap-2 px-4 py-3.5 rounded-xl cursor-pointer select-none border text-left transition-all duration-200
+                        ${on
+                            ? 'border-[#0998d5] bg-[#eef8fd] dark:bg-[#0998d5]/[0.09]'
+                            : 'border-slate-200 dark:border-white/[0.08] bg-white dark:bg-transparent hover:bg-slate-50/80 dark:hover:bg-white/[0.04]'
+                        }`}
+                >
+                    <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors
+                        ${on ? 'bg-[#0998d5]/[0.12]' : 'bg-slate-50 dark:bg-white/[0.05]'}`}>
+                        <Icon size={15} style={on ? { color: B } : {}} className={on ? '' : 'text-slate-300 dark:text-white/25'} />
+                    </span>
+                    <span className={`text-sm font-semibold leading-tight ${on ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-white/45'}`}>
+                        {opt.label}
+                    </span>
+                    {opt.description && (
+                        <span className="text-[11px] leading-snug text-slate-400 dark:text-white/25">{opt.description}</span>
+                    )}
+                    {on && (
+                        <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 rounded-full" style={{ background: B }} />
+                    )}
+                </button>
+            );
+        })}
+    </div>
+));
+ChoicePair.displayName = 'ChoicePair';
+
 /* ─── Success ─────────────────────────────────────────────────────────────────── */
 const SuccessState = memo(({ event, name }) => (
     <motion.div
@@ -214,9 +285,21 @@ SuccessState.displayName = 'SuccessState';
 
 /* ─── Registration Form ───────────────────────────────────────────────────────── */
 const RegistrationForm = memo(({ event, onSuccess }) => {
-    const { register, handleSubmit, watch, formState: { errors } } = useForm({
+    const { register, handleSubmit, watch, control, formState: { errors } } = useForm({
         mode: 'onBlur',
-        defaultValues: { first_name: '', last_name: '', email: '', phone: '', attendance_type: 'in_person', note: '' },
+        defaultValues: {
+            title: '',
+            first_name: '',
+            last_name: '',
+            email: '',
+            phone_number: '',
+            whatsapp_number: '',
+            attendance_type: 'in_person',
+            needs_accommodation: false,
+            travelling_with_us: false,
+            needs_transport_fare_help: false,
+            travel_date: '',
+        },
     });
     const { mutateAsync, isPending } = useCreateRegistration();
 
@@ -224,12 +307,16 @@ const RegistrationForm = memo(({ event, onSuccess }) => {
         const fullName = `${data.first_name} ${data.last_name}`.trim();
         const payload = {
             event_id: event.id,
-            title: event.title,
+            title: data.title?.trim() || null,
             full_name: fullName,
-            phone_number: data.phone || '',
-            whatsapp_number: data.phone || '',
+            phone_number: data.phone_number || '',
+            whatsapp_number: data.whatsapp_number?.trim() || null,
             email: data.email,
             attending: data.attendance_type === 'in_person',
+            needs_accommodation: !!data.needs_accommodation,
+            travelling_with_us: !!data.travelling_with_us,
+            needs_transport_fare_help: !!data.needs_transport_fare_help,
+            travel_date: data.travel_date || null,
         };
 
         try {
@@ -245,14 +332,25 @@ const RegistrationForm = memo(({ event, onSuccess }) => {
     return (
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
 
+            <Field label="Title" error={errors.title?.message} hint="Optional — e.g. Mr, Mrs, Dr, Pastor">
+                <input type="text" placeholder="Mr / Mrs / Dr…" className={inputCls}
+                    {...register('title', { maxLength: { value: 50, message: 'Max 50 characters' } })} />
+            </Field>
+
             <div className="grid grid-cols-2 gap-4">
                 <Field label="First Name" required error={errors.first_name?.message}>
                     <input type="text" placeholder="John" className={inputCls}
-                        {...register('first_name', { required: 'Required' })} />
+                        {...register('first_name', {
+                            required: 'Required',
+                            maxLength: { value: 150, message: 'Max 150 characters' },
+                        })} />
                 </Field>
                 <Field label="Last Name" required error={errors.last_name?.message}>
                     <input type="text" placeholder="Doe" className={inputCls}
-                        {...register('last_name', { required: 'Required' })} />
+                        {...register('last_name', {
+                            required: 'Required',
+                            maxLength: { value: 150, message: 'Max 150 characters' },
+                        })} />
                 </Field>
             </div>
 
@@ -260,15 +358,25 @@ const RegistrationForm = memo(({ event, onSuccess }) => {
                 <input type="email" placeholder="you@example.com" className={inputCls}
                     {...register('email', {
                         required: 'Required',
+                        maxLength: { value: 255, message: 'Max 255 characters' },
                         pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Invalid email' },
                     })} />
             </Field>
 
-            <Field label="Phone Number" required error={errors.phone?.message} hint="">
+            <Field label="Phone Number" required error={errors.phone_number?.message}>
                 <input type="tel" placeholder="08012345678" className={inputCls}
-                    {...register('phone', {
+                    {...register('phone_number', {
                         required: 'Required',
-                        pattern: { value: /^[0-9+\-\s()]{7,15}$/, message: 'Invalid phone number' },
+                        maxLength: { value: 25, message: 'Max 25 characters' },
+                        pattern: { value: /^[0-9+\-\s()]{7,25}$/, message: 'Invalid phone number' },
+                    })} />
+            </Field>
+
+            <Field label="WhatsApp Number" error={errors.whatsapp_number?.message} hint="Optional — if different from your phone number">
+                <input type="tel" placeholder="08012345678" className={inputCls}
+                    {...register('whatsapp_number', {
+                        maxLength: { value: 25, message: 'Max 25 characters' },
+                        pattern: { value: /^[0-9+\-\s()]{7,25}$/, message: 'Invalid phone number' },
                     })} />
             </Field>
 
@@ -300,10 +408,53 @@ const RegistrationForm = memo(({ event, onSuccess }) => {
                 </div>
             </Field>
 
-            <Field label="Message" error={errors.note?.message} hint="Optional — share any questions with the team">
-                <textarea rows={3} placeholder="Anything you'd like us to know…"
-                    className={`${inputCls} resize-none`}
-                    {...register('note', { maxLength: { value: 300, message: 'Max 300 characters' } })} />
+            {/* ── Accommodation ── */}
+            <Field label="Accommodation" hint="Will you need us to arrange a place to stay?">
+                <Controller
+                    name="needs_accommodation"
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                        <ChoicePair
+                            value={!!value}
+                            onChange={onChange}
+                            options={[
+                                { value: true, label: 'I need accommodation', description: "We'll arrange a place for you", Icon: BedDouble },
+                                { value: false, label: "I'll sort mine", description: 'Handling my own accommodation', Icon: Home },
+                            ]}
+                        />
+                    )}
+                />
+            </Field>
+
+            {/* ── Transportation ── */}
+            <Field label="Transportation" hint="Tell us how you're getting there and if you need support">
+                <div className="flex flex-col gap-2.5 mt-1">
+                    <Controller
+                        name="travelling_with_us"
+                        control={control}
+                        render={({ field: { value, onChange, ...f } }) => (
+                            <ToggleCard Icon={Bus}
+                                label="Travel with the church transport"
+                                description="Join the transportation the church is arranging"
+                                checked={!!value} onChange={(e) => onChange(e.target.checked)} {...f} />
+                        )}
+                    />
+                    <Controller
+                        name="needs_transport_fare_help"
+                        control={control}
+                        render={({ field: { value, onChange, ...f } }) => (
+                            <ToggleCard Icon={HandCoins}
+                                label="I need help with transport fare"
+                                description="Request assistance covering your travel cost, however you travel"
+                                checked={!!value} onChange={(e) => onChange(e.target.checked)} {...f} />
+                        )}
+                    />
+                </div>
+            </Field>
+
+            {/* ── Travel date (always asked) ── */}
+            <Field label="Travel Date" error={errors.travel_date?.message} hint="When do you plan to travel? (helps us plan, however you're getting there)">
+                <input type="date" className={inputCls} {...register('travel_date')} />
             </Field>
 
             <div className="flex flex-col gap-2.5 pt-1">

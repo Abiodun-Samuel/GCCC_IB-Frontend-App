@@ -72,7 +72,7 @@ export const useUpdateMember = (options = {}) => {
         data?.data || data
       );
       Toast.success(data?.message);
-      options.onSuccess?.(response.data, variables);
+      options.onSuccess?.(data?.data ?? data, variables);
     },
     onError: (error) => {
       const errorDetails = handleApiError(error);
@@ -145,7 +145,7 @@ export const useDeleteMember = (options = {}) => {
 
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.MEMBERS.ALL });
-      Toast.success(response.message);
+      Toast.success(data?.message);
       options.onSuccess?.(data, variables);
     },
     onError: (error) => {

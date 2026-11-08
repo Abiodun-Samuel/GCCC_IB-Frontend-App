@@ -1,5 +1,5 @@
 // https://icon-sets.iconify.design
-export const HandIcon = ({ }) => {
+export const HandIcon = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -44,7 +44,7 @@ export const CheckedIcon = ({ width = 110, height = 110, className = '' }) => {
     </svg>
   );
 };
-export const AttendanceIcon = ({ }) => {
+export const AttendanceIcon = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

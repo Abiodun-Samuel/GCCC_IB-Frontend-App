@@ -1,0 +1,80 @@
+# =============================================================================
+# GCCC Ibadan — Hostinger shared hosting (LiteSpeed)
+#
+# Lives in public/ so every `npm run build` copies it to dist/.htaccess.
+# Deploy by uploading the *contents* of dist/ into public_html/.
+# =============================================================================
+
+# MultiViews lets the server guess that "/events" means "events.js" before the
+# SPA rewrite ever runs, which breaks client-side routes. Off.
+<IfModule mod_negotiation.c>
+  Options -MultiViews
+</IfModule>
+
+# No directory listings for /images, /favicon, /assets.
+<IfModule mod_autoindex.c>
+  Options -Indexes
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Tag Vite's build output so the cache rules below can find it.
+  RewriteRule ^assets/ - [E=BUILD_ASSET:1]
+
+  # A missing hashed asset means a page left open across a deploy asked for a
+  # chunk from an older build. Answer with a real 404 rather than letting the
+  # SPA fallback below hand back HTML for a .js request, which fails with a
+  # confusing MIME-type error instead of an obvious one.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^assets/ - [R=404,L]
+
+  # SPA fallback — anything that isn't a real file or directory renders the app.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  # index.html names the current hashed bundles, so it must never be cached.
+  # A stale copy points browsers at JS files that no longer exist.
+  <FilesMatch "^index\.html$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires 0
+  </FilesMatch>
+
+  # Files that ship straight out of public/ — logos, photos, favicons. These
+  # keep their names across builds, so they get a week with revalidation.
+  # Pinning them longer means replacing a photo never reaches existing visitors.
+  <FilesMatch "\.(png|jpe?g|gif|svg|webp|avif|ico)$">
+    Header set Cache-Control "public, max-age=604800, must-revalidate"
+  </FilesMatch>
+
+  # Everything under /assets/ is content-hashed by Vite (name-A1b2C3d4.js), so a
+  # changed file is always a new filename and can be pinned forever. This block
+  # runs after the one above, so hashed images take this rule instead.
+  <FilesMatch "\.(js|css|png|jpe?g|gif|svg|webp|avif|woff2?)$">
+    Header set Cache-Control "public, max-age=31536000, immutable" env=BUILD_ASSET
+  </FilesMatch>
+
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# LiteSpeed compresses on its own, but this covers the fallback case.
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml
+  AddOutputFilterByType DEFLATE application/javascript application/json
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# Shared hosts occasionally ship incomplete MIME tables.
+<IfModule mod_mime.c>
+  AddType image/svg+xml .svg
+  AddType image/webp .webp
+  AddType image/avif .avif
+  AddType font/woff2 .woff2
+</IfModule>

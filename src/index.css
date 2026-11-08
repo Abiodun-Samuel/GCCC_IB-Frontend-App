@@ -193,6 +193,16 @@ layer(base);
   --z-index-9999: 9999;
   --z-index-99999: 99999;
   --z-index-999999: 999999;
+
+  /* Animation utilities.
+     Tailwind v4 is CSS-first and does NOT read tailwind.config.js — there is no
+     @config directive in this file — so the `animation` block in that config
+     generates nothing. These declarations are what actually create the
+     `animate-*` utilities; the matching @keyframes live further down. */
+  --animate-mh-shimmer: mh-shimmer 1.5s ease infinite;
+  --animate-mh-ripple: mh-ripple 1.8s ease-out infinite;
+  --animate-glow-pulse: glow-pulse 4s ease-in-out infinite;
+  --animate-hub-ripple: hub-ripple 1.6s ease-out infinite;
 }
 .ag-paging-panel {
   height: 110px !important;
@@ -570,15 +580,7 @@ layer(base);
     background-position: -200% 0;
   }
 }
-@keyframes mh-glow {
-  0%,
-  100% {
-    opacity: 0.25;
-  }
-  50% {
-    opacity: 0.65;
-  }
-}
+
 @keyframes mh-ripple {
   0% {
     transform: scale(1);
@@ -728,57 +730,14 @@ layer(base);
     opacity: 0;
   }
 }
-@keyframes hub-glow {
-  0%,
-  100% {
-    opacity: 0.28;
-  }
-  50% {
-    opacity: 0.72;
-  }
-}
-@keyframes hub-scale-in {
-  0% {
-    transform: scale(0);
-    opacity: 0;
-  }
-  65% {
-    transform: scale(1.08);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-@keyframes hub-tab-in {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-@keyframes hub-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
 
-.hub-scale-in {
-  animation: hub-scale-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-.hub-tab-in {
-  animation: hub-tab-in 0.18s ease-out both;
-}
-.hub-fade-in {
-  animation: hub-fade-in 0.22s ease-out both;
-}
+
+
+
+
+
+
+
 
 .hub-scroll::-webkit-scrollbar {
   width: 3px;
@@ -791,9 +750,7 @@ layer(base);
   border-radius: 99px;
 }
 
-.hub-ripple-ring {
-  animation: hub-ripple 1.6s ease-out infinite;
-}
+
 
 .ev-card {
   transition:
@@ -809,18 +766,9 @@ layer(base);
     0 0 0 1px rgba(17, 155, 214, 0.12);
 }
 
-.hub-celeb-btn {
-  transition:
-    transform 0.15s ease,
-    opacity 0.15s ease;
-}
-.hub-celeb-btn:hover {
-  transform: scale(1.03);
-  opacity: 0.92;
-}
-.hub-celeb-btn:active {
-  transform: scale(0.97);
-}
+
+
+
 
 /* AOS FOUC guard — prevents elements flickering visible before AOS.init() */
 html:not(.aos-running) [data-aos] {
@@ -830,35 +778,22 @@ html:not(.aos-running) [data-aos] {
 }
 
 /* Lottie wrapper — reserves space before canvas mounts to prevent CLS */
-.hub-lottie-wrap {
-  width: 190px;
-  height: 190px;
-  flex-shrink: 0;
-  position: relative;
-}
+
 
 /* Service rail body — stable min-height prevents layout shift on state swap */
-.hub-service-body {
-  min-height: 340px;
-}
+
 
 /* Event card shell — stable min-height matches skeleton to prevent upward jump */
-.hub-event-card-shell {
-  min-height: 320px;
-}
+
 
 @media (prefers-reduced-motion: reduce) {
-  .hub-ripple-ring,
-  .hub-scale-in,
-  .hub-tab-in,
-  .hub-fade-in {
-    animation: none !important;
-  }
-  .hub-celeb-btn:hover {
-    transform: none;
-  }
   .ev-card:hover {
     transform: none;
+  }
+  .about-img-entering,
+  .about-img-leaving,
+  .about-pb-fill {
+    animation: none !important;
   }
 }
 
@@ -950,3 +885,5 @@ html:not(.aos-running) [data-aos] {
     animation: none !important;
   }
 }
+
+

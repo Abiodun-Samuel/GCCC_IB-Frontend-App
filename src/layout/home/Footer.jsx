@@ -191,7 +191,7 @@ const LiveGlobe = memo(() => {
             ) : (
                 <>
                     {(!ready || size === 0) && (
-                        <div className="absolute inset-0 flex items-center justify-center z-10" aria-label="Loading globe">
+                        <div className="absolute inset-0 flex items-center justify-center z-10" aria-label="Loading globe">{''}
                             <div className="w-10 h-10 rounded-full border-2 border-white/10 animate-spin" style={{ borderTopColor: BRAND }} />
                         </div>
                     )}
@@ -313,7 +313,7 @@ const MAPS_LINK = DIRECTIONS_URL;
 
 const CONTACT_INFO = [
     { icon: Phone, label: 'Phone', value: '07068727719', link: 'tel:07068727719' },
-    { icon: Mail, label: 'Email', value: 'admin@gcccibadan.org', link: 'mailto:admin@gcccibadan.org' },
+    { icon: Mail, label: 'Email', value: 'admin@gcccibadan.com', link: 'mailto:admin@gcccibadan.com' },
 ];
 
 const SOCIAL_LINKS = [
@@ -661,7 +661,7 @@ const Footer = () => {
                             <div className="space-y-1">
                                 {[
                                     { href: 'tel:+2347068727719', icon: Phone, text: '0706 872 7719' },
-                                    { href: 'mailto:admin@gcccibadan.org', icon: Mail, text: 'admin@gcccibadan.org' },
+                                    { href: 'mailto:admin@gcccibadan.com', icon: Mail, text: 'admin@gcccibadan.com' },
                                 ].map(({ href, icon: Icon, text }) => (
                                     <a
                                         key={href} href={href}

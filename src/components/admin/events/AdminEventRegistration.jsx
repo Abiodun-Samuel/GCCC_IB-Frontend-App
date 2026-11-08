@@ -9,7 +9,8 @@ import {
     Users, CheckCircle2, XCircle, Phone, Mail, MessageCircle,
     Calendar, Search, Filter, Trash2, RefreshCw, ChevronDown,
     ArrowLeft, Radio, Video, MapPin, Clock, Wifi, WifiOff,
-    TrendingUp, ExternalLink, Download,
+    TrendingUp, ExternalLink, Download, BedDouble, Bus, HandCoins,
+    Plane, Minus,
 } from 'lucide-react';
 import { useEvent } from '@/queries/events.query';
 
@@ -40,6 +41,17 @@ const avatarGradient = (id) => AVATAR_GRADIENTS[id % AVATAR_GRADIENTS.length];
 const fmtDate = (iso) =>
     new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
+// travel_date arrives as a plain 'YYYY-MM-DD' string; format without TZ shifts.
+const fmtPlainDate = (val) => {
+    if (!val) return null;
+    const [y, m, d] = String(val).split('T')[0].split('-').map(Number);
+    if (!y || !m || !d) return null;
+    return new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+
+// Nullable booleans: true = "Yes", false = "No", null/undefined = not answered.
+const boolLabel = (v) => (v === true ? 'Yes' : v === false ? 'No' : '—');
+
 /* ─────────────────────────────────────────────────────────────────────────────
    CSV EXPORT
 ───────────────────────────────────────────────────────────────────────────── */
@@ -51,8 +63,13 @@ const CSV_COLUMNS = [
     { header: 'Phone', key: r => r.phone_number },
     { header: 'WhatsApp', key: r => r.whatsapp_number ?? '' },
     { header: 'Attending', key: r => r.attending ? 'Yes' : 'No' },
+    { header: 'Needs Accommodation', key: r => boolLabel(r.needs_accommodation) },
+    { header: 'Church Transport', key: r => boolLabel(r.travelling_with_us) },
+    { header: 'Needs Fare Help', key: r => boolLabel(r.needs_transport_fare_help) },
+    { header: 'Travel Date', key: r => fmtPlainDate(r.travel_date) ?? '' },
     { header: 'Registered On', key: r => fmtDate(r.created_at) },
 ];
+
 
 const escapeCell = (val) => {
     const str = String(val ?? '');
@@ -98,8 +115,12 @@ const SkeletonRow = memo(() => (
         </td>
         <td className="px-4 py-3.5 hidden sm:table-cell"><Shimmer className="h-3.5 w-40" /></td>
         <td className="px-4 py-3.5 hidden md:table-cell"><Shimmer className="h-3.5 w-28" /></td>
-        <td className="px-4 py-3.5 hidden lg:table-cell"><Shimmer className="h-3.5 w-28" /></td>
+        <td className="px-4 py-3.5 hidden 2xl:table-cell"><Shimmer className="h-3.5 w-28" /></td>
         <td className="px-4 py-3.5"><Shimmer className="h-6 w-20 rounded-full" /></td>
+        <td className="px-4 py-3.5 hidden lg:table-cell"><Shimmer className="h-6 w-28 rounded-full" /></td>
+        <td className="px-4 py-3.5 hidden lg:table-cell"><Shimmer className="h-6 w-24 rounded-full" /></td>
+        <td className="px-4 py-3.5 hidden lg:table-cell"><Shimmer className="h-6 w-24 rounded-full" /></td>
+        <td className="px-4 py-3.5 hidden xl:table-cell"><Shimmer className="h-3.5 w-24" /></td>
         <td className="px-4 py-3.5 hidden xl:table-cell"><Shimmer className="h-3.5 w-24" /></td>
         <td className="px-4 py-3.5"><Shimmer className="h-8 w-8 rounded-lg" /></td>
     </tr>
@@ -131,7 +152,7 @@ const PageSkeleton = memo(() => (
                 <div className="flex gap-2"><Shimmer className="h-9 w-28 rounded-xl" /><Shimmer className="h-9 w-9 rounded-xl" /></div>
             </div>
             <table className="w-full">
-                <thead><tr className="border-b border-gray-100 dark:border-gray-800">{Array.from({ length: 8 }).map((_, i) => <th key={i} className="px-4 py-3"><Shimmer className="h-3 w-16" /></th>)}</tr></thead>
+                <thead><tr className="border-b border-gray-100 dark:border-gray-800">{Array.from({ length: 12 }).map((_, i) => <th key={i} className="px-4 py-3"><Shimmer className="h-3 w-16" /></th>)}</tr></thead>
                 <tbody>{Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)}</tbody>
             </table>
         </div>
@@ -292,6 +313,9 @@ const FILTER_OPTIONS = [
     { key: 'all', label: 'All Registrations' },
     { key: 'attending', label: 'Attending' },
     { key: 'not_attending', label: 'Not Attending' },
+    { key: 'needs_accommodation', label: 'Needs Accommodation' },
+    { key: 'travelling_with_us', label: 'Church Transport' },
+    { key: 'needs_fare_help', label: 'Needs Fare Help' },
 ];
 
 const FilterDropdown = memo(({ value, onChange }) => {
@@ -317,7 +341,7 @@ const FilterDropdown = memo(({ value, onChange }) => {
             {open && (
                 <>
                     <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-                    <div className="absolute right-0 top-full mt-1.5 w-44 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/60 dark:shadow-black/40 z-20 overflow-hidden">
+                    <div className="absolute right-0 top-full mt-1.5 w-52 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/60 dark:shadow-black/40 z-20 overflow-hidden">
                         {FILTER_OPTIONS.map(({ key, label }) => (
                             <button
                                 key={key}
@@ -344,7 +368,7 @@ FilterDropdown.displayName = 'Reg.FilterDropdown';
 ───────────────────────────────────────────────────────────────────────────── */
 const EmptyState = memo(({ hasFilters, onClear }) => (
     <tr>
-        <td colSpan={8} className="px-4 py-16 text-center">
+        <td colSpan={12} className="px-4 py-16 text-center">
             <div className="flex flex-col items-center gap-2.5">
                 <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                     <Users className="w-6 h-6 text-gray-300 dark:text-gray-600" strokeWidth={1.5} />
@@ -373,6 +397,35 @@ const TH = ({ children, className = '' }) => (
 );
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   LOGISTICS CELL — a single nullable-boolean answer shown as its own column.
+   labels adapts the wording to the answer so each cell reads clearly on its own.
+───────────────────────────────────────────────────────────────────────────── */
+const LogisticsCell = memo(({ labels, value }) => {
+    // value: true = needs/opted-in, false = explicitly declined, null/undefined = not answered
+    const text =
+        value === true ? labels.yes
+            : value === false ? labels.no
+                : labels.unknown;
+
+    const cls =
+        value === true
+            ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20'
+            : value === false
+                ? 'bg-gray-50 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700'
+                : 'bg-transparent text-gray-400 dark:text-gray-500 border-dashed border-gray-200 dark:border-gray-700';
+
+    const StatusIcon = value === true ? CheckCircle2 : value === false ? XCircle : Minus;
+
+    return (
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border whitespace-nowrap ${cls}`}>
+            <StatusIcon className="w-3 h-3 shrink-0" strokeWidth={2} />
+            {text}
+        </span>
+    );
+});
+LogisticsCell.displayName = 'Reg.LogisticsCell';
+
+/* ─────────────────────────────────────────────────────────────────────────────
    REGISTRATION ROW
 ───────────────────────────────────────────────────────────────────────────── */
 const RegistrationRow = memo(({ reg, index, onDelete }) => (
@@ -394,6 +447,11 @@ const RegistrationRow = memo(({ reg, index, onDelete }) => (
                 <div className="min-w-0">
                     <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{reg.full_name}</p>
                     {reg.title && <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{reg.title}</p>}
+                    {/* Compact contact — visible only when the dedicated columns are hidden */}
+                    <div className="sm:hidden mt-1 flex flex-col gap-0.5">
+                        <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{reg.email}</span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500 truncate">{reg.phone_number}</span>
+                    </div>
                 </div>
             </div>
         </td>
@@ -421,7 +479,7 @@ const RegistrationRow = memo(({ reg, index, onDelete }) => (
         </td>
 
         {/* WhatsApp */}
-        <td className="px-4 py-3.5 hidden lg:table-cell">
+        <td className="px-4 py-3.5 hidden 2xl:table-cell">
             {reg.whatsapp_number ? (
                 <a
                     href={`https://wa.me/${reg.whatsapp_number.replace(/\D/g, '')}`}
@@ -448,6 +506,42 @@ const RegistrationRow = memo(({ reg, index, onDelete }) => (
                     <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
                     Not Going
                 </span>
+            )}
+        </td>
+
+        {/* Accommodation */}
+        <td className="px-4 py-3.5 hidden lg:table-cell">
+            <LogisticsCell
+                value={reg.needs_accommodation}
+                labels={{ yes: 'Needs accommodation', no: 'Arranging own', unknown: 'Not specified' }}
+            />
+        </td>
+
+        {/* Church transport */}
+        <td className="px-4 py-3.5 hidden lg:table-cell">
+            <LogisticsCell
+                value={reg.travelling_with_us}
+                labels={{ yes: 'Church transport', no: 'Own way', unknown: 'Not specified' }}
+            />
+        </td>
+
+        {/* Transport fare help */}
+        <td className="px-4 py-3.5 hidden lg:table-cell">
+            <LogisticsCell
+                value={reg.needs_transport_fare_help}
+                labels={{ yes: 'Needs fare help', no: 'Covering own fare', unknown: 'Not specified' }}
+            />
+        </td>
+
+        {/* Travel date */}
+        <td className="px-4 py-3.5 hidden xl:table-cell">
+            {fmtPlainDate(reg.travel_date) ? (
+                <div className="inline-flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300 font-medium">
+                    <Plane className="w-3.5 h-3.5 shrink-0 text-gray-300 dark:text-gray-600" strokeWidth={1.8} />
+                    {fmtPlainDate(reg.travel_date)}
+                </div>
+            ) : (
+                <span className="text-xs text-gray-300 dark:text-gray-600">—</span>
             )}
         </td>
 
@@ -498,6 +592,9 @@ export default function AdminEventRegistration({ onDelete }) {
             total: registrations.length,
             attending,
             notAttending: registrations.length - attending,
+            needsAccommodation: registrations.filter(r => r.needs_accommodation === true).length,
+            travellingWithUs: registrations.filter(r => r.travelling_with_us === true).length,
+            needsFareHelp: registrations.filter(r => r.needs_transport_fare_help === true).length,
         };
     }, [registrations]);
 
@@ -513,7 +610,10 @@ export default function AdminEventRegistration({ onDelete }) {
             const matchFilter
                 = filter === 'all'
                 || (filter === 'attending' && reg.attending)
-                || (filter === 'not_attending' && !reg.attending);
+                || (filter === 'not_attending' && !reg.attending)
+                || (filter === 'needs_accommodation' && reg.needs_accommodation === true)
+                || (filter === 'travelling_with_us' && reg.travelling_with_us === true)
+                || (filter === 'needs_fare_help' && reg.needs_transport_fare_help === true);
 
             return matchSearch && matchFilter;
         });
@@ -587,6 +687,34 @@ export default function AdminEventRegistration({ onDelete }) {
                 />
             </div>
 
+            {/* ── Logistics Summary ────────────────────────────────────────── */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <StatCard
+                    label="Need Accommodation"
+                    value={stats.needsAccommodation}
+                    icon={BedDouble}
+                    iconBg="bg-violet-500/10 dark:bg-violet-500/15"
+                    iconColor="text-violet-500"
+                    sub="Requested a place to stay"
+                />
+                <StatCard
+                    label="Church Transport"
+                    value={stats.travellingWithUs}
+                    icon={Bus}
+                    iconBg="bg-sky-500/10 dark:bg-sky-500/15"
+                    iconColor="text-sky-500"
+                    sub="Joining the church arrangement"
+                />
+                <StatCard
+                    label="Need Fare Help"
+                    value={stats.needsFareHelp}
+                    icon={HandCoins}
+                    iconBg="bg-amber-500/10 dark:bg-amber-500/15"
+                    iconColor="text-amber-500"
+                    sub="Requested fare assistance"
+                />
+            </div>
+
             {/* ── Attendance Rate Bar ───────────────────────────────────────── */}
             {stats.total > 0 && (
                 <AttendanceBar attending={stats.attending} total={stats.total} />
@@ -639,15 +767,19 @@ export default function AdminEventRegistration({ onDelete }) {
 
                 {/* Table */}
                 <div className="overflow-x-auto">
-                    <table className="w-full min-w-[680px]">
+                    <table className="w-full min-w-[1000px]">
                         <thead>
                             <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50/40 dark:bg-gray-800/30">
                                 <TH className="w-12">#</TH>
                                 <TH className="min-w-[180px]">Registrant</TH>
                                 <TH className="hidden sm:table-cell min-w-[180px]">Email</TH>
                                 <TH className="hidden md:table-cell">Phone</TH>
-                                <TH className="hidden lg:table-cell">WhatsApp</TH>
+                                <TH className="hidden 2xl:table-cell">WhatsApp</TH>
                                 <TH>Status</TH>
+                                <TH className="hidden lg:table-cell">Accommodation</TH>
+                                <TH className="hidden lg:table-cell">Transport</TH>
+                                <TH className="hidden lg:table-cell">Fare Help</TH>
+                                <TH className="hidden xl:table-cell">Travel Date</TH>
                                 <TH className="hidden xl:table-cell">Registered</TH>
                                 <TH className="w-12" />
                             </tr>

@@ -52,7 +52,6 @@ const AttendanceMetric = ({ data, type }) => {
 
                 <div className="relative inline-block">
                     <button
-                        variant="neutral"
                         className="m-0 p-0"
                         onClick={toggleDropdown}
                         aria-label="Options"

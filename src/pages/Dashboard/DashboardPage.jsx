@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import PageMeta from '@/components/common/PageMeta';
 import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 import AttendanceMetrics from '@/components/dashboard/metrics/AttendanceMetrics';
+import ServiceClockInCard from '@/components/dashboard/ServiceClockInCard';
 import MonthlyTarget from '@/components/dashboard/MonthlyTarget';
 import BibleVerseDisplay from '@/components/dashboard/BibleVerseDisplay';
 import VideoCarousel from '@/components/media/VideoCarousel';
@@ -49,6 +50,10 @@ const DashboardPage = () => {
       <PageBreadcrumb icon={DashboardIcon} pageTitle="Dashboard" description={'See your latest attendance summary, current giving status, and important community updates at a glance.'} />
 
       <main className="grid grid-cols-12 gap-4 md:gap-6">
+        <div className="col-span-12">
+          <ServiceClockInCard />
+        </div>
+
         <section className="relative col-span-12 space-y-5 xl:col-span-7">
           <AttendanceMetrics {...attendanceProps} handleDateChange={handleDateChange} />
           <BibleVerseDisplay />

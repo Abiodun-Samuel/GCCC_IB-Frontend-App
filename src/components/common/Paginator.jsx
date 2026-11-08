@@ -10,8 +10,8 @@ const Paginator = ({ paginationData, limit = 4, onPageChange }) => {
     const result = [];
     result.push(links[0]); // "Previous" button
 
-    let start = Math.max(current - limit, 2);
-    let end = Math.min(current + limit, totalPages - 1);
+    const start = Math.max(current - limit, 2);
+    const end = Math.min(current + limit, totalPages - 1);
 
     if (start > 2) result.push({ label: "...", url: null });
 
